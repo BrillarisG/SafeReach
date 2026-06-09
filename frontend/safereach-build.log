@@ -1,0 +1,70 @@
+
+> safereach@0.1.0 build
+> node scripts/run-next.cjs build
+
+
+   ▲ Next.js 15.5.18
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 3.6min
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/44) ...
+   Generating static pages (11/44) 
+   Generating static pages (22/44) 
+   Generating static pages (33/44) 
+ ✓ Generating static pages (44/44)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    1.82 kB         108 kB
+├ ○ /_not-found                            991 B         103 kB
+├ ○ /admin/access                          644 B         103 kB
+├ ○ /admin/account                       2.65 kB         108 kB
+├ ○ /admin/audit                           664 B         103 kB
+├ ○ /admin/dashboard                      2.5 kB         105 kB
+├ ○ /admin/incidents                     2.48 kB         105 kB
+├ ○ /admin/preferences                     607 B         103 kB
+├ ○ /admin/profile                         699 B         103 kB
+├ ○ /admin/reports                       3.15 kB         105 kB
+├ ○ /admin/security                        593 B         103 kB
+├ ○ /admin/students                      3.48 kB         109 kB
+├ ○ /admin/students/add                  3.13 kB         109 kB
+├ ○ /admin/students/profile              3.73 kB         109 kB
+├ ○ /admin/support                         966 B         103 kB
+├ ○ /admin/teachers                      4.38 kB         110 kB
+├ ○ /admin/teachers/profile              2.63 kB         108 kB
+├ ○ /login/admin                          2.4 kB         108 kB
+├ ○ /login/forgot-password               1.23 kB         107 kB
+├ ○ /login/parent                        1.78 kB         107 kB
+├ ○ /login/teacher                       1.64 kB         107 kB
+├ ○ /main-admin/dashboard                 5.6 kB         111 kB
+├ ○ /main-admin/login                    1.97 kB         108 kB
+├ ○ /main-admin/reports                  3.62 kB         109 kB
+├ ○ /parent/attendance                   2.12 kB         104 kB
+├ ○ /parent/children/records               927 B         107 kB
+├ ○ /parent/dashboard                    2.88 kB         109 kB
+├ ○ /parent/messages                     2.13 kB         104 kB
+├ ○ /parent/profile                        712 B         103 kB
+├ ○ /parent/reports                      1.72 kB         104 kB
+├ ○ /parent/settings                       754 B         103 kB
+├ ○ /parent/students                     1.52 kB         107 kB
+├ ○ /parent/support                        801 B         103 kB
+├ ○ /school-registration                 2.02 kB         108 kB
+├ ○ /teacher/attendance                  1.74 kB         104 kB
+├ ○ /teacher/dashboard                   3.88 kB         106 kB
+├ ○ /teacher/messages                    2.07 kB         104 kB
+├ ○ /teacher/profile                       706 B         103 kB
+├ ○ /teacher/reports                     1.92 kB         104 kB
+├ ○ /teacher/settings                      751 B         103 kB
+├ ○ /teacher/students                     3.9 kB         106 kB
+└ ○ /teacher/support                       802 B         103 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/7717-cfeed3562e7b1585.js      46.1 kB
+  ├ chunks/ec0dcfd7-646a7546c561c033.js  54.2 kB
+  └ other shared chunks (total)             2 kB
+
+
+○  (Static)  prerendered as static content
+

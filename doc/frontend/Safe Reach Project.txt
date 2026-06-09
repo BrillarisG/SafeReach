@@ -1,0 +1,110 @@
+Safe Reach Project
+
+<08/06/2026>
+
+can you do this project for npm install and run this frontend. otherthing dont add and change on code. if npm install or running have error to fix that only.
+
+lets you can check all pages are correctly working or not without change the style and structure if any error or any page is issue to open to change that only and if login may have any error or issue correct that only
+
+
+<09/06/2026>
+
+the project app name is "SafeReach" to change the app name of "Guardian Track Pro" to "SafeReach" on each and every pages. the each frontend program files and folders can put on frontent folder because i plan too create a backend on future, so you can dont create a backent only put the all forntend files and folder on frontend folder. and test the project is successfully running or any fix is need to do it. and documents can place on separete doc folder in create separate frontend doc folder.
+
+i plan to create a backend to this project i list below topics for discuess to make the backend. you can only create a same doc for give me suggestion and plan for create that in this project with support methods and make a professional real world app. and dont create a backend just discuss. and this doc can place on doc/backend folder. SafeReach Backend Development Topics List
+
+Project Architecture Design, Backend Folder Structure, Environment Configuration (.env), Database Selection,Database Schema Design,User Authentication,JWT Token ,Management,Refresh Tokens,Password Encryption (bcrypt),Role-Based Access Control (RBAC),School Management Module,User Management Module,Student Management ,Module,Parent Management Module,Teacher Management Module,Class Management Module
+Section Management Module
+Attendance Management
+Leave Management
+Student Tracking Module
+Geofencing System
+Emergency Alert System
+Push Notification System
+SMS Notification Integration
+Email Notification Integration
+Event Management
+Activity Logging
+Audit Trail System
+File Upload Management
+Profile Management
+Dashboard APIs
+Reports Generation
+Analytics Module
+Search and Filtering
+Pagination
+Data Validation
+Exception Handling
+API Documentation
+API Versioning
+Rate Limiting
+Session Management
+Redis Caching
+Firebase Integration
+Real-Time Communication (WebSocket/Socket.IO)
+Database Indexing
+Query Optimization
+Background Jobs & Scheduler
+Backup Strategy
+Data Recovery Plan
+Security Implementation
+Data Encryption
+GDPR Compliance
+CCPA Compliance
+HIPAA Considerations
+Monitoring & Logging
+Prometheus Integration
+Grafana Dashboard
+ELK Stack Logging
+Docker Containerization
+Docker Compose
+CI/CD Pipeline
+GitHub Actions
+Automated Testing
+Unit Testing
+Integration Testing
+API Testing
+Load Testing
+Kubernetes Architecture
+Kubernetes Deployments
+ReplicaSets
+Services
+Ingress Controller
+ConfigMaps
+Secrets Management
+Horizontal Pod Autoscaling
+Cluster Management
+Load Balancing
+Disaster Recovery
+High Availability Design
+Production Deployment
+Cloud Infrastructure Planning
+Database Clustering
+Database Replication
+Database Sharding
+Multi-Tenant School Architecture
+Audit Compliance Reports
+Parent Mobile App APIs
+Teacher Dashboard APIs
+Admin Dashboard APIs
+Student Mobile App APIs
+Queue/Event Processing
+Notification Queue System
+Health Check APIs
+System Metrics Collection
+Microservices Planning (Future)
+API Gateway Design
+Service Discovery
+Performance Optimization
+Scalability Planning
+Production Readiness Checklist
+
+to add the above created same doc about the db structure and formats with er diagrams, add the table format, i like to add create a separate tables for connect the autheriozed rules api and url like to create a admin premissions apis such that store like app.admin.student.add like all user role api correctly in role permissions. to add the main admin role the project is not added the main admin to monitor sub admin, teachers, students and parents. add the main admin for monitor, edit, add, deletes likes based on this projects. and add the plan for collected db data can display on frontend instands of displaying default data and depulicate manual data. to add the plan about terms and conditions about user data, data securitys, using data needs, and more.to add the plan for adding the exception handling methods for this project, and data security methods. add this all in previous created doc dont create new doc file.
+
+remove the active transit map and live campus operations on all users. to modify the admin page in student record part for displaying individual student records to changed for group of classes to click display the section to select for display the  students records in admin page. forgot password is not working to add the page. the incident logs is represent the time order priority and level priority and action side view and edit button can remove and add the accept or reject button. in admin dashboard in safety report display first the overall report then separatly display classes container to click to display the section container then display reports of that section of class. the topside of all user grad icon setting option is display but not working add the page and same thing support button is not working add the page, in parent in mychildern quick access of bottons are not working add page. to modify the parent page in report page in display the mark like fill the values of list box of std(to display the currect child section and display only completed and current std), exam name then click ok to display the marks and total and all for subject performance in parent page. to add the edit and delete option on safety protocols in teacher and parent pages. to hide the displaying billing and fee on parent page but not remove on program code.to add the customized for attendance history in format of input is from dd/mm/yyyy to dd/mm/yyyy in parent page. and add the data format analysis report for all users in suitable sites. this all works can do only frontend not create a backend and backend connections same thing not create a db only do on frontend code and prepare the new doc for what are site made the changes, correction and details in frontend.
+
+to modify the logout button for all user, can click the logout button to ask comfirm to logout on pop up of alert container in front of page to click comfirm to logout. to modiify the side navigation menu bar is not display on mobile or small size display to modify based on multiple display access style. the nav menu bar display like 3 line menu icon to click only display on screen and again can click to hide. the page is scroll on right or left in opne menu bar the search bar or containers can display the front of menu bar. the edit account page and admin action cannot opening correct the page and add the pages. if you check all buttons for working correctly and all pages are present on button. the grad setting icon and profile icon displaying same system audit page, so hide the grad setting icon and separate the profile setting in profile page in admin and all users. in two child parents page displaying dashboard in two child container but displaying different buttons of option correct it for display common button based on useful action on this project. to add the data from and to for attendance correctly and add the month and year selection on month table of parents attendance page. the teacher page correctly added the safety protocol but in parent page you added the edit and delete option but not added the checkbox, then add the comman submit button to cross the checked values for both parent and teacher page. in forgot page to remove the role selection option to take the opening role on login to forgot. in admin page in safety report in recent report page every buttons are not working correct it. to remove the data format container in safety report admin page not dont display like this important data and information on pages. and make this project support to multiple screens. to modify the update on above same doc dont create a new doc. and not touch the backend only modify on frontend.
+
+in admin page of incident logs not able to scroll on right and lfe to add the this horizontall scroll bar for report table. in teacher and parent page to modify the safety protocol is reset on every day morning 12.00am all values are uncheck and add the button to add the new value on safety protocol for both users.. the admin page in safety report page the recent report not download correct it and correct the all export and download is correctly work on all user pages
+
+see this image for top nav header is not fixed to change to fixed and table is more big to add the horizantal scroll bar to scroll and see the table on right side

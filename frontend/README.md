@@ -1,271 +1,370 @@
-# SafeReach — Smart Student Safety Tracker
+<div align="center">
 
-A full-stack prototype for real-time student safety monitoring, built with **Next.js 15**, **TypeScript**, and **Tailwind CSS**.
+  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=34&duration=2600&pause=800&color=00236F&center=true&vCenter=true&width=820&lines=SafeReach;Smart+Student+Safety+Tracker;School+Safety+%2B+Role+Dashboards;Frontend+Prototype+for+Real-World+Planning" alt="SafeReach animated title" />
+
+  <p>
+    <strong>SafeReach</strong> is a colorful Next.js frontend prototype for school safety, student monitoring, school administration, parent visibility, teacher workflows, and app-level main-admin control.
+  </p>
+
+  <p>
+    <img alt="Next.js" src="https://img.shields.io/badge/Next.js-15.5-111111?style=for-the-badge&logo=nextdotjs&logoColor=white" />
+    <img alt="React" src="https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white" />
+    <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+    <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind-CSS-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+  </p>
+
+  <p>
+    <img alt="Frontend only" src="https://img.shields.io/badge/Scope-Frontend%20Only-006B5F?style=flat-square" />
+    <img alt="No backend" src="https://img.shields.io/badge/Backend-Not%20Created-BA1A1A?style=flat-square" />
+    <img alt="Demo auth" src="https://img.shields.io/badge/Auth-Demo%20Only-F59E0B?style=flat-square" />
+    <img alt="Responsive" src="https://img.shields.io/badge/UI-Responsive-7C3AED?style=flat-square" />
+  </p>
+
+  <p>
+    <a href="#quick-start">Quick Start</a>
+    <span> | </span>
+    <a href="#demo-login-credentials">Demo Logins</a>
+    <span> | </span>
+    <a href="#route-map">Routes</a>
+    <span> | </span>
+    <a href="#feature-highlights">Features</a>
+    <span> | </span>
+    <a href="#project-structure">Structure</a>
+  </p>
+
+</div>
+
+---
+
+## Overview
+
+SafeReach is currently a **frontend-only demo application**. It is built for planning and validating screens before a future backend is added.
+
+<table>
+  <tr>
+    <td><strong>App Name</strong></td>
+    <td>SafeReach</td>
+  </tr>
+  <tr>
+    <td><strong>Frontend Framework</strong></td>
+    <td>Next.js App Router</td>
+  </tr>
+  <tr>
+    <td><strong>User Roles</strong></td>
+    <td>Main Admin, School Admin, Teacher, Parent</td>
+  </tr>
+  <tr>
+    <td><strong>Backend Status</strong></td>
+    <td>No backend, database, API, Docker backend, or backend connection has been created.</td>
+  </tr>
+  <tr>
+    <td><strong>Data Status</strong></td>
+    <td>Demo/static/local frontend state only.</td>
+  </tr>
+</table>
 
 ---
 
 ## Quick Start
 
-```bash
-# Install dependencies
+> Run all frontend pages, including the normal portals and the separate main-admin area, from the same `frontend` folder.
+
+```powershell
+cd frontend
 npm install
-
-# Run development server
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+Open:
+
+```text
+http://localhost:3000
+```
+
+Production flow:
+
+```powershell
+npm run build
+npm start
+```
 
 ---
 
 ## Demo Login Credentials
 
-Visit `/` (role selector) to choose your role, then log in with the credentials below.
+### Main Admin
 
-### Admin
-| Field    | Value                              |
-|----------|------------------------------------|
-| URL      | `/login/admin`                     |
-| Email    | `admin@demo.safereach.edu`     |
-| Password | `Admin@2025`                       |
-| OTP Code | `000000`                           |
+> Main Admin is intentionally separate from the normal role-selection page.
+
+| Field | Value |
+|---|---|
+| URL | `/main-admin/login` |
+| Email | `mainadmin@safereach.app` |
+| Password | `MainAdmin@2025` |
+| OTP Code | `123456` |
+
+### School Admin
+
+| Field | Value |
+|---|---|
+| URL | `/login/admin` |
+| Email | `admin@demo.safereach.edu` |
+| Password | `Admin@2025` |
+| OTP Code | `000000` |
 
 ### Teacher
-| Field    | Value                              |
-|----------|------------------------------------|
-| URL      | `/login/teacher`                   |
-| Email    | `teacher@demo.safereach.edu`   |
-| Password | `Teacher@2025`                     |
+
+| Field | Value |
+|---|---|
+| URL | `/login/teacher` |
+| Email | `teacher@demo.safereach.edu` |
+| Password | `Teacher@2025` |
 
 ### Parent
-| Field    | Value                              |
-|----------|------------------------------------|
-| URL      | `/login/parent`                    |
-| Email    | `parent@demo.safereach.edu`    |
-| Password | `Parent@2025`                      |
+
+| Field | Value |
+|---|---|
+| URL | `/login/parent` |
+| Email | `parent@demo.safereach.edu` |
+| Password | `Parent@2025` |
+
+---
+
+## Feature Highlights
+
+<table>
+  <tr>
+    <th>Area</th>
+    <th>Highlights</th>
+  </tr>
+  <tr>
+    <td><strong>Main Admin</strong></td>
+    <td>Separate owner login, school request approval, SMS preview, school monitoring, staff view, class-section-student drilldown, permission toggles, and app-wide reports.</td>
+  </tr>
+  <tr>
+    <td><strong>School Admin</strong></td>
+    <td>Dashboard, student grouping by class and section, student promotion to next standard, teacher creation, class-section incharge assignment, incidents, reports, account actions, support, and profile pages.</td>
+  </tr>
+  <tr>
+    <td><strong>Teacher</strong></td>
+    <td>Assigned-class student add/edit/remove, attendance, reports, safety protocols, messages, support, settings, and profile pages.</td>
+  </tr>
+  <tr>
+    <td><strong>Parent</strong></td>
+    <td>Child dashboard, attendance range/month filters, marks report filters, messages, child records, safety protocols, support, settings, and profile pages.</td>
+  </tr>
+  <tr>
+    <td><strong>Responsive UI</strong></td>
+    <td>Fixed top headers, mobile menu buttons, horizontal table scrolling, and frontend-only download/export actions.</td>
+  </tr>
+</table>
+
+---
+
+## Route Map
+
+### Public and Auth
+
+| Route | Description |
+|---|---|
+| `/` | Normal role selection for School Admin, Teacher, and Parent |
+| `/login/admin` | School admin login with OTP |
+| `/login/teacher` | Teacher login |
+| `/login/parent` | Parent login |
+| `/login/forgot-password` | Forgot password flow |
+| `/school-registration` | School admin request form for creating a school environment |
+| `/main-admin/login` | Separate app-owner main admin login |
+
+### Main Admin Portal
+
+| Route | Description |
+|---|---|
+| `/main-admin/dashboard` | App-level control center for school requests, schools, users, permissions, classes, sections, and students |
+| `/main-admin/reports` | App-wide monitoring reports, school health, role audit, and CSV export |
+
+### School Admin Portal
+
+| Route | Description |
+|---|---|
+| `/admin/dashboard` | System overview and safety report drilldown |
+| `/admin/students` | Class and section based student records |
+| `/admin/students/add` | Student enrollment form |
+| `/admin/students/profile` | Student profile and safety details |
+| `/admin/teachers` | Teacher management and class-section incharge assignment |
+| `/admin/teachers/profile` | Teacher profile |
+| `/admin/incidents` | Incident log with priority order and accept/reject actions |
+| `/admin/reports` | Safety reports and exports |
+| `/admin/account` | Admin account action hub |
+| `/admin/access` | User access settings |
+| `/admin/security` | Security settings |
+| `/admin/audit` | System audit |
+| `/admin/preferences` | System preferences |
+| `/admin/profile` | Admin profile |
+| `/admin/support` | Support page |
+
+### Teacher Portal
+
+| Route | Description |
+|---|---|
+| `/teacher/dashboard` | Class dashboard and safety protocol area |
+| `/teacher/students` | Assigned-class student add/edit/remove |
+| `/teacher/attendance` | Attendance management |
+| `/teacher/messages` | Parent and staff messages |
+| `/teacher/reports` | Incident and class reports |
+| `/teacher/settings` | Teacher settings |
+| `/teacher/profile` | Teacher profile |
+| `/teacher/support` | Support page |
+
+### Parent Portal
+
+| Route | Description |
+|---|---|
+| `/parent/dashboard` | Child safety dashboard |
+| `/parent/students` | My children |
+| `/parent/children/records` | Child records quick-access page |
+| `/parent/attendance` | Attendance history with date/month/year filters |
+| `/parent/messages` | Messages |
+| `/parent/reports` | Marks and subject performance report filters |
+| `/parent/settings` | Parent settings |
+| `/parent/profile` | Parent profile |
+| `/parent/support` | Support page |
+
+---
+
+## Main Admin Workflow
+
+```mermaid
+flowchart LR
+    A[School Admin Registration] --> B[Main Admin Reviews Request]
+    B --> C{Accept or Reject}
+    C -->|Accept| D[SMS Preview with Email and Password]
+    C -->|Reject| E[Rejection SMS Preview]
+    D --> F[School Appears in Main Admin Monitoring]
+    F --> G[Inspect Staff, Classes, Sections, Students]
+    G --> H[Control Role Permission Keys]
+```
+
+> If your Markdown viewer does not support Mermaid, the same workflow is still represented by the route and feature tables above.
+
+---
+
+## Permission Key Examples
+
+| Permission Key | Role | Meaning |
+|---|---|---|
+| `app.main.school.accept` | Main Admin | Approve a school environment request |
+| `app.main.school.reject` | Main Admin | Reject a school environment request |
+| `app.main.user.monitor` | Main Admin | Monitor all schools, roles, and users |
+| `app.admin.student.add` | School Admin | Add student records |
+| `app.admin.student.edit` | School Admin | Edit student records |
+| `app.admin.student.delete` | School Admin | Delete student records when enabled |
+| `app.admin.class.assign` | School Admin | Assign class-section incharge teacher |
+| `app.teacher.student.add` | Teacher | Add students in assigned class |
+| `app.teacher.student.edit` | Teacher | Edit students in assigned class |
+| `app.teacher.student.delete` | Teacher | Remove students in assigned class when enabled |
 
 ---
 
 ## Tech Stack
 
-| Layer       | Technology                        |
-|-------------|-----------------------------------|
-| Framework   | Next.js 15 (App Router)           |
-| Language    | TypeScript 5 (strict mode)        |
-| Styling     | Tailwind CSS v3 (custom tokens)   |
-| Font        | Inter (next/font/google)          |
-| Icons       | Material Symbols Outlined (Google Fonts) |
-| Runtime     | Node.js                           |
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 App Router |
+| UI Library | React 19 |
+| Language | TypeScript 5 |
+| Styling | Tailwind CSS 3 |
+| Icons | Material Symbols Outlined |
+| Runtime | Node.js |
+| Data | Static arrays, component state, and localStorage demo data |
 
 ---
 
 ## Project Structure
 
+```text
+frontend/
+|-- app/
+|   |-- page.tsx
+|   |-- login/
+|   |-- main-admin/
+|   |   |-- login/
+|   |   |-- dashboard/
+|   |   `-- reports/
+|   |-- school-registration/
+|   |-- admin/
+|   |-- teacher/
+|   `-- parent/
+|-- components/
+|   |-- AdminSidebar.tsx
+|   |-- AdminTopNav.tsx
+|   |-- MainAdminShell.tsx
+|   |-- ParentSidebar.tsx
+|   |-- TeacherSidebar.tsx
+|   `-- LogoutConfirmButton.tsx
+|-- lib/
+|   `-- downloadFile.ts
+|-- scripts/
+|   `-- run-next.cjs
+|-- tailwind.config.ts
+|-- next.config.ts
+|-- tsconfig.json
+|-- package.json
+`-- README.md
 ```
-stitch_smart_student_safety_tracker/
-├── app/
-│   ├── layout.tsx                  # Root layout (html, body, Inter font)
-│   ├── globals.css                 # Tailwind directives + custom CSS classes
-│   ├── page.tsx                    # Role selector landing page
-│   │
-│   ├── login/
-│   │   ├── admin/page.tsx          # Admin login (credentials + OTP)
-│   │   ├── teacher/page.tsx        # Teacher login
-│   │   └── parent/page.tsx         # Parent login
-│   │
-│   ├── admin/
-│   │   ├── layout.tsx              # Admin layout (TopNav + Sidebar, auto-highlights via pathname)
-│   │   ├── dashboard/page.tsx      # System overview, transit map, alerts
-│   │   ├── account/page.tsx        # Admin account hub, system activity log
-│   │   ├── incidents/page.tsx      # Incident log with filters and severity tracking
-│   │   ├── reports/page.tsx        # Safety reports, charts, export
-│   │   ├── students/
-│   │   │   ├── page.tsx            # Student directory table
-│   │   │   ├── add/page.tsx        # 4-step student enrollment wizard
-│   │   │   └── profile/page.tsx    # Individual student profile + safety logs
-│   │   └── teachers/
-│   │       ├── page.tsx            # Staff directory table
-│   │       └── profile/page.tsx    # Individual teacher profile + classes
-│   │
-│   ├── teacher/
-│   │   ├── layout.tsx              # Teacher layout (Sidebar + top header, auto-highlights)
-│   │   ├── dashboard/page.tsx      # Class snapshot, schedule, messages
-│   │   ├── students/page.tsx       # Student records table
-│   │   ├── attendance/page.tsx     # Mark attendance (P/A/L per student)
-│   │   ├── messages/page.tsx       # Two-panel messaging with parents
-│   │   └── reports/page.tsx        # File incidents + past reports
-│   │
-│   └── parent/
-│       ├── layout.tsx              # Parent layout (Sidebar + top header, auto-highlights)
-│       ├── dashboard/page.tsx      # Child tracking, billing, notifications
-│       ├── students/page.tsx       # My children with live location
-│       ├── attendance/page.tsx     # Calendar view + absence history
-│       ├── messages/page.tsx       # Messaging with teachers/school
-│       └── reports/page.tsx        # Progress reports + subject scores
-│
-├── components/
-│   ├── AdminSidebar.tsx            # Admin sidebar (auto active-item via layout)
-│   ├── AdminTopNav.tsx             # Admin top navigation bar
-│   ├── TeacherSidebar.tsx          # Teacher sidebar
-│   └── ParentSidebar.tsx           # Parent sidebar
-│
-├── tailwind.config.ts              # Custom design tokens (colors, spacing, typography)
-├── postcss.config.mjs              # PostCSS config for Tailwind
-├── next.config.ts                  # Next.js config
-├── tsconfig.json                   # TypeScript config
-└── package.json                    # Dependencies and scripts
-```
-
----
-
-## All Routes
-
-### Public / Auth
-| Route            | Description                          |
-|------------------|--------------------------------------|
-| `/`              | Role selection (Admin / Teacher / Parent) |
-| `/login/admin`   | Admin login with 2FA OTP             |
-| `/login/teacher` | Teacher login                        |
-| `/login/parent`  | Parent login                         |
-
-### Admin Portal
-| Route                       | Description                          |
-|-----------------------------|--------------------------------------|
-| `/admin/dashboard`          | Live transit map, attendance stats, safety alerts |
-| `/admin/students`           | Student directory with search        |
-| `/admin/students/add`       | 4-step enrollment wizard             |
-| `/admin/students/profile`   | Student profile + safety logs        |
-| `/admin/teachers`           | Staff directory + backup assignments |
-| `/admin/teachers/profile`   | Teacher profile + class schedule     |
-| `/admin/incidents`          | Incident log with severity/status filters |
-| `/admin/reports`            | Safety reports + analytics charts    |
-| `/admin/account`            | System audit, activity log, admin profile |
-
-### Teacher Portal
-| Route                  | Description                          |
-|------------------------|--------------------------------------|
-| `/teacher/dashboard`   | Class snapshot, schedule, parent messages |
-| `/teacher/students`    | Student records table                |
-| `/teacher/attendance`  | Mark P/A/L attendance per student    |
-| `/teacher/messages`    | Two-panel chat with parents/staff    |
-| `/teacher/reports`     | File incident reports + past reports |
-
-### Parent Portal
-| Route                   | Description                          |
-|-------------------------|--------------------------------------|
-| `/parent/dashboard`     | Child tracking, billing, checklist   |
-| `/parent/students`      | My children with live location feed  |
-| `/parent/attendance`    | Monthly calendar + absence history   |
-| `/parent/messages`      | Chat with teachers and school admin  |
-| `/parent/reports`       | Progress reports + teacher remarks   |
 
 ---
 
 ## Design System
 
-### Brand Colors
-| Token                   | Hex       | Usage                         |
-|-------------------------|-----------|-------------------------------|
-| `primary`               | `#00236f` | Main brand, buttons, headings |
-| `secondary`             | `#006b5f` | Success states, secondary actions |
-| `tertiary`              | `#4b1c00` | Parent portal accent          |
-| `error`                 | `#ba1a1a` | Alerts, critical, delete      |
-| `background`            | `#f8f9fb` | Page background               |
-| `surface`               | `#f8f9fb` | Card/component background     |
+### Brand Tokens
 
-### Custom Spacing Tokens
-| Token                          | Value  |
-|--------------------------------|--------|
-| `stack-sm`                     | 8px    |
-| `stack-md`                     | 16px   |
-| `stack-lg`                     | 24px   |
-| `gutter`                       | 24px   |
-| `container-padding-mobile`     | 16px   |
-| `container-padding-desktop`    | 32px   |
+| Token | Hex | Usage |
+|---|---|---|
+| `primary` | `#00236f` | Main brand, headings, buttons |
+| `secondary` | `#006b5f` | Success states and secondary actions |
+| `tertiary` | `#4b1c00` | Accent surfaces |
+| `error` | `#ba1a1a` | Alerts, critical states, delete actions |
+| `background` | `#f8f9fb` | App background |
+| `surface` | `#f8f9fb` | Cards and panels |
 
-### Typography Scale
-| Token        | Size / Line Height    |
-|--------------|-----------------------|
-| `label-sm`   | 12px / 1.3            |
-| `label-md`   | 14px / 1.4            |
-| `body-md`    | 16px / 1.5            |
-| `headline-md`| 24px / 1.3            |
-| `headline-lg`| 32px / 1.2            |
-| `display-lg` | 48px / 1.1            |
+### UI Behavior
 
-### Custom CSS Classes (globals.css)
-| Class                    | Purpose                               |
-|--------------------------|---------------------------------------|
-| `.auth-bg`               | Gradient background for login pages   |
-| `.glass-card`            | Frosted-glass card style              |
-| `.status-chip`           | Inline status badge                   |
-| `.bento-grid`            | 12-column CSS grid layout             |
-| `.step-transition`       | Multi-step form transition            |
-| `.hidden-step`           | Hide inactive form step               |
-| `.custom-scrollbar`      | Styled scrollbar for activity feeds   |
-| `.student-table-container` | Constrained table scroll container  |
-
----
-
-## Navigation Architecture
-
-Each role group has a **shared layout file** that wraps all pages in that group. The layout reads `usePathname()` to determine which sidebar item to highlight — no individual page needs to manage nav state.
-
-```
-app/admin/layout.tsx     →  AdminTopNav + AdminSidebar (auto-active)
-app/teacher/layout.tsx   →  TeacherSidebar + sticky top header (auto-active)
-app/parent/layout.tsx    →  ParentSidebar + sticky top header (auto-active)
-```
-
-This means every page file only contains its **own content** — no sidebar/topnav imports, no `activeItem` props to maintain.
-
----
-
-## Key Configuration Files
-
-### `next.config.ts`
-```ts
-{ images: { unoptimized: true } }
-```
-
-### `tsconfig.json`
-- Strict mode enabled
-- Path alias: `@/*` → `./*`
-- JSX: `preserve` (Next.js handles transpilation)
-
-### `tailwind.config.ts`
-- Content paths: `./app/**/*.{ts,tsx}`, `./components/**/*.{ts,tsx}`
-- Full custom color palette (Material Design 3 tokens)
-- Custom spacing + font-size scales
+| Pattern | Status |
+|---|---|
+| Fixed top headers | Added for admin, parent, and teacher shells |
+| Mobile side navigation | Three-line menu opens and closes the side menu |
+| Horizontal table scroll | Added where tables can exceed viewport width |
+| Logout confirmation | Logout asks for confirmation before returning to role selection |
+| Download/export | Frontend CSV/text download helpers |
+| Backend connections | Not created |
 
 ---
 
 ## Available Scripts
 
-| Script          | Description                    |
-|-----------------|--------------------------------|
-| `npm run dev`   | Start dev server (localhost:3000) |
-| `npm run build` | Production build               |
-| `npm start`     | Start production server        |
-| `npm run lint`  | Run ESLint                     |
+| Script | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Build production app |
+| `npm start` | Start production server |
+| `npm run lint` | Run lint command through the Next helper |
 
 ---
 
-## Browser Support
+## Important Notes
 
-Modern browsers with ES2017+ support. Tested on Chrome, Firefox, Edge, and Safari.
+> This is a prototype. Do not treat the demo login values or local frontend state as production authentication or production data storage.
+
+- Authentication is simulated.
+- Main-admin approval and SMS behavior is frontend preview only.
+- School requests are stored locally in browser localStorage for the demo.
+- No backend folder, backend API, database, Docker backend, or Kubernetes manifests are created by this frontend.
+- Future backend work should replace duplicate static arrays with real school, class, section, student, staff, permission, and audit APIs.
 
 ---
 
-## Notes
+<div align="center">
 
-- This is a **prototype / demo** application. Authentication is simulated (no real backend).
-- All login credentials are hardcoded demo values — do not use in production.
-- Images are sourced from Google's AIDA public CDN for prototype purposes only.
-- The app is fully static (`○` in the build output) — all pages are pre-rendered at build time.
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00236F,50:006B5F,100:7C3AED&height=110&section=footer&text=SafeReach%20Frontend&fontColor=FFFFFF&fontSize=26&animation=fadeIn" alt="SafeReach animated footer" />
+
+</div>

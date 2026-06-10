@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useStudentTravelState } from '@/lib/studentTravel';
 
 export default function TeacherDashboardPage() {
+  const { counts } = useStudentTravelState();
   const [protocols, setProtocols] = useState([
     'Morning roll-call synchronized',
     'Dismissal badges prepared',
@@ -63,8 +65,14 @@ export default function TeacherDashboardPage() {
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
         <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl p-stack-lg shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-l-4 border-secondary">
           <div className="flex justify-between items-start mb-6"><div><h2 className="font-headline-lg text-headline-lg text-primary">Class 4-B Snapshot</h2><p className="text-body-md text-on-surface-variant">Real-time attendance &amp; transit status</p></div><span className="bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1"><span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings:"'FILL' 1"}}>check_circle</span>All Secured</span></div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[['28','Present','text-primary'],['4','In Transit','text-secondary'],['1','Absent (Unexcused)','text-error'],['2','Late Arrival','text-tertiary-container']].map(([n,l,c])=>(
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[
+              [String(counts.present), 'Present / Reached', 'text-primary'],
+              [String(counts.toSchool), 'To School', 'text-secondary'],
+              [String(counts.absent), 'Absent', 'text-error'],
+              [String(counts.goingHome), 'Going Home', 'text-yellow-600'],
+              [String(counts.reachedHome), 'Reached Home', 'text-green-700'],
+            ].map(([n,l,c])=>(
               <div key={l} className="bg-surface-container rounded-lg p-4 flex flex-col items-center justify-center text-center"><span className={`text-[32px] font-bold ${c}`}>{n}</span><span className="font-label-sm text-label-sm text-outline">{l}</span></div>
             ))}
           </div>

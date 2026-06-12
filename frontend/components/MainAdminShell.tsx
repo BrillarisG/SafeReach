@@ -5,7 +5,7 @@ import { useState } from 'react';
 import LogoutConfirmButton from './LogoutConfirmButton';
 
 type MainAdminShellProps = {
-  active: 'dashboard' | 'reports';
+  active: 'dashboard' | 'reports' | 'terms';
   title: string;
   subtitle: string;
   children: React.ReactNode;
@@ -14,6 +14,7 @@ type MainAdminShellProps = {
 const navItems = [
   { id: 'dashboard', label: 'App Control', href: '/main-admin/dashboard', icon: 'admin_panel_settings' },
   { id: 'reports', label: 'All Reports', href: '/main-admin/reports', icon: 'monitoring' },
+  { id: 'terms', label: 'Terms & Conditions', href: '/main-admin/terms', icon: 'policy' },
 ] as const;
 
 export default function MainAdminShell({ active, title, subtitle, children }: MainAdminShellProps) {

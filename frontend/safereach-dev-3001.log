@@ -1,0 +1,11 @@
+
+> safereach@0.1.0 dev
+> node scripts/run-next.cjs dev -p 3001
+
+
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3001
+   - Network:      http://10.198.227.131:3001
+
+ ✓ Starting...
+ ✓ Ready in 48.8s

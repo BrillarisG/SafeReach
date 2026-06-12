@@ -1,11 +1,13 @@
 'use client';
 
+import ProfileImageUploader from '@/components/ProfileImageUploader';
+
 export default function AdminProfilePage() {
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop space-y-stack-lg">
-      <section className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
-        <div className="flex items-center gap-4 mb-5">
-          <div className="w-16 h-16 rounded-2xl bg-primary-container flex items-center justify-center text-primary font-bold text-headline-md">RV</div>
+      <section className="relative mt-14 bg-white rounded-xl border border-outline-variant/30 shadow-sm px-stack-md pb-stack-md pt-20 overflow-visible">
+        <ProfileImageUploader storageKey="safereach_admin_profile_image" initials="RV" label="admin profile image" />
+        <div className="mb-5 text-center">
           <div>
             <h1 className="font-headline-lg text-headline-lg text-primary">Admin Profile</h1>
             <p className="text-body-md text-on-surface-variant">Profile settings separate from System Audit.</p>

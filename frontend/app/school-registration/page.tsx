@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { readTermsState, termsSummary, type TermsState } from '@/lib/terms';
 
 type SchoolRequest = {
   id: string;
@@ -15,6 +16,8 @@ type SchoolRequest = {
   password: string;
   status: 'Pending' | 'Accepted' | 'Rejected';
   requestedAt: string;
+  termsAcceptedAt: string;
+  termsVersion: string;
 };
 
 const REQUEST_KEY = 'safereach_school_requests';
@@ -30,10 +33,25 @@ function readRequests(): SchoolRequest[] {
 
 export default function SchoolRegistrationPage() {
   const [submitted, setSubmitted] = useState<SchoolRequest | null>(null);
+  const [terms, setTerms] = useState<TermsState>(() => readTermsState());
+  const [showTerms, setShowTerms] = useState(false);
+  const [termsViewed, setTermsViewed] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [agreementError, setAgreementError] = useState('');
+
+  useEffect(() => {
+    setTerms(readTermsState());
+  }, []);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!termsAccepted) {
+      setAgreementError('Please review and accept the SafeReach terms and conditions before sending the registration request.');
+      return;
+    }
+
     const form = new FormData(event.currentTarget);
+    const acceptedAt = new Date().toLocaleString();
     const request: SchoolRequest = {
       id: `REQ-${Date.now().toString().slice(-6)}`,
       schoolName: String(form.get('schoolName') ?? ''),
@@ -45,10 +63,15 @@ export default function SchoolRegistrationPage() {
       phone: String(form.get('phone') ?? ''),
       password: String(form.get('password') ?? ''),
       status: 'Pending',
-      requestedAt: new Date().toLocaleString(),
+      requestedAt: acceptedAt,
+      termsAcceptedAt: acceptedAt,
+      termsVersion: terms.version,
     };
     window.localStorage.setItem(REQUEST_KEY, JSON.stringify([request, ...readRequests()]));
     setSubmitted(request);
+    setTermsAccepted(false);
+    setTermsViewed(false);
+    setAgreementError('');
     event.currentTarget.reset();
   }
 
@@ -57,9 +80,9 @@ export default function SchoolRegistrationPage() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-stack-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <Link href="/main-admin/login" className="inline-flex items-center gap-1 text-primary text-label-md hover:underline mb-4">
+            <Link href="/login" className="inline-flex items-center gap-1 text-primary text-label-md hover:underline mb-4">
               <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-              Main admin access
+              Back to login
             </Link>
             <h1 className="font-headline-lg text-headline-lg text-primary">School Environment Registration</h1>
             <p className="text-body-md text-on-surface-variant">School admins can request a SafeReach school workspace using this separate frontend URL.</p>
@@ -73,7 +96,7 @@ export default function SchoolRegistrationPage() {
               <span className="material-symbols-outlined text-green-700">task_alt</span>
               <div>
                 <p className="font-bold text-green-700">Request submitted to main admin</p>
-                <p className="text-label-md text-on-surface-variant">Request ID {submitted.id} is now visible in the main-admin approvals panel. When accepted, the SMS preview will include {submitted.email} and the entered password.</p>
+                <p className="text-label-md text-on-surface-variant">Request ID {submitted.id} is now visible in the main-admin approvals panel. The request includes agreement to {submitted.termsVersion}.</p>
               </div>
             </div>
           </div>
@@ -131,15 +154,102 @@ export default function SchoolRegistrationPage() {
               <input name="password" required type="password" minLength={8} className="w-full px-4 py-3 bg-surface-container border border-outline-variant rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Minimum 8 characters" />
             </label>
           </div>
+
+          <div className="p-stack-md border-t border-outline-variant/40">
+            <div className="rounded-xl border border-outline-variant/60 bg-surface-container-low p-stack-md">
+              <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                <div>
+                  <h2 className="font-headline-md text-headline-md text-on-surface">Terms And Conditions Agreement</h2>
+                  <p className="text-label-md text-on-surface-variant mt-1">
+                    Review SafeReach app use, school data handling, privacy rights, user responsibilities, and security commitments before requesting registration.
+                  </p>
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-label-md text-on-surface-variant">
+                    {['App and school workspace details', 'Student and guardian data use', 'GDPR, CCPA, and HIPAA-aware privacy notes', 'Security commitments without exposing internal methods'].map(item => (
+                      <span key={item} className="inline-flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px] text-primary">check_circle</span>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTerms(true);
+                    setTermsViewed(true);
+                    setAgreementError('');
+                  }}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 px-5 py-3 rounded-lg border border-primary text-primary font-bold hover:bg-primary/5"
+                >
+                  <span className="material-symbols-outlined text-[20px]">policy</span>
+                  View Terms
+                </button>
+              </div>
+
+              <label className={`mt-5 flex items-start gap-3 rounded-lg border p-4 ${termsAccepted ? 'border-green-300 bg-green-50' : 'border-outline-variant bg-white'}`}>
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  disabled={!termsViewed}
+                  onChange={event => {
+                    setTermsAccepted(event.target.checked);
+                    setAgreementError('');
+                  }}
+                  className="mt-1 h-5 w-5 accent-primary"
+                />
+                <span className="text-label-md text-on-surface">
+                  I have opened and reviewed the SafeReach Terms and Conditions, understand how school, staff, student, parent, safety, attendance, travel, and communication data may be used, and agree to submit this registration request under the current policy.
+                  <span className="block mt-1 text-on-surface-variant">{termsSummary(terms)}</span>
+                  {!termsViewed && <span className="block mt-1 text-error">Open the terms first to enable this agreement checklist.</span>}
+                </span>
+              </label>
+              {agreementError && <p className="mt-3 text-label-md text-error font-semibold">{agreementError}</p>}
+            </div>
+          </div>
+
           <div className="p-stack-md border-t border-outline-variant/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low">
             <p className="text-label-md text-on-surface-variant">No backend is created here. Requests are stored locally for frontend demonstration.</p>
-            <button type="submit" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-on-primary rounded-lg font-bold hover:opacity-90">
+            <button type="submit" disabled={!termsAccepted} className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed">
               <span className="material-symbols-outlined text-[20px]">send</span>
               Request School Environment
             </button>
           </div>
         </form>
       </div>
+
+      {showTerms && (
+        <div className="fixed inset-0 z-[80] bg-black/50 p-4 flex items-center justify-center">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl border border-outline-variant flex flex-col">
+            <div className="p-stack-md border-b border-outline-variant/50 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="font-headline-md text-headline-md text-primary">SafeReach Terms And Conditions</h2>
+                <p className="text-label-md text-on-surface-variant">{terms.version} | {terms.updatedAt}</p>
+              </div>
+              <button type="button" onClick={() => setShowTerms(false)} className="p-2 rounded-full hover:bg-surface-container" aria-label="Close terms">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="overflow-y-auto p-stack-md space-y-4">
+              {terms.sections.map(section => (
+                <section key={section.id} className="rounded-xl border border-outline-variant/50 p-4 bg-surface-container-low">
+                  <h3 className="font-bold text-primary mb-2">{section.title}</h3>
+                  <p className="text-body-md text-on-surface-variant leading-relaxed">{section.body}</p>
+                </section>
+              ))}
+              <p className="text-label-sm text-on-surface-variant">
+                This frontend text is a planning and demonstration policy. A production deployment should receive legal review and should store accepted versions in backend audit records.
+              </p>
+            </div>
+            <div className="p-stack-md border-t border-outline-variant/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low">
+              <p className="text-label-md text-on-surface-variant">After closing, the agreement checklist will be available on the registration form.</p>
+              <button type="button" onClick={() => setShowTerms(false)} className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-primary text-on-primary rounded-lg font-bold">
+                <span className="material-symbols-outlined text-[20px]">task_alt</span>
+                I Reviewed These Terms
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -1,11 +1,13 @@
 'use client';
 
+import ProfileImageUploader from '@/components/ProfileImageUploader';
+
 export default function ParentProfilePage() {
   return (
     <div className="px-container-padding-mobile md:px-container-padding-desktop py-stack-lg space-y-stack-lg">
-      <section className="bg-white rounded-xl border border-outline-variant/30 p-stack-md shadow-sm">
-        <div className="flex items-center gap-4 mb-5">
-          <div className="w-16 h-16 rounded-2xl bg-primary-container flex items-center justify-center text-primary font-bold text-headline-md">ST</div>
+      <section className="relative mt-14 bg-white rounded-xl border border-outline-variant/30 px-stack-md pb-stack-md pt-20 shadow-sm overflow-visible">
+        <ProfileImageUploader storageKey="safereach_parent_profile_image" initials="ST" label="parent profile image" />
+        <div className="mb-5 text-center">
           <div>
             <h3 className="font-headline-lg text-headline-lg text-primary">Parent Profile</h3>
             <p className="text-body-md text-on-surface-variant">Guardian profile details and emergency contact information.</p>

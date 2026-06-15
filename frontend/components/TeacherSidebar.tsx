@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import LogoutConfirmButton from './LogoutConfirmButton';
 
-type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports';
+type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'timetable';
 
 interface TeacherSidebarProps {
   activeItem: ActiveItem;
@@ -38,6 +38,10 @@ export default function TeacherSidebar({ activeItem, className = 'hidden md:flex
         <Link href="/teacher/attendance" onClick={onNavigate} className={activeItem === 'attendance' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">how_to_reg</span>
           <span className="font-label-md text-label-md">Attendance</span>
+        </Link>
+        <Link href="/teacher/timetable" onClick={onNavigate} className={activeItem === 'timetable' ? activeClass : inactiveClass}>
+          <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+          <span className="font-label-md text-label-md">Timetable</span>
         </Link>
         <Link href="/teacher/messages" onClick={onNavigate} className={activeItem === 'messages' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">chat</span>

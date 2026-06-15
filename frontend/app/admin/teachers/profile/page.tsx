@@ -17,13 +17,35 @@ const activities = [
 
 export default function AdminTeacherProfilePage() {
   const [tab, setTab] = useState<'profile'|'classes'|'activity'>('profile');
+  const [editMode, setEditMode] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [teacherName, setTeacherName] = useState('Mr. James Anderson');
+  const [teacherRole, setTeacherRole] = useState('Senior Mathematics Teacher');
+  const [teacherDetails, setTeacherDetails] = useState({
+    email: 'j.anderson@safereach.school',
+    phone: '+91 98765 43210',
+    address: '42, Sunrise Colony, Mumbai - 400001',
+    dateOfBirth: 'March 14, 1985',
+    joined: 'June 2017',
+    education: 'M.Sc Mathematics, Delhi University',
+    certifications: 'B.Ed, National Teaching Award 2022',
+    languages: 'English, Hindi, Marathi',
+    specialization: 'Algebra, Calculus, Statistics',
+  });
+
+  function updateTeacherDetail(field: keyof typeof teacherDetails, value: string) {
+    setTeacherDetails(current => ({ ...current, [field]: value }));
+  }
+
+  const teacherMessageHref = `/admin/messages?chat=teacher-james&name=${encodeURIComponent(teacherName)}&role=${encodeURIComponent(teacherRole)}`;
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop">
       <div className="flex items-center gap-2 text-label-md text-on-surface-variant mb-stack-lg">
         <Link href="/admin/teachers" className="hover:text-primary transition-colors">Staff Management</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-        <span className="text-on-surface font-bold">Mr. James Anderson</span>
+        <span className="text-on-surface font-bold">{teacherName}</span>
       </div>
+      {notice && <div className="mb-stack-lg rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-primary font-bold">{notice}</div>}
       <div className="bg-white rounded-xl shadow-sm border border-outline-variant/30 p-stack-lg mb-stack-lg">
         <div className="flex flex-col md:flex-row gap-6 items-start">
           <div className="w-24 h-24 rounded-2xl bg-primary-container shrink-0 overflow-hidden border-4 border-surface">
@@ -32,8 +54,8 @@ export default function AdminTeacherProfilePage() {
           <div className="flex-1">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="font-headline-lg text-headline-lg text-on-surface">Mr. James Anderson</h1>
-                <p className="text-body-md text-on-surface-variant">Senior Mathematics Teacher</p>
+                <h1 className="font-headline-lg text-headline-lg text-on-surface">{teacherName}</h1>
+                <p className="text-body-md text-on-surface-variant">{teacherRole}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className="px-2.5 py-1 rounded-full text-label-sm bg-green-100 text-green-700 font-bold">Active</span>
                   <span className="px-2.5 py-1 rounded-full text-label-sm bg-primary/10 text-primary">EMP-10024</span>
@@ -41,8 +63,8 @@ export default function AdminTeacherProfilePage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-label-md hover:bg-surface-container transition-colors"><span className="material-symbols-outlined text-[18px]">chat</span>Message</button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg text-label-md hover:bg-primary-container transition-colors"><span className="material-symbols-outlined text-[18px]">edit</span>Edit Profile</button>
+                <Link href={teacherMessageHref} className="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-label-md hover:bg-surface-container transition-colors"><span className="material-symbols-outlined text-[18px]">chat</span>Message</Link>
+                <button onClick={() => setEditMode(open => !open)} className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg text-label-md hover:bg-primary-container transition-colors"><span className="material-symbols-outlined text-[18px]">edit</span>Edit Profile</button>
               </div>
             </div>
           </div>
@@ -53,6 +75,73 @@ export default function AdminTeacherProfilePage() {
           ))}
         </div>
       </div>
+      {editMode && (
+        <form onSubmit={event => { event.preventDefault(); setEditMode(false); setNotice(`${teacherName} profile updated in frontend demo.`); }} className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md mb-stack-lg">
+          <h2 className="font-headline-md text-headline-md text-primary mb-4">Edit Teacher Profile</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-bold">Teacher Name</span>
+              <input value={teacherName} onChange={event => setTeacherName(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container" />
+            </label>
+            <label className="space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-bold">Role</span>
+              <input value={teacherRole} onChange={event => setTeacherRole(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container" />
+            </label>
+          </div>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-5">
+            <section className="rounded-xl border border-outline-variant/40 bg-surface-container-low p-4">
+              <h3 className="font-bold text-primary mb-3">Contact Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label className="space-y-1.5">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Email</span>
+                  <input value={teacherDetails.email} onChange={event => updateTeacherDetail('email', event.target.value)} type="email" className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+                <label className="space-y-1.5">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Phone</span>
+                  <input value={teacherDetails.phone} onChange={event => updateTeacherDetail('phone', event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+                <label className="space-y-1.5 md:col-span-2">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Address</span>
+                  <input value={teacherDetails.address} onChange={event => updateTeacherDetail('address', event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+                <label className="space-y-1.5">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Date of Birth</span>
+                  <input value={teacherDetails.dateOfBirth} onChange={event => updateTeacherDetail('dateOfBirth', event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+                <label className="space-y-1.5">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Joined</span>
+                  <input value={teacherDetails.joined} onChange={event => updateTeacherDetail('joined', event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+              </div>
+            </section>
+            <section className="rounded-xl border border-outline-variant/40 bg-surface-container-low p-4">
+              <h3 className="font-bold text-primary mb-3">Qualifications &amp; Skills</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label className="space-y-1.5">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Education</span>
+                  <input value={teacherDetails.education} onChange={event => updateTeacherDetail('education', event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+                <label className="space-y-1.5">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Certifications</span>
+                  <input value={teacherDetails.certifications} onChange={event => updateTeacherDetail('certifications', event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+                <label className="space-y-1.5">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Languages</span>
+                  <input value={teacherDetails.languages} onChange={event => updateTeacherDetail('languages', event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+                <label className="space-y-1.5">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Specialization</span>
+                  <input value={teacherDetails.specialization} onChange={event => updateTeacherDetail('specialization', event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-white" />
+                </label>
+              </div>
+            </section>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <button type="submit" className="px-5 py-3 rounded-lg bg-primary text-on-primary font-bold">Save</button>
+            <button type="button" onClick={() => setEditMode(false)} className="px-5 py-3 rounded-lg border border-outline-variant font-bold">Cancel</button>
+          </div>
+        </form>
+      )}
       <div className="flex gap-1 mb-stack-lg bg-surface-container p-1 rounded-xl w-fit">
         {(['profile','classes','activity'] as const).map(t=>(
           <button key={t} onClick={()=>setTab(t)} className={`px-4 py-2 rounded-lg text-label-md capitalize transition-all ${tab===t?'bg-white text-primary font-bold shadow-sm':'text-on-surface-variant hover:text-on-surface'}`}>{t}</button>
@@ -63,7 +152,7 @@ export default function AdminTeacherProfilePage() {
           <div className="bg-white rounded-xl shadow-sm border border-outline-variant/30 p-stack-md">
             <h3 className="font-headline-md text-on-surface mb-4">Contact Information</h3>
             <div className="space-y-3">
-              {[{icon:'mail',label:'Email',value:'j.anderson@safereach.school'},{icon:'phone',label:'Phone',value:'+91 98765 43210'},{icon:'location_on',label:'Address',value:'42, Sunrise Colony, Mumbai – 400001'},{icon:'cake',label:'Date of Birth',value:'March 14, 1985'},{icon:'badge',label:'Joined',value:'June 2017'}].map(i=>(
+              {[{icon:'mail',label:'Email',value:teacherDetails.email},{icon:'phone',label:'Phone',value:teacherDetails.phone},{icon:'location_on',label:'Address',value:teacherDetails.address},{icon:'cake',label:'Date of Birth',value:teacherDetails.dateOfBirth},{icon:'badge',label:'Joined',value:teacherDetails.joined}].map(i=>(
                 <div key={i.label} className="flex items-start gap-3"><span className="material-symbols-outlined text-outline text-[20px] mt-0.5">{i.icon}</span><div><p className="text-label-sm text-on-surface-variant">{i.label}</p><p className="text-body-md text-on-surface">{i.value}</p></div></div>
               ))}
             </div>
@@ -71,7 +160,7 @@ export default function AdminTeacherProfilePage() {
           <div className="bg-white rounded-xl shadow-sm border border-outline-variant/30 p-stack-md">
             <h3 className="font-headline-md text-on-surface mb-4">Qualifications &amp; Skills</h3>
             <div className="space-y-3">
-              {[{icon:'school',label:'Education',value:'M.Sc Mathematics, Delhi University'},{icon:'workspace_premium',label:'Certifications',value:'B.Ed, National Teaching Award 2022'},{icon:'translate',label:'Languages',value:'English, Hindi, Marathi'},{icon:'interests',label:'Specialization',value:'Algebra, Calculus, Statistics'}].map(i=>(
+              {[{icon:'school',label:'Education',value:teacherDetails.education},{icon:'workspace_premium',label:'Certifications',value:teacherDetails.certifications},{icon:'translate',label:'Languages',value:teacherDetails.languages},{icon:'interests',label:'Specialization',value:teacherDetails.specialization}].map(i=>(
                 <div key={i.label} className="flex items-start gap-3"><span className="material-symbols-outlined text-outline text-[20px] mt-0.5">{i.icon}</span><div><p className="text-label-sm text-on-surface-variant">{i.label}</p><p className="text-body-md text-on-surface">{i.value}</p></div></div>
               ))}
             </div>
@@ -84,7 +173,7 @@ export default function AdminTeacherProfilePage() {
             <div key={c.name} className="bg-white rounded-xl shadow-sm border border-outline-variant/30 p-stack-md flex flex-col md:flex-row md:items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shrink-0"><span className="material-symbols-outlined text-primary">class</span></div>
               <div className="flex-1"><h4 className="font-label-md font-bold text-on-surface">{c.name}</h4><div className="flex flex-wrap gap-3 mt-1 text-label-sm text-on-surface-variant"><span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">groups</span>{c.students} students</span><span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">location_on</span>{c.room}</span><span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">schedule</span>{c.time}</span></div></div>
-              <div className="flex items-center gap-3"><div className="text-right"><p className="text-label-sm text-on-surface-variant">Avg Attendance</p><p className="font-bold text-green-600 font-label-md">{c.attendance}</p></div><button className="text-primary hover:bg-primary-container p-2 rounded-lg transition-colors"><span className="material-symbols-outlined text-[18px]">open_in_new</span></button></div>
+              <div className="flex items-center gap-3"><div className="text-right"><p className="text-label-sm text-on-surface-variant">Avg Attendance</p><p className="font-bold text-green-600 font-label-md">{c.attendance}</p></div><Link href="/admin/students/class-view?class=Class%204&section=B" className="text-primary hover:bg-primary-container p-2 rounded-lg transition-colors"><span className="material-symbols-outlined text-[18px]">open_in_new</span></Link></div>
             </div>
           ))}
         </div>

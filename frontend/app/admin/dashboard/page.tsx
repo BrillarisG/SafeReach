@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 const safetyClasses = [
   {
@@ -147,7 +148,7 @@ export default function AdminDashboardPage() {
               </div>
             ))}
           </div>
-          <button className="mt-stack-lg w-full py-3 bg-surface-container-high text-primary font-bold rounded-lg hover:bg-surface-container-highest transition-colors">View Detailed Report</button>
+          <Link href="/admin/reports" className="mt-stack-lg w-full py-3 bg-surface-container-high text-primary font-bold rounded-lg hover:bg-surface-container-highest transition-colors text-center">View Detailed Report</Link>
         </div>
       </section>
     </div>

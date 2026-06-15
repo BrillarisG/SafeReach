@@ -23,6 +23,18 @@ export type StudentSmsLog = {
   sentBy: string;
 };
 
+export type Db3RealtimeEvent = {
+  id: string;
+  table: 'students_status' | 'teacher_events' | 'parent_events' | 'travel_events' | 'sms_events';
+  studentId: string;
+  studentName: string;
+  actor: 'parent' | 'teacher' | 'system';
+  event: string;
+  status: StudentTravelStatus | AttendanceMark | TeacherSmsStatus;
+  detail: string;
+  createdAt: string;
+};
+
 export type StudentTravelRecord = {
   id: string;
   name: string;
@@ -45,6 +57,7 @@ export type StudentTravelRecord = {
 };
 
 export const TRAVEL_STORAGE_KEY = 'safereach_student_travel_attendance';
+export const DB3_REALTIME_STORAGE_KEY = 'safereach_db3_realtime_events';
 const TRAVEL_EVENT = 'safereach-travel-state-updated';
 
 const nowLabel = () => new Date().toLocaleString();
@@ -192,6 +205,25 @@ function writeTravelRecords(records: StudentTravelRecord[]) {
   window.dispatchEvent(new Event(TRAVEL_EVENT));
 }
 
+function appendDb3RealtimeEvent(record: StudentTravelRecord, event: Omit<Db3RealtimeEvent, 'id' | 'studentId' | 'studentName' | 'createdAt'>) {
+  if (typeof window === 'undefined') return;
+  const createdAt = nowLabel();
+  const nextEvent: Db3RealtimeEvent = {
+    ...event,
+    id: `${record.id}-${event.table}-${Date.now()}`,
+    studentId: record.id,
+    studentName: record.name,
+    createdAt,
+  };
+  try {
+    const existing = JSON.parse(window.localStorage.getItem(DB3_REALTIME_STORAGE_KEY) ?? '[]') as Db3RealtimeEvent[];
+    const next = [nextEvent, ...(Array.isArray(existing) ? existing : [])].slice(0, 200);
+    window.localStorage.setItem(DB3_REALTIME_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    window.localStorage.setItem(DB3_REALTIME_STORAGE_KEY, JSON.stringify([nextEvent]));
+  }
+}
+
 function updateRecords(updater: (records: StudentTravelRecord[]) => StudentTravelRecord[]) {
   const updated = updater(readTravelRecords());
   writeTravelRecords(updated);
@@ -246,6 +278,20 @@ function updateOneWithSms(studentId: string, status: TeacherSmsStatus, patch: Pa
     records.map(record => {
       if (record.id !== studentId) return record;
       const sms = createSmsLog(record, status);
+      appendDb3RealtimeEvent(record, {
+        table: status === 'going_home' || status === 'reached_home' ? 'travel_events' : 'teacher_events',
+        actor: status === 'reached_home' ? 'parent' : 'teacher',
+        event: smsStatusLabel(status),
+        status,
+        detail: sms.message,
+      });
+      appendDb3RealtimeEvent(record, {
+        table: 'sms_events',
+        actor: 'system',
+        event: 'SMS preview generated',
+        status,
+        detail: sms.message,
+      });
       return {
         ...record,
         ...patch,
@@ -258,13 +304,15 @@ function updateOneWithSms(studentId: string, status: TeacherSmsStatus, patch: Pa
 
 export function travelStatusLabel(status: StudentTravelStatus, audience: 'parent' | 'teacher' = 'parent') {
   if (audience === 'teacher' && status === 'present') return 'Present';
+  if (audience === 'parent' && (status === 'present' || status === 'reached_school' || status === 'reached_home')) return 'SafeReach';
+  if (audience === 'teacher' && status === 'reached_home') return 'SafeReach';
   const labels: Record<StudentTravelStatus, string> = {
     at_home: 'At Home',
-    to_school: 'Out of Home to School',
+    to_school: 'Tracking to School',
     reached_school: 'Reached School',
     present: 'Reached School',
     absent: 'Absent',
-    going_home: 'Going Home',
+    going_home: 'Tracking to Home',
     reached_home: 'Reached Home',
   };
   return labels[status];
@@ -312,20 +360,38 @@ export function useStudentTravelState() {
 
   const actions = useMemo(() => ({
     readyToSend(studentId: string) {
-      setRecords(updateOne(studentId, {
+      const updated = updateOne(studentId, {
         status: 'to_school',
         attendance: 'pending',
-        location: 'On the way to school',
+        location: 'Tracking to school',
         absenceReason: '',
         absenceReasonRequested: false,
         absenceSmsSentAt: '',
-      }));
+      });
+      const record = updated.find(item => item.id === studentId);
+      if (record) {
+        appendDb3RealtimeEvent(record, {
+          table: 'parent_events',
+          actor: 'parent',
+          event: 'Ready to Send',
+          status: 'to_school',
+          detail: `${record.name} is now Tracking to School.`,
+        });
+        appendDb3RealtimeEvent(record, {
+          table: 'students_status',
+          actor: 'system',
+          event: 'Student travel status update',
+          status: 'to_school',
+          detail: 'Parent started school trip tracking.',
+        });
+      }
+      setRecords(updated);
     },
     markPresent(studentId: string) {
       setRecords(updateOneWithSms(studentId, 'present', {
         status: 'present',
         attendance: 'present',
-        location: 'Reached school campus',
+        location: 'SafeReach at school',
         absenceReasonRequested: false,
       }));
     },
@@ -333,7 +399,7 @@ export function useStudentTravelState() {
       setRecords(updateOneWithSms(studentId, 'late', {
         status: 'present',
         attendance: 'late',
-        location: 'Reached school campus late',
+        location: 'SafeReach at school - late arrival',
         absenceReasonRequested: false,
       }));
     },
@@ -365,10 +431,24 @@ export function useStudentTravelState() {
         records.map(record => {
           if (!studentIds.includes(record.id)) return record;
           const sms = createSmsLog(record, 'going_home');
+          appendDb3RealtimeEvent(record, {
+            table: 'teacher_events',
+            actor: 'teacher',
+            event: 'Student Out of School',
+            status: 'going_home',
+            detail: `${record.name} is Tracking to Home.`,
+          });
+          appendDb3RealtimeEvent(record, {
+            table: 'students_status',
+            actor: 'system',
+            event: 'Student travel status update',
+            status: 'going_home',
+            detail: 'Teacher submitted go-out attendance.',
+          });
           return {
             ...record,
             status: 'going_home',
-            location: 'Left school and going home',
+            location: 'Tracking to home',
             smsHistory: [sms, ...(record.smsHistory ?? [])].slice(0, 20),
             updatedAt: sms.sentAt,
           };
@@ -378,7 +458,7 @@ export function useStudentTravelState() {
     markReachedHome(studentId: string) {
       setRecords(updateOneWithSms(studentId, 'reached_home', {
         status: 'reached_home',
-        location: 'Reached home',
+        location: 'SafeReach at home',
       }));
     },
     sendStatusSms(studentId: string, status: TeacherSmsStatus) {

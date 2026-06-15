@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import ParentSidebar from '@/components/ParentSidebar';
 
-type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports';
+type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'timetable';
 
 const itemMap: Record<string, ActiveItem> = {
   '/parent/dashboard': 'dashboard',
@@ -13,6 +13,8 @@ const itemMap: Record<string, ActiveItem> = {
   '/parent/attendance': 'attendance',
   '/parent/messages': 'messages',
   '/parent/reports': 'reports',
+  '/parent/timetable': 'timetable',
+  '/parent/notifications': 'messages',
 };
 
 const titleMap: Record<string, { title: string; sub: string }> = {
@@ -25,6 +27,8 @@ const titleMap: Record<string, { title: string; sub: string }> = {
   '/parent/support': { title: 'Support', sub: 'Help requests and school support contacts' },
   '/parent/children/records': { title: 'Child Records', sub: 'Detailed records from quick access' },
   '/parent/profile': { title: 'Profile', sub: 'Parent profile settings' },
+  '/parent/timetable': { title: 'Timetable', sub: 'Child class timetable' },
+  '/parent/notifications': { title: 'Notifications', sub: 'Realtime child safety updates' },
 };
 
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
@@ -58,10 +62,10 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
               <span className="material-symbols-outlined text-outline text-[18px]">search</span>
               <input className="bg-transparent focus:ring-0 border-none text-body-md w-40 outline-none" placeholder="Search updates..." />
             </div>
-            <button className="relative h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+            <Link href="/parent/notifications" className="relative h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors" title="Notifications">
               <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-            </button>
+            </Link>
             <Link href="/parent/support" className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors" title="Support">
               <span className="material-symbols-outlined text-on-surface-variant">help</span>
             </Link>

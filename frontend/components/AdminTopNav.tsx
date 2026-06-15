@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-type ActivePage = 'dashboard' | 'students' | 'teachers' | 'reports';
+type ActivePage = 'dashboard' | 'students' | 'teachers' | 'messages' | 'reports' | 'timetable';
 
 interface AdminTopNavProps {
   activePage: ActivePage;
@@ -26,15 +26,17 @@ export default function AdminTopNav({ activePage, onMenuToggle }: AdminTopNavPro
       </div>
       <nav className="hidden md:flex items-center gap-6">
         <Link href="/admin/dashboard" className={activePage === 'dashboard' ? activeLink : inactiveLink}>Dashboard</Link>
-        <Link href="/admin/students" className={activePage === 'students' ? activeLink : inactiveLink}>Students</Link>
+        <Link href="/admin/students" className={activePage === 'students' ? activeLink : inactiveLink}>Class Records</Link>
         <Link href="/admin/teachers" className={activePage === 'teachers' ? activeLink : inactiveLink}>Teachers</Link>
+        <Link href="/admin/messages" className={activePage === 'messages' ? activeLink : inactiveLink}>Messages</Link>
+        <Link href="/admin/timetable" className={activePage === 'timetable' ? activeLink : inactiveLink}>Timetable</Link>
         <Link href="/admin/reports" className={activePage === 'reports' ? activeLink : inactiveLink}>Safety Reports</Link>
       </nav>
       <div className="flex items-center gap-3">
-        <button className="relative text-on-surface-variant hover:text-primary hover:bg-surface-container p-2 rounded-full transition-colors">
+        <Link href="/admin/notifications" className="relative text-on-surface-variant hover:text-primary hover:bg-surface-container p-2 rounded-full transition-colors" title="Notifications">
           <span className="material-symbols-outlined">notifications</span>
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-        </button>
+        </Link>
         <Link href="/admin/support" className="text-on-surface-variant hover:text-primary hover:bg-surface-container p-2 rounded-full transition-colors" title="Support">
           <span className="material-symbols-outlined">help</span>
         </Link>

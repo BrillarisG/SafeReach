@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { downloadTextFile } from '@/lib/downloadFile';
 
@@ -15,6 +16,7 @@ type TeacherStudent = {
   activity: string;
   img: string;
   alert?: boolean;
+  parentSmsEnabled?: boolean;
 };
 
 type StudentFormState = {
@@ -23,6 +25,7 @@ type StudentFormState = {
   phone: string;
   note: string;
   status: 'At School' | 'In Transit' | 'Missing Scan' | 'Teacher Updated';
+  parentSmsEnabled: boolean;
 };
 
 const STORAGE_KEY = 'safereach_teacher_students_grade_4b';
@@ -41,6 +44,7 @@ const emptyForm: StudentFormState = {
   phone: '',
   note: '',
   status: 'At School',
+  parentSmsEnabled: true,
 };
 
 function statusClass(status: StudentFormState['status']) {
@@ -74,6 +78,7 @@ function buildStudent(form: StudentFormState, id?: string): TeacherStudent {
     activity: id ? 'Record edited by class incharge teacher' : 'New record created by class incharge teacher',
     img: fallbackImage,
     alert: form.status === 'Missing Scan',
+    parentSmsEnabled: form.parentSmsEnabled,
   };
 }
 
@@ -84,6 +89,7 @@ function formFromStudent(student: TeacherStudent): StudentFormState {
     phone: student.guardian,
     note: student.sub,
     status: (['At School', 'In Transit', 'Missing Scan', 'Teacher Updated'].includes(student.status) ? student.status : 'Teacher Updated') as StudentFormState['status'],
+    parentSmsEnabled: student.parentSmsEnabled ?? true,
   };
 }
 
@@ -176,7 +182,7 @@ export default function TeacherStudentsPage() {
         {[
           { icon: 'group', bg: 'bg-primary-container/10', c: 'text-primary', label: 'Assigned Class', value: assignedClass },
           { icon: 'school', bg: 'bg-secondary-container/20', c: 'text-secondary', label: 'Students', value: String(stats.students) },
-          { icon: 'edit_note', bg: 'bg-tertiary-fixed/40', c: 'text-tertiary-fixed-dim', label: 'Access', value: 'Incharge' },
+          { icon: 'edit_note', bg: 'bg-tertiary-fixed/40', c: 'text-tertiary-fixed-dim', label: 'Access', value: 'Incharge / Assistant' },
           { icon: 'warning', bg: 'bg-error-container/40', c: 'text-error', label: 'Alerts/Missing', value: String(stats.alerts), border: true },
         ].map(stat => (
           <div key={stat.label} className={`bg-surface p-stack-md rounded-xl border border-outline-variant shadow-sm flex items-center gap-stack-md ${stat.border ? 'border-l-4 border-l-error' : ''}`}>
@@ -196,7 +202,7 @@ export default function TeacherStudentsPage() {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-stack-sm">
             <div className="max-w-3xl">
               <h3 className="font-headline-md text-headline-md text-primary">{editingId ? 'Edit Assigned Student' : 'Add Student to Assigned Class'}</h3>
-              <p className="text-label-md text-on-surface-variant">Only the class incharge teacher can manage students in {assignedClass} in this frontend flow.</p>
+              <p className="text-label-md text-on-surface-variant">Only the class incharge or assistant incharge teacher can manage students in {assignedClass} in this frontend flow.</p>
             </div>
             {editingId && (
               <button type="button" onClick={resetForm} className="self-start px-4 py-2 rounded-lg border border-outline text-on-surface hover:bg-surface-container">
@@ -296,14 +302,21 @@ export default function TeacherStudentsPage() {
                       <span className="text-xs font-bold uppercase tracking-tighter">{student.status}</span>
                     </div>
                   </td>
-                  <td className="p-4"><p className="font-label-md">{student.guardian}</p><p className="text-xs text-on-surface-variant">{student.gSub}</p></td>
+                  <td className="p-4">
+                    <p className="font-label-md">{student.guardian}</p>
+                    <p className="text-xs text-on-surface-variant">{student.gSub}</p>
+                    <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${student.parentSmsEnabled === false ? 'bg-surface-container-high text-on-surface-variant' : 'bg-green-100 text-green-700'}`}>
+                      <span className="material-symbols-outlined text-[13px]">sms</span>
+                      SMS {student.parentSmsEnabled === false ? 'Off' : 'On'}
+                    </span>
+                  </td>
                   <td className={`p-4 text-xs ${student.alert ? 'text-error font-bold' : 'text-on-surface-variant'}`}>{student.activity}</td>
                   <td className="p-4">
                     <div className="flex justify-end gap-2">
-                      <button type="button" onClick={() => startEdit(student)} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/15">
+                      <Link href={`/teacher/students/edit?id=${encodeURIComponent(student.id)}`} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/15">
                         <span className="material-symbols-outlined text-[18px]">edit</span>
                         Edit
-                      </button>
+                      </Link>
                       <button type="button" onClick={() => removeStudent(student)} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-error-container text-error font-bold hover:opacity-90">
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                         Remove

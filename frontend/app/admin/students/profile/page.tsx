@@ -1,17 +1,24 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function StudentProfilePage() {
+  const [editMode, setEditMode] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [studentName, setStudentName] = useState('Liam Henderson');
+  const [studentStatus, setStudentStatus] = useState('At School');
+
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop max-w-7xl mx-auto w-full">
       <nav className="flex gap-2 text-label-md text-on-surface-variant mb-stack-lg items-center">
         <Link className="hover:text-primary" href="/admin/students">Directory</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-        <a className="hover:text-primary" href="#">Grade 4</a>
+        <Link className="hover:text-primary" href="/admin/students/class-view?class=Class%204&section=B">Grade 4-B</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-        <span className="text-primary font-bold">Liam Henderson</span>
+        <span className="text-primary font-bold">{studentName}</span>
       </nav>
+      {notice && <div className="mb-stack-lg rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-primary font-bold">{notice}</div>}
       <div className="bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] p-stack-lg mb-stack-lg flex flex-col md:flex-row gap-stack-lg items-center md:items-start">
         <div className="relative">
           <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-surface-container-high"><img alt="Liam Henderson" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0nctrsVHL1W7d7owQdcWqKEDC3kLd4kNUfzqtP9eYoREipnjj3oy6nJXJ9REqZs-LP2c0mcOv91HsMM6V5JOTtF_Z1JVlx00nCdm_92vQxZp0Rx4xrwkmyUlaGNyzDea9045O-N7mBtWHsSBplEqL4TxdqoWuLfj5sfCPLrLbBniqAyx1v8T3ALgS0kYmALY6VtMLQMehew2Flc2HjCdewr8p-LL1TXHSKw22tWF7_5QCjcjqNr4LlyehP_KVnmIcePann9yuP6xW" /></div>
@@ -19,8 +26,8 @@ export default function StudentProfilePage() {
         </div>
         <div className="flex-1 text-center md:text-left">
           <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
-            <h1 className="font-headline-lg text-headline-lg text-primary">Liam Henderson</h1>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-label-md font-bold bg-secondary/10 text-secondary"><span className="w-2 h-2 rounded-full bg-secondary mr-2"></span>At School</span>
+            <h1 className="font-headline-lg text-headline-lg text-primary">{studentName}</h1>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-label-md font-bold bg-secondary/10 text-secondary"><span className="w-2 h-2 rounded-full bg-secondary mr-2"></span>{studentStatus}</span>
           </div>
           <p className="text-body-md text-on-surface-variant mb-4">Student ID: GT-99021 • Grade 4-B • Room 204</p>
           <div className="flex flex-wrap gap-2 justify-center md:justify-start">
@@ -29,10 +36,35 @@ export default function StudentProfilePage() {
           </div>
         </div>
         <div className="flex flex-col gap-2 w-full md:w-auto">
-          <button className="bg-primary text-white h-[48px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90"><span className="material-symbols-outlined">description</span>Safety Report</button>
-          <button className="border-2 border-outline-variant text-on-surface-variant h-[48px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low"><span className="material-symbols-outlined">edit</span>Edit Profile</button>
+          <button onClick={() => setNotice('Safety report action opened for this frontend demo student.')} className="bg-primary text-white h-[48px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90"><span className="material-symbols-outlined">description</span>Safety Report</button>
+          <button onClick={() => setEditMode(open => !open)} className="border-2 border-outline-variant text-on-surface-variant h-[48px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low"><span className="material-symbols-outlined">edit</span>Edit Profile</button>
+          <button onClick={() => { if (window.confirm(`Delete/archive ${studentName}?`)) setNotice(`${studentName} marked for delete/archive in this frontend demo.`); }} className="border-2 border-error/30 text-error h-[48px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-error/5"><span className="material-symbols-outlined">delete</span>Delete</button>
         </div>
       </div>
+      {editMode && (
+        <form onSubmit={event => { event.preventDefault(); setEditMode(false); setNotice(`${studentName} profile updated in frontend demo.`); }} className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md mb-stack-lg">
+          <h2 className="font-headline-md text-headline-md text-primary mb-4">Edit Student Profile</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <label className="space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-bold">Student Name</span>
+              <input value={studentName} onChange={event => setStudentName(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container" />
+            </label>
+            <label className="space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-bold">Status</span>
+              <select value={studentStatus} onChange={event => setStudentStatus(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container">
+                <option>At School</option>
+                <option>In Class</option>
+                <option>Absent</option>
+                <option>Going Home</option>
+              </select>
+            </label>
+            <div className="flex items-end gap-2">
+              <button type="submit" className="px-5 py-3 rounded-lg bg-primary text-on-primary font-bold">Save</button>
+              <button type="button" onClick={() => setEditMode(false)} className="px-5 py-3 rounded-lg border border-outline-variant font-bold">Cancel</button>
+            </div>
+          </div>
+        </form>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
         <div className="lg:col-span-8 flex flex-col gap-gutter">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
@@ -55,7 +87,7 @@ export default function StudentProfilePage() {
                     <div className="flex-1"><h4 className="font-bold text-body-md">{g.name}</h4><p className="text-label-md text-on-surface-variant">{g.role}</p></div>
                     <div className="flex gap-2">
                       <button className="p-2 rounded-full bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all"><span className="material-symbols-outlined">call</span></button>
-                      {i===0 && <button className="p-2 rounded-full bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all"><span className="material-symbols-outlined">chat</span></button>}
+                      {i===0 && <Link href="/admin/messages" className="p-2 rounded-full bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all"><span className="material-symbols-outlined">chat</span></Link>}
                     </div>
                   </div>
                 ))}
@@ -98,7 +130,7 @@ export default function StudentProfilePage() {
               {[['event_busy','Mark Leave'],['assignment_ind','Temporary Caretaker'],['share','Share Profile']].map(([icon,label])=>(
                 <button key={label} className="w-full flex items-center justify-between p-4 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors group"><div className="flex items-center gap-3"><span className="material-symbols-outlined text-primary">{icon}</span><span className="font-bold text-body-md">{label}</span></div><span className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span></button>
               ))}
-              <div className="pt-stack-md border-t border-surface-container mt-stack-md"><button className="w-full flex items-center justify-center gap-2 text-error font-bold p-3 rounded-xl border-2 border-error/20 hover:bg-error/5 transition-colors"><span className="material-symbols-outlined">delete</span>Archive Student Record</button></div>
+              <div className="pt-stack-md border-t border-surface-container mt-stack-md"><button onClick={() => { if (window.confirm(`Archive ${studentName}'s student record?`)) setNotice(`${studentName} marked for archive in this frontend demo.`); }} className="w-full flex items-center justify-center gap-2 text-error font-bold p-3 rounded-xl border-2 border-error/20 hover:bg-error/5 transition-colors"><span className="material-symbols-outlined">delete</span>Archive Student Record</button></div>
             </div>
           </div>
           <div className="bg-primary rounded-xl p-stack-lg text-white relative overflow-hidden">

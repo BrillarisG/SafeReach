@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import LogoutConfirmButton from './LogoutConfirmButton';
 
-type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports';
+type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'timetable';
 
 interface ParentSidebarProps {
   activeItem: ActiveItem;
@@ -38,6 +38,10 @@ export default function ParentSidebar({ activeItem, className = 'hidden md:flex'
         <Link href="/parent/attendance" onClick={onNavigate} className={activeItem === 'attendance' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">how_to_reg</span>
           <span className="font-label-md text-label-md">Attendance</span>
+        </Link>
+        <Link href="/parent/timetable" onClick={onNavigate} className={activeItem === 'timetable' ? activeClass : inactiveClass}>
+          <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+          <span className="font-label-md text-label-md">Timetable</span>
         </Link>
         <Link href="/parent/messages" onClick={onNavigate} className={`${activeItem === 'messages' ? activeClass : inactiveClass} relative`}>
           <span className="material-symbols-outlined text-[20px]">chat</span>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import LogoutConfirmButton from './LogoutConfirmButton';
 import { downloadTextFile } from '@/lib/downloadFile';
 
-type AnalyticsItem = 'analytics' | 'students' | 'teachers' | 'incident' | 'reports' | 'audit';
+type AnalyticsItem = 'analytics' | 'students' | 'teachers' | 'messages' | 'incident' | 'reports' | 'audit' | 'timetable';
 type Variant = 'analytics' | 'hub';
 
 interface AdminSidebarProps {
@@ -48,11 +48,15 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
           </Link>
           <Link href="/admin/students" onClick={onNavigate} className={activeItem === 'students' ? activeClass : inactiveClass}>
             <span className="material-symbols-outlined text-[20px]">school</span>
-            <span className="font-label-md text-label-md">Students</span>
+          <span className="font-label-md text-label-md">Class Records</span>
           </Link>
-          <Link href="/admin/teachers" onClick={onNavigate} className={activeItem === 'teachers' ? activeClass : inactiveClass}>
-            <span className="material-symbols-outlined text-[20px]">badge</span>
-            <span className="font-label-md text-label-md">Staff Management</span>
+        <Link href="/admin/teachers" onClick={onNavigate} className={activeItem === 'teachers' ? activeClass : inactiveClass}>
+          <span className="material-symbols-outlined text-[20px]">badge</span>
+          <span className="font-label-md text-label-md">Staff Management</span>
+        </Link>
+          <Link href="/admin/messages" onClick={onNavigate} className={activeItem === 'messages' ? activeClass : inactiveClass}>
+            <span className="material-symbols-outlined text-[20px]">chat</span>
+            <span className="font-label-md text-label-md">Messages</span>
           </Link>
           <Link href="/admin/incidents" onClick={onNavigate} className={activeItem === 'incident' ? activeClass : inactiveClass}>
             <span className="material-symbols-outlined text-[20px]">warning</span>
@@ -93,11 +97,19 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
         </Link>
         <Link href="/admin/students" onClick={onNavigate} className={activeItem === 'students' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">school</span>
-          <span className="text-label-md">Student Records</span>
+          <span className="text-label-md">Class Records</span>
         </Link>
         <Link href="/admin/teachers" onClick={onNavigate} className={activeItem === 'teachers' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">badge</span>
           <span className="text-label-md">Staff Management</span>
+        </Link>
+        <Link href="/admin/timetable" onClick={onNavigate} className={activeItem === 'timetable' ? activeClass : inactiveClass}>
+          <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+          <span className="text-label-md">Timetable</span>
+        </Link>
+        <Link href="/admin/messages" onClick={onNavigate} className={activeItem === 'messages' ? activeClass : inactiveClass}>
+          <span className="material-symbols-outlined text-[20px]">chat</span>
+          <span className="text-label-md">Messages</span>
         </Link>
         <Link href="/admin/incidents" onClick={onNavigate} className={activeItem === 'incident' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">warning</span>

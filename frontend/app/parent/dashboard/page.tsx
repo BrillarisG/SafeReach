@@ -2,10 +2,15 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { readDailyIds, writeDailyIds } from '@/lib/dailyActionLocks';
 import { travelStatusClass, travelStatusIcon, travelStatusLabel, useStudentTravelState } from '@/lib/studentTravel';
 
 export default function ParentDashboardPage() {
   const { parentChildren, actions } = useStudentTravelState();
+  const [travelAlarmIds, setTravelAlarmIds] = useState<string[]>([]);
+  const [readySentIds, setReadySentIds] = useState<string[]>([]);
+  const [reachedHomeIds, setReachedHomeIds] = useState<string[]>([]);
+  const canSendToSchool = (childStatus: string) => childStatus !== 'to_school' && childStatus !== 'going_home';
   const [protocols, setProtocols] = useState([
     'Verify pickup person before handover',
     'Keep emergency contact number updated',
@@ -19,6 +24,15 @@ export default function ParentDashboardPage() {
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
+    setReadySentIds(readDailyIds('safereach_parent_ready_to_school'));
+    setReachedHomeIds(readDailyIds('safereach_parent_reached_home'));
+    try {
+      const stored = JSON.parse(window.localStorage.getItem('safereach_parent_travel_alarm_ids') ?? '[]') as string[];
+      setTravelAlarmIds(Array.isArray(stored) ? stored : []);
+    } catch {
+      setTravelAlarmIds([]);
+    }
+
     function resetIfNewDay() {
       const today = new Date().toISOString().slice(0, 10);
       const storageKey = 'safereach-parent-protocol-reset-date';
@@ -33,6 +47,18 @@ export default function ParentDashboardPage() {
     const timer = window.setInterval(resetIfNewDay, 60 * 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    writeDailyIds('safereach_parent_ready_to_school', readySentIds);
+  }, [readySentIds]);
+
+  useEffect(() => {
+    writeDailyIds('safereach_parent_reached_home', reachedHomeIds);
+  }, [reachedHomeIds]);
+
+  useEffect(() => {
+    window.localStorage.setItem('safereach_parent_travel_alarm_ids', JSON.stringify(travelAlarmIds));
+  }, [travelAlarmIds]);
 
   function beginEdit(index: number) {
     setEditingIndex(index);
@@ -57,6 +83,7 @@ export default function ParentDashboardPage() {
   }
 
   function deleteProtocol(index: number) {
+    if (!window.confirm(`Delete safety protocol "${protocols[index]}"?`)) return;
     setProtocols(current => current.filter((_, i) => i !== index));
     setCheckedProtocols(current => current.filter(i => i !== index).map(i => i > index ? i - 1 : i));
     setSubmittedProtocols(current => current.filter(i => i !== index).map(i => i > index ? i - 1 : i));
@@ -65,6 +92,10 @@ export default function ParentDashboardPage() {
   function showNotice(message: string) {
     setNotice(message);
     window.setTimeout(() => setNotice(''), 2500);
+  }
+
+  function toggleTravelAlarm(childId: string) {
+    setTravelAlarmIds(current => current.includes(childId) ? current.filter(id => id !== childId) : [...current, childId]);
   }
 
   return (
@@ -77,7 +108,7 @@ export default function ParentDashboardPage() {
       <div className="bento-grid flex flex-col lg:grid lg:grid-cols-12">
         <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           {parentChildren.map((child, i) => (
-            <div key={child.id} className="glass-card rounded-xl p-stack-md flex flex-col gap-4 relative overflow-hidden group">
+            <div key={child.id} className={`glass-card rounded-xl p-stack-md flex flex-col gap-4 relative overflow-hidden group ${child.status === 'at_home' && travelAlarmIds.includes(child.id) ? 'ring-2 ring-yellow-300 bg-yellow-50/40' : ''}`}>
               <div className={`absolute top-0 left-0 w-1 h-full ${i % 2 === 0 ? 'bg-secondary' : 'bg-primary'}`}></div>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -91,34 +122,56 @@ export default function ParentDashboardPage() {
               <div className="bg-surface-container rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2"><span className="material-symbols-outlined text-primary text-[18px]">location_on</span><span className="text-label-md font-bold">Travel Status</span></div>
                 <p className="text-label-sm text-on-surface-variant">{child.location} - updated {child.updatedAt} from frontend demo records.</p>
+                {child.status === 'at_home' && travelAlarmIds.includes(child.id) && (
+                  <p className="mt-2 text-label-sm text-yellow-700 font-bold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[16px]">alarm</span>
+                    Send reminder alarm is on.
+                  </p>
+                )}
                 {child.absenceReasonRequested && (
                   <p className="mt-2 text-label-sm text-error font-bold">Absent SMS sent. Reply with reason in Messages.</p>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Link href="/parent/children/records" className="py-2 text-center text-primary font-bold text-label-md border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors">View Records</Link>
                 <Link href="/parent/messages" className="py-2 text-center bg-primary text-on-primary font-bold text-label-md rounded-lg hover:opacity-90 transition-colors">Message Teacher</Link>
+                <Link href="/parent/timetable" className="py-2 text-center bg-surface-container text-primary font-bold text-label-md border border-primary/15 rounded-lg hover:bg-primary/5 transition-colors">Timetable</Link>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
+                  disabled={readySentIds.includes(child.id) || !canSendToSchool(child.status)}
                   onClick={() => {
                     actions.readyToSend(child.id);
-                    showNotice(`${child.name} marked Out of Home to School.`);
+                    setReadySentIds(current => Array.from(new Set([...current, child.id])));
+                    setTravelAlarmIds(current => current.filter(id => id !== child.id));
+                    showNotice(`${child.name} is now Tracking to School.`);
                   }}
-                  className="py-2 bg-secondary text-on-secondary font-bold text-label-md rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-2"
+                  className={`py-2 font-bold text-label-md rounded-lg transition-colors flex items-center justify-center gap-2 ${readySentIds.includes(child.id) || !canSendToSchool(child.status) ? 'bg-surface-container text-on-surface-variant cursor-not-allowed' : 'bg-secondary text-on-secondary hover:opacity-90'}`}
                 >
                   <span className="material-symbols-outlined text-[18px]">directions_walk</span>
                   Ready to Send
                 </button>
                 <button
                   type="button"
-                  disabled={child.status !== 'going_home'}
+                  disabled={child.status !== 'at_home'}
+                  onClick={() => toggleTravelAlarm(child.id)}
+                  className={`py-2 font-bold text-label-md rounded-lg transition-colors flex items-center justify-center gap-2 ${child.status === 'at_home' ? (travelAlarmIds.includes(child.id) ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' : 'bg-surface-container text-primary border border-primary/15') : 'bg-surface-container text-on-surface-variant cursor-not-allowed'}`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">alarm</span>
+                  Alarm {travelAlarmIds.includes(child.id) ? 'On' : 'Off'}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  disabled={reachedHomeIds.includes(child.id) || child.status !== 'going_home'}
                   onClick={() => {
                     actions.markReachedHome(child.id);
-                    showNotice(`${child.name} confirmed Reached Home.`);
+                    setReachedHomeIds(current => Array.from(new Set([...current, child.id])));
+                    showNotice(`${child.name} marked SafeReach at home.`);
                   }}
-                  className={`py-2 font-bold text-label-md rounded-lg transition-colors flex items-center justify-center gap-2 ${child.status === 'going_home' ? 'bg-primary text-on-primary hover:opacity-90' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'}`}
+                  className={`py-2 font-bold text-label-md rounded-lg transition-colors flex items-center justify-center gap-2 ${child.status === 'going_home' && !reachedHomeIds.includes(child.id) ? 'bg-primary text-on-primary hover:opacity-90' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'}`}
                 >
                   <span className="material-symbols-outlined text-[18px]">home_pin</span>
                   Reached Home

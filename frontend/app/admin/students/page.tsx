@@ -42,6 +42,7 @@ export default function AdminStudentsPage() {
   const [search, setSearch] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0].id);
   const [targetSection, setTargetSection] = useState('A');
+  const [confirmMove, setConfirmMove] = useState(false);
 
   const selectedClassMeta = classSections.find(item => item.className === selectedClass) ?? classSections[0];
   const selectedStudent = studentRows.find(student => student.id === selectedStudentId) ?? studentRows[0];
@@ -75,6 +76,8 @@ export default function AdminStudentsPage() {
   }
 
   function deleteStudent(studentId: string) {
+    const student = studentRows.find(item => item.id === studentId);
+    if (!window.confirm(`Delete ${student?.name ?? 'this student'} from class records?`)) return;
     setStudentRows(current => current.filter(student => student.id !== studentId));
   }
 
@@ -82,8 +85,8 @@ export default function AdminStudentsPage() {
     <div className="p-gutter">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-stack-lg">
         <div>
-          <h2 className="font-headline-lg text-headline-lg text-primary">Student Records</h2>
-          <p className="font-body-md text-body-md text-on-surface-variant">Select a class, then a section, to view grouped student records.</p>
+          <h2 className="font-headline-lg text-headline-lg text-primary">Class Records</h2>
+          <p className="font-body-md text-body-md text-on-surface-variant">Select a class to view class teachers, subject teachers, and class students.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <button onClick={downloadTemplate} className="flex items-center gap-2 px-4 py-2 border border-outline text-primary font-label-md rounded-lg hover:bg-surface-container-high transition-all">
@@ -100,12 +103,9 @@ export default function AdminStudentsPage() {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-gutter mb-stack-lg">
         {classSections.map(item => (
-          <button
+          <Link
             key={item.className}
-            onClick={() => {
-              setSelectedClass(item.className);
-              setSelectedSection(item.sections[0]);
-            }}
+            href={`/admin/students/class-view?class=${encodeURIComponent(item.className)}&section=${item.sections[0]}&view=overview`}
             className={`text-left bg-white rounded-xl border p-stack-md shadow-sm hover:shadow-md transition-all ${selectedClass === item.className ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}
           >
             <div className="flex items-start justify-between gap-4">
@@ -125,7 +125,7 @@ export default function AdminStudentsPage() {
                 <p className="font-bold text-green-700 text-headline-md">{item.attendance}</p>
               </div>
             </div>
-          </button>
+          </Link>
         ))}
       </section>
 
@@ -133,7 +133,7 @@ export default function AdminStudentsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
             <h3 className="font-headline-md text-headline-md text-on-surface">{selectedClass} Sections</h3>
-            <p className="text-label-md text-on-surface-variant">Choose a section to load the student record table.</p>
+            <p className="text-label-md text-on-surface-variant">Choose a section to open student records on a separate page.</p>
           </div>
           <div className="relative w-full md:w-80">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
@@ -142,13 +142,13 @@ export default function AdminStudentsPage() {
         </div>
         <div className="flex flex-wrap gap-3">
           {selectedClassMeta.sections.map(section => (
-            <button
+            <Link
               key={section}
-              onClick={() => setSelectedSection(section)}
+              href={`/admin/students/class-view?class=${encodeURIComponent(selectedClass)}&section=${section}`}
               className={`px-5 py-3 rounded-lg font-label-md border transition-all ${selectedSection === section ? 'bg-primary text-on-primary border-primary shadow-sm' : 'bg-surface-container-low text-primary border-outline-variant hover:bg-primary-container hover:text-on-primary-container'}`}
             >
               Section {section}
-            </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -166,7 +166,7 @@ export default function AdminStudentsPage() {
             <select value={targetSection} onChange={e => setTargetSection(e.target.value)} className="px-4 py-3 bg-surface-container border border-outline-variant rounded-lg">
               {['A', 'B', 'C', 'D'].map(section => <option key={section}>{section}</option>)}
             </select>
-            <button type="button" onClick={moveSelectedStudent} className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-secondary text-on-secondary rounded-lg font-bold hover:opacity-90">
+            <button type="button" onClick={() => setConfirmMove(true)} className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-secondary text-on-secondary rounded-lg font-bold hover:opacity-90">
               <span className="material-symbols-outlined text-[20px]">upgrade</span>
               Next Std
             </button>
@@ -176,52 +176,33 @@ export default function AdminStudentsPage() {
           <p className="mt-3 text-label-md text-on-surface-variant">Selected: <span className="font-bold text-on-surface">{selectedStudent.name}</span> moves from {selectedStudent.className}-{selectedStudent.section} to {nextClassName}-{targetSection}.</p>
         )}
       </section>
-
-      <div className="glass-card rounded-xl overflow-hidden">
-        <div className="p-stack-md border-b border-outline-variant flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div>
-            <h3 className="font-headline-md text-headline-md text-primary">{selectedClass} - Section {selectedSection}</h3>
-            <p className="text-label-md text-on-surface-variant">Showing records loaded from the selected class group.</p>
-          </div>
-          <span className="status-chip bg-primary/10 text-primary">{visibleStudents.length} students</span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-surface-container-high text-on-surface-variant font-label-md text-label-md">
-              <tr>{['Roll No','Student Name','Student ID','Status','Guardian Contact','Last Activity','Actions'].map(h => <th key={h} className="px-6 py-4 font-bold">{h}</th>)}</tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container">
-              {visibleStudents.map(student => (
-                <tr key={student.id} className="hover:bg-surface-container-low transition-colors">
-                  <td className="px-6 py-4 font-bold text-primary">{student.roll}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-primary font-bold">{student.name.split(' ').map(part => part[0]).join('').slice(0, 2)}</div>
-                      <div><p className="font-bold text-on-surface">{student.name}</p><p className="text-xs text-on-surface-variant">{student.className} - {student.section}</p></div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-label-md text-on-surface-variant">{student.id}</td>
-                  <td className="px-6 py-4"><span className={`status-chip ${statusStyle[student.status]}`}>{student.status}</span></td>
-                  <td className="px-6 py-4 text-on-surface-variant"><p className="text-label-md font-bold text-on-surface">{student.guardian}</p><p className="text-xs">{student.phone}</p></td>
-                  <td className="px-6 py-4 text-label-md text-on-surface-variant">{student.last}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      <button type="button" onClick={() => editStudent(student.id)} className="px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold">Edit</button>
-                      <button type="button" onClick={() => deleteStudent(student.id)} className="px-3 py-2 rounded-lg bg-error-container text-error font-bold">Delete</button>
-                      <Link href="/admin/students/profile" className="px-3 py-2 rounded-lg bg-surface-container text-primary font-bold hover:underline">Open</Link>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {visibleStudents.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-on-surface-variant">No student records found for this section.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="glass-card rounded-xl p-stack-md border border-outline-variant/40">
+        <h3 className="font-headline-md text-headline-md text-primary">Open Class Records</h3>
+        <p className="text-label-md text-on-surface-variant mt-1">Student tables now open on a separate page from the class or section buttons above.</p>
+        <Link href={`/admin/students/class-view?class=${encodeURIComponent(selectedClass)}&section=${selectedSection}`} className="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90">
+          <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+          Open {selectedClass}-{selectedSection}
+        </Link>
       </div>
+      {confirmMove && selectedStudent && (
+        <div className="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-outline-variant overflow-hidden">
+            <div className="p-stack-md border-b border-outline-variant/40">
+              <h3 className="font-headline-md text-headline-md text-primary">Confirm Next Standard Move</h3>
+              <p className="mt-2 text-label-md text-on-surface-variant">This button moves an existing student record to the next class without creating a duplicate student. Use it only for yearly promotion or approved class movement.</p>
+            </div>
+            <div className="p-stack-md bg-surface-container-low">
+              <p className="text-body-md text-on-surface">
+                Move <span className="font-bold text-primary">{selectedStudent.name}</span> from {selectedStudent.className}-{selectedStudent.section} to {nextClassName}-{targetSection}?
+              </p>
+            </div>
+            <div className="p-stack-md flex justify-end gap-3">
+              <button type="button" onClick={() => setConfirmMove(false)} className="px-5 py-3 rounded-lg border border-outline-variant font-bold text-on-surface">Cancel</button>
+              <button type="button" onClick={() => { moveSelectedStudent(); setConfirmMove(false); }} className="px-5 py-3 rounded-lg bg-secondary text-on-secondary font-bold">Accept Move</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

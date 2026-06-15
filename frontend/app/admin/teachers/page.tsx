@@ -10,25 +10,62 @@ const teachers = [
   {name:'David Ng',id:'GT-7729',assignment:'Science Lab 3',backup:'Aria Miller',status:'On Duty',stCls:'bg-secondary/10 text-secondary',stIcon:'',pulse:true,alert:false,img:'https://lh3.googleusercontent.com/aida-public/AB6AXuDIb_uiWTCP8bZM9V9fghjWCG8bZyri2QFSTeohENELGljkUk_0sQ9oXKHl2tk0ZR-9HX6D2zZhnVi6Xw--msK1hbBkQ8TnnJRZcrzFRlp0Vf0Xsb1LsWnbyuBD8u3zdHUvMJQqNvkbatcVnDG0-1xWRBKnK6f0_lEGQPALCbWObo_goEZ4hcwWRNVfDqphb8Z33-tCjZAd8GHl4sfyp3luuN3htkbCTNC8u3BNySrYmN7_i3oAch72rStmBPpZzILx597UEVdciMBh'},
 ];
 
+function getTeacherChatId(name: string) {
+  return `teacher-${name.split(' ')[0].toLowerCase()}`;
+}
+
+function getTeacherChatHref(name: string, assignment: string) {
+  const params = new URLSearchParams({
+    chat: getTeacherChatId(name),
+    name,
+    role: assignment,
+  });
+  return `/admin/messages?${params.toString()}`;
+}
+
 export default function AdminTeachersPage() {
   const [setupItems, setSetupItems] = useState([
-    { className: 'Class 4', section: 'A', incharge: 'Elena Smith' },
-    { className: 'Class 4', section: 'B', incharge: 'David Ng' },
-    { className: 'Class 6', section: 'A', incharge: 'Clara White' },
+    { className: 'Class 4', section: 'A', incharge: 'Elena Smith', assistantIncharge: 'Marcus Kane' },
+    { className: 'Class 4', section: 'B', incharge: 'David Ng', assistantIncharge: 'Elena Smith' },
+    { className: 'Class 6', section: 'A', incharge: 'Clara White', assistantIncharge: 'Not assigned' },
   ]);
   const [teacherList, setTeacherList] = useState(teachers);
   const [draftClass, setDraftClass] = useState('Class 1');
   const [draftSection, setDraftSection] = useState('A');
   const [draftTeacher, setDraftTeacher] = useState(teachers[0].name);
+  const [draftAssistantTeacher, setDraftAssistantTeacher] = useState('Not assigned');
   const [newTeacherName, setNewTeacherName] = useState('');
   const [newTeacherEmail, setNewTeacherEmail] = useState('');
   const [newTeacherPassword, setNewTeacherPassword] = useState('');
+  const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
+  const [notice, setNotice] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All Staff');
+  const [staffSearch, setStaffSearch] = useState('');
 
   const unassignedCount = useMemo(() => setupItems.filter(item => item.incharge === 'Not assigned').length, [setupItems]);
+  const filteredTeachers = useMemo(() => teacherList.filter(teacher => {
+    const statusMatch = statusFilter === 'All Staff'
+      || (statusFilter === 'On Leave' ? teacher.status.includes('Leave') : teacher.status === statusFilter);
+    const searchMatch = `${teacher.name} ${teacher.id} ${teacher.assignment} ${teacher.backup} ${teacher.status}`.toLowerCase().includes(staffSearch.toLowerCase());
+    return statusMatch && searchMatch;
+  }), [staffSearch, statusFilter, teacherList]);
 
   function addTeacher(event: React.FormEvent) {
     event.preventDefault();
     if (!newTeacherName.trim()) return;
+    if (editingTeacherId) {
+      setTeacherList(current => current.map(teacher => teacher.id === editingTeacherId ? {
+        ...teacher,
+        name: newTeacherName.trim(),
+        assignment: teacher.assignment === 'Awaiting class assignment' ? 'Awaiting class assignment' : teacher.assignment,
+      } : teacher));
+      setNotice(`${newTeacherName.trim()} updated in frontend demo.`);
+      setEditingTeacherId(null);
+      setNewTeacherName('');
+      setNewTeacherEmail('');
+      setNewTeacherPassword('');
+      return;
+    }
     const teacher = {
       name: newTeacherName.trim(),
       id: `GT-${Math.floor(1000 + Math.random() * 8999)}`,
@@ -46,6 +83,7 @@ export default function AdminTeachersPage() {
     setNewTeacherName('');
     setNewTeacherEmail('');
     setNewTeacherPassword('');
+    setNotice(`${teacher.name} added as a teacher login.`);
   }
 
   function saveClassSection(event: React.FormEvent) {
@@ -53,10 +91,19 @@ export default function AdminTeachersPage() {
     setSetupItems(current => {
       const exists = current.some(item => item.className === draftClass && item.section === draftSection);
       if (exists) {
-        return current.map(item => item.className === draftClass && item.section === draftSection ? { ...item, incharge: draftTeacher } : item);
+        return current.map(item => item.className === draftClass && item.section === draftSection ? { ...item, incharge: draftTeacher, assistantIncharge: draftAssistantTeacher } : item);
       }
-      return [...current, { className: draftClass, section: draftSection, incharge: draftTeacher }];
+      return [...current, { className: draftClass, section: draftSection, incharge: draftTeacher, assistantIncharge: draftAssistantTeacher }];
     });
+    setNotice(`${draftClass}-${draftSection} assignment saved with ${draftTeacher} and assistant ${draftAssistantTeacher}.`);
+  }
+
+  function startEditTeacher(teacher: typeof teachers[number]) {
+    setEditingTeacherId(teacher.id);
+    setNewTeacherName(teacher.name);
+    setNewTeacherEmail(`${teacher.name.toLowerCase().replace(/\s+/g, '.')}@safereach.school`);
+    setNewTeacherPassword('Teacher@2026');
+    setNotice(`Editing ${teacher.name}. Update the fields and save.`);
   }
 
   return (
@@ -75,33 +122,54 @@ export default function AdminTeachersPage() {
       </div>
       <section className="grid grid-cols-1 xl:grid-cols-2 gap-gutter mb-stack-lg">
         <form id="add-teacher" onSubmit={addTeacher} className="bg-white rounded-xl border border-outline-variant/50 shadow-sm p-stack-md">
-          <h2 className="font-headline-md text-headline-md text-primary mb-2">Add Teacher Login</h2>
+          <h2 className="font-headline-md text-headline-md text-primary mb-2">{editingTeacherId ? 'Edit Teacher Login' : 'Add Teacher Login'}</h2>
           <p className="text-label-md text-on-surface-variant mb-4">School admin can create teacher details and password before assigning a class section.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input value={newTeacherName} onChange={e => setNewTeacherName(e.target.value)} required className="px-4 py-3 bg-surface-container border border-outline-variant rounded-lg" placeholder="Teacher name" />
             <input value={newTeacherEmail} onChange={e => setNewTeacherEmail(e.target.value)} type="email" className="px-4 py-3 bg-surface-container border border-outline-variant rounded-lg" placeholder="Teacher email" />
             <input value={newTeacherPassword} onChange={e => setNewTeacherPassword(e.target.value)} type="password" minLength={8} className="px-4 py-3 bg-surface-container border border-outline-variant rounded-lg" placeholder="Password" />
           </div>
-          <button type="submit" className="mt-4 inline-flex items-center gap-2 px-5 py-3 bg-primary text-on-primary rounded-lg font-bold hover:opacity-90">
+          <div className="mt-4 flex flex-wrap gap-3">
+          <button type="submit" className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-on-primary rounded-lg font-bold hover:opacity-90">
             <span className="material-symbols-outlined text-[20px]">person_add</span>
-            Save Teacher
+            {editingTeacherId ? 'Update Teacher' : 'Save Teacher'}
           </button>
+          {editingTeacherId && <button type="button" onClick={() => { setEditingTeacherId(null); setNewTeacherName(''); setNewTeacherEmail(''); setNewTeacherPassword(''); }} className="px-5 py-3 border border-outline-variant rounded-lg font-bold">Cancel</button>}
+          </div>
+          {notice && <p className="mt-4 rounded-lg bg-primary/5 border border-primary/15 px-4 py-3 text-primary font-bold text-label-md">{notice}</p>}
         </form>
 
         <form onSubmit={saveClassSection} className="bg-white rounded-xl border border-outline-variant/50 shadow-sm p-stack-md">
           <h2 className="font-headline-md text-headline-md text-primary mb-2">Create Class / Section Incharge</h2>
-          <p className="text-label-md text-on-surface-variant mb-4">Select an existing teacher from the listbox to assign as class-section incharge.</p>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <select value={draftClass} onChange={e => setDraftClass(e.target.value)} className="px-4 py-3 bg-surface-container border border-outline-variant rounded-lg">
+          <p className="text-label-md text-on-surface-variant mb-4">School admin can assign one incharge and one assistant incharge. Both receive the same class-section permissions in this frontend demo.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="space-y-1.5">
+              <span className="text-label-sm font-bold text-on-surface-variant">Class</span>
+            <select value={draftClass} onChange={e => setDraftClass(e.target.value)} className="w-full px-4 py-3 bg-surface-container border border-outline-variant rounded-lg">
               {Array.from({ length: 12 }, (_, index) => `Class ${index + 1}`).map(item => <option key={item}>{item}</option>)}
             </select>
-            <select value={draftSection} onChange={e => setDraftSection(e.target.value)} className="px-4 py-3 bg-surface-container border border-outline-variant rounded-lg">
+            </label>
+            <label className="space-y-1.5">
+              <span className="text-label-sm font-bold text-on-surface-variant">Section</span>
+            <select value={draftSection} onChange={e => setDraftSection(e.target.value)} className="w-full px-4 py-3 bg-surface-container border border-outline-variant rounded-lg">
               {['A', 'B', 'C', 'D'].map(item => <option key={item}>{item}</option>)}
             </select>
-            <select value={draftTeacher} onChange={e => setDraftTeacher(e.target.value)} className="md:col-span-2 px-4 py-3 bg-surface-container border border-outline-variant rounded-lg">
+            </label>
+            <label className="space-y-1.5">
+              <span className="text-label-sm font-bold text-on-surface-variant">Primary Incharge</span>
+            <select value={draftTeacher} onChange={e => setDraftTeacher(e.target.value)} className="w-full px-4 py-3 bg-surface-container border border-outline-variant rounded-lg">
               {teacherList.map(teacher => <option key={teacher.id} value={teacher.name}>{teacher.name}</option>)}
             </select>
+            </label>
+            <label className="space-y-1.5">
+              <span className="text-label-sm font-bold text-on-surface-variant">Assistant Incharge</span>
+            <select value={draftAssistantTeacher} onChange={e => setDraftAssistantTeacher(e.target.value)} className="w-full px-4 py-3 bg-surface-container border border-outline-variant rounded-lg">
+              <option>Not assigned</option>
+              {teacherList.map(teacher => <option key={teacher.id} value={teacher.name}>{teacher.name}</option>)}
+            </select>
+            </label>
           </div>
+          <div className="mt-4 rounded-lg bg-primary/5 border border-primary/15 px-4 py-3 text-label-md text-primary font-bold">Assistant incharge gets the same student, attendance, and message permissions for the selected class-section.</div>
           <button type="submit" className="mt-4 inline-flex items-center gap-2 px-5 py-3 bg-secondary text-on-secondary rounded-lg font-bold hover:opacity-90">
             <span className="material-symbols-outlined text-[20px]">assignment_ind</span>
             Save Assignment
@@ -116,6 +184,8 @@ export default function AdminTeachersPage() {
             <div key={`${item.className}-${item.section}`} className="rounded-xl border border-outline-variant p-4 bg-surface-container-low">
               <p className="font-bold text-primary">{item.className} - Section {item.section}</p>
               <p className="text-label-md text-on-surface-variant">Incharge: <span className="font-bold text-on-surface">{item.incharge}</span></p>
+              <p className="text-label-md text-on-surface-variant">Assistant: <span className="font-bold text-on-surface">{item.assistantIncharge}</span></p>
+              <p className="mt-2 text-xs font-bold text-secondary">Same student, attendance, and message permission</p>
             </div>
           ))}
         </div>
@@ -123,10 +193,24 @@ export default function AdminTeachersPage() {
       <div className="bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] overflow-hidden">
         <div className="p-stack-md border-b border-surface-container flex flex-wrap gap-stack-md justify-between items-center">
           <div className="flex gap-stack-sm overflow-x-auto pb-2 sm:pb-0">
-            <button className="px-4 py-1.5 bg-primary-container text-on-primary-container rounded-full text-label-md font-bold">All Staff</button>
-            {['On Duty','In Transit','On Leave'].map(f=><button key={f} className="px-4 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-label-md hover:bg-surface-variant">{f}</button>)}
+            {['All Staff','On Duty','In Transit','On Leave'].map(f=>(
+              <button
+                key={f}
+                type="button"
+                onClick={() => setStatusFilter(f)}
+                className={`px-4 py-1.5 rounded-full text-label-md font-bold ${statusFilter === f ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'}`}
+              >
+                {f}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-stack-sm"><span className="text-label-sm text-on-surface-variant">Auto-Backup:</span><div className="w-12 h-6 bg-secondary rounded-full relative cursor-pointer"><div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div></div><span className="text-label-sm font-bold text-secondary">ENABLED</span></div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <label className="relative w-full sm:w-72">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+              <input value={staffSearch} onChange={event => setStaffSearch(event.target.value)} className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search staff..." />
+            </label>
+            <div className="flex items-center gap-stack-sm"><span className="text-label-sm text-on-surface-variant">Auto-Backup:</span><div className="w-12 h-6 bg-secondary rounded-full relative cursor-pointer"><div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div></div><span className="text-label-sm font-bold text-secondary">ENABLED</span></div>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -134,20 +218,35 @@ export default function AdminTeachersPage() {
               <tr>{['Staff Member','Primary Assignment','Backup','Current Status','Actions'].map(h=><th key={h} className="p-stack-md font-label-md text-on-surface-variant">{h}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-surface-container">
-              {teacherList.map(t=>(
+              {filteredTeachers.map(t=>(
                 <tr key={t.id} className={`${t.alert?'bg-error/5 hover:bg-error/10 border-l-4 border-error':'hover:bg-surface-bright'} transition-colors group`}>
                   <td className="p-stack-md"><div className="flex items-center gap-stack-md"><div className={`w-10 h-10 rounded-full overflow-hidden border-2 ${t.alert?'border-error/50':'border-primary/20'}`}><img alt={t.name} src={t.img} className="w-full h-full object-cover" /></div><div><p className="font-bold text-on-surface">{t.name}</p><p className={`text-label-sm ${t.alert?'text-error font-bold':'text-on-surface-variant'}`}>{t.alert?'EMERGENCY LEAVE':`ID: ${t.id}`}</p></div></div></td>
                   <td className="p-stack-md"><span className={`px-2 py-1 ${t.alert?'bg-surface-container-high text-on-surface-variant opacity-50':'bg-primary/5 text-primary border border-primary/20'} rounded text-label-sm font-bold`}>{t.assignment}</span></td>
                   <td className="p-stack-md"><div className="flex items-center gap-2"><div className={`w-6 h-6 rounded-full ${t.alert?'bg-primary-container text-white':'bg-surface-container-high'} flex items-center justify-center text-[10px]`}>{t.backup.split(' ').map(w=>w[0]).join('')}</div><span className={`text-body-md ${t.alert?'font-bold text-primary':''}`}>{t.backup}</span></div></td>
                   <td className="p-stack-md"><span className={`px-3 py-1 ${t.stCls} rounded-full text-label-sm font-bold flex items-center w-fit gap-1`}>{t.stIcon?<span className="material-symbols-outlined text-[14px]">{t.stIcon}</span>:t.pulse&&<span className="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>}{t.status}</span></td>
-                  <td className="p-stack-md text-right">{t.alert?<button className="bg-primary-container text-white px-3 py-1 rounded text-label-sm hover:bg-primary transition-colors">Reassign</button>:<Link href="/admin/teachers/profile" className="text-primary hover:bg-primary-container p-1.5 rounded-lg transition-colors inline-flex"><span className="material-symbols-outlined text-[18px]">open_in_new</span></Link>}</td>
+                  <td className="p-stack-md text-right">
+                    <div className="flex justify-end gap-2">
+                      <button type="button" onClick={() => startEditTeacher(t)} className="text-primary hover:bg-primary-container p-1.5 rounded-lg transition-colors inline-flex" title="Edit teacher">
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                      </button>
+                      <Link href={getTeacherChatHref(t.name, t.assignment)} className="text-primary hover:bg-primary-container p-1.5 rounded-lg transition-colors inline-flex" title={`Message ${t.name}`}>
+                        <span className="material-symbols-outlined text-[18px]">chat</span>
+                      </Link>
+                      <Link href="/admin/teachers/profile" className="text-primary hover:bg-primary-container p-1.5 rounded-lg transition-colors inline-flex" title="Open profile">
+                        <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                      </Link>
+                    </div>
+                  </td>
                 </tr>
               ))}
+              {filteredTeachers.length === 0 && (
+                <tr><td colSpan={5} className="p-stack-lg text-center text-on-surface-variant">No teachers match the selected filter or search.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
         <div className="p-stack-md bg-surface-container-low flex justify-between items-center border-t border-surface-container">
-          <span className="text-label-md text-on-surface-variant">Showing 1-10 of 124 teachers</span>
+          <span className="text-label-md text-on-surface-variant">Showing {filteredTeachers.length} of {teacherList.length} teachers</span>
           <div className="flex gap-2">
             <button className="w-8 h-8 flex items-center justify-center rounded border border-outline-variant hover:bg-surface-container-high"><span className="material-symbols-outlined text-sm">chevron_left</span></button>
             <button className="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary font-bold text-label-md">1</button>

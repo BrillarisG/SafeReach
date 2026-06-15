@@ -3,15 +3,16 @@
 import { useMemo, useState } from 'react';
 import { useStudentTravelState } from '@/lib/studentTravel';
 
-type Conversation = { id: string; name: string; sub: string; time: string; unread: number; avatar: string; studentId?: string };
+type ConversationGroup = 'admin' | 'teacher' | 'student' | 'direct';
+type Conversation = { id: string; name: string; sub: string; time: string; unread: number; avatar: string; studentId?: string; group: ConversationGroup };
 type Message = { from: string; text: string; time: string; me: boolean };
 
 const baseConversations: Conversation[] = [
-  { id: 'base-1', name: 'Rajesh Shah (Parent)', sub: "Re: Aryan's performance this term", time: '10:32 AM', unread: 2, avatar: 'RS' },
-  { id: 'base-2', name: 'Admin - Principal Verma', sub: 'Upcoming staff meeting agenda', time: 'Yesterday', unread: 0, avatar: 'PV' },
-  { id: 'base-3', name: 'Sunita Nair (Parent)', sub: 'Priya was absent on Monday...', time: 'Yesterday', unread: 1, avatar: 'SN' },
-  { id: 'base-4', name: 'Mr. David Lee', sub: 'Can we swap supervision slots?', time: 'May 26', unread: 0, avatar: 'DL' },
-  { id: 'base-5', name: 'Counselor Deepa', sub: 'Student referral - Lavanya P.', time: 'May 25', unread: 0, avatar: 'CD' },
+  { id: 'base-1', name: 'Rajesh Shah (Parent)', sub: "Re: Aryan's performance this term", time: '10:32 AM', unread: 2, avatar: 'RS', group: 'direct' },
+  { id: 'base-2', name: 'Admin - Principal Verma', sub: 'Upcoming staff meeting agenda', time: 'Yesterday', unread: 0, avatar: 'PV', group: 'admin' },
+  { id: 'base-3', name: 'Sunita Nair (Parent)', sub: 'Priya was absent on Monday...', time: 'Yesterday', unread: 1, avatar: 'SN', group: 'direct' },
+  { id: 'base-4', name: 'Mr. David Lee', sub: 'Can we swap supervision slots?', time: 'May 26', unread: 0, avatar: 'DL', group: 'teacher' },
+  { id: 'base-5', name: 'Counselor Deepa', sub: 'Student referral - Lavanya P.', time: 'May 25', unread: 0, avatar: 'CD', group: 'teacher' },
 ];
 
 const baseThreads: Record<string, Message[]> = {
@@ -24,10 +25,31 @@ const baseThreads: Record<string, Message[]> = {
     { from: 'Principal Verma', text: 'Staff meeting scheduled for Friday 3 PM in the Conference Room.', time: 'Yesterday 2:00 PM', me: false },
     { from: 'You', text: 'Noted. I will attend. Should we prepare a class-wise attendance summary?', time: 'Yesterday 2:30 PM', me: true },
   ],
+  'group-admin': [
+    { from: 'Principal Verma', text: 'This admin group includes school admin and all teachers for common school announcements.', time: 'Today 8:30 AM', me: false },
+    { from: 'You', text: 'Noted. I will share class attendance and safety updates here when needed.', time: 'Today 8:34 AM', me: true },
+  ],
+  'group-teacher': [
+    { from: 'Mr. David Lee', text: 'Teacher-only coordination group is ready for staff updates without admin announcements.', time: 'Today 9:10 AM', me: false },
+    { from: 'You', text: 'I will use this for duty swaps, class coordination, and student support notes.', time: 'Today 9:12 AM', me: true },
+  ],
+  'group-student': [
+    { from: 'System', text: 'Student group contains only students from your assigned Class 4-B incharge section.', time: 'Today', me: false },
+  ],
 };
+
+const groups: { id: ConversationGroup; label: string; icon: string }[] = [
+  { id: 'admin', label: 'Admin Group', icon: 'admin_panel_settings' },
+  { id: 'teacher', label: 'Teacher Group', icon: 'groups' },
+  { id: 'student', label: 'Student Group', icon: 'school' },
+  { id: 'direct', label: 'Direct Chat', icon: 'person' },
+];
 
 export default function TeacherMessagesPage() {
   const { classStudents } = useStudentTravelState();
+  const [selectedGroup, setSelectedGroup] = useState<ConversationGroup>('admin');
+  const [directRecipient, setDirectRecipient] = useState('base-1');
+  const [sentNotice, setSentNotice] = useState('');
   const absenceConversations = useMemo(() => classStudents
     .filter(student => student.status === 'absent' || student.absenceReasonRequested || student.absenceReason)
     .map<Conversation>(student => ({
@@ -38,11 +60,38 @@ export default function TeacherMessagesPage() {
       unread: student.absenceReason ? 1 : 0,
       avatar: student.avatar,
       studentId: student.id,
+      group: 'student',
     })), [classStudents]);
-  const conversations = [...absenceConversations, ...baseConversations];
-  const [active, setActive] = useState(conversations[0]?.id ?? 'base-1');
+  const studentGroupConversations = useMemo<Conversation[]>(() => [
+    {
+      id: 'group-student',
+      name: 'Class 4-B Student Group',
+      sub: `${classStudents.length} incharge-class students included`,
+      time: 'Live',
+      unread: 0,
+      avatar: '4B',
+      group: 'student',
+    },
+    ...classStudents.map(student => ({
+      id: `student-${student.id}`,
+      name: `${student.name} - Direct Student/Parent`,
+      sub: `${student.parentName} | ${student.parentPhone}`,
+      time: student.updatedAt,
+      unread: student.absenceReason ? 1 : 0,
+      avatar: student.avatar,
+      studentId: student.id,
+      group: 'student' as const,
+    })),
+  ], [classStudents]);
+  const groupConversations: Conversation[] = [
+    { id: 'group-admin', name: 'Admin + All Teachers', sub: 'Common group with school admin and every teacher', time: 'Live', unread: 1, avatar: 'AD', group: 'admin' },
+    { id: 'group-teacher', name: 'All Teachers', sub: 'Teacher-only group without admin users', time: 'Live', unread: 0, avatar: 'TG', group: 'teacher' },
+  ];
+  const conversations = [...groupConversations, ...studentGroupConversations, ...absenceConversations, ...baseConversations];
+  const filteredConversations = conversations.filter(conversation => conversation.group === selectedGroup);
+  const [active, setActive] = useState('group-admin');
   const [newMsg, setNewMsg] = useState('');
-  const activeConv = conversations.find(c => c.id === active) ?? conversations[0];
+  const activeConv = filteredConversations.find(c => c.id === active) ?? filteredConversations[0] ?? conversations[0];
   const activeStudent = classStudents.find(student => student.id === activeConv?.studentId);
 
   const thread = useMemo<Message[]>(() => {
@@ -54,17 +103,63 @@ export default function TeacherMessagesPage() {
           : { from: 'System', text: 'Parent reason is still pending in the app.', time: activeStudent.updatedAt, me: false },
       ];
     }
-    return baseThreads[active] || [];
-  }, [active, activeStudent]);
+    return baseThreads[activeConv?.id ?? active] || [];
+  }, [active, activeConv?.id, activeStudent]);
+
+  function changeGroup(group: ConversationGroup) {
+    setSelectedGroup(group);
+    const firstInGroup = conversations.find(conversation => conversation.group === group);
+    if (group === 'direct') {
+      setActive(directRecipient);
+    } else {
+      setActive(firstInGroup?.id ?? '');
+    }
+    setSentNotice('');
+  }
+
+  function sendMessage() {
+    if (!newMsg.trim() || !activeConv) return;
+    setSentNotice(`Frontend demo message prepared for ${activeConv.name}. Backend delivery will be added later.`);
+    setNewMsg('');
+  }
 
   return (
     <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
         <div className="p-3 border-b border-outline-variant/20">
+          <div className="grid grid-cols-2 gap-2">
+            {groups.map(group => (
+              <button
+                key={group.id}
+                onClick={() => changeGroup(group.id)}
+                className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-label-sm font-bold ${selectedGroup === group.id ? 'bg-primary text-on-primary' : 'bg-white text-on-surface-variant hover:bg-surface-container'}`}
+              >
+                <span className="material-symbols-outlined text-[17px]">{group.icon}</span>
+                {group.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="p-3 border-b border-outline-variant/20">
           <div className="relative"><span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search messages..." /></div>
+          {selectedGroup === 'direct' && (
+            <select
+              value={directRecipient}
+              onChange={event => {
+                setDirectRecipient(event.target.value);
+                setActive(event.target.value);
+                setSentNotice('');
+              }}
+              className="mt-2 w-full px-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md"
+            >
+              {conversations.filter(conversation => conversation.group === 'direct').map(conversation => (
+                <option key={conversation.id} value={conversation.id}>{conversation.name}</option>
+              ))}
+            </select>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto">
-          {conversations.map(c => (
+          {filteredConversations.map(c => (
             <button key={c.id} onClick={() => setActive(c.id)} className={`w-full flex items-center gap-3 px-4 py-3 border-b border-outline-variant/20 text-left transition-colors ${active === c.id ? 'bg-primary-container/30' : 'hover:bg-surface-container'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-label-sm font-bold shrink-0 ${active === c.id ? 'bg-primary text-white' : 'bg-primary-container text-primary'}`}>{c.avatar}</div>
               <div className="flex-1 min-w-0"><div className="flex items-center justify-between"><p className={`text-label-md truncate ${c.unread > 0 ? 'font-bold text-on-surface' : 'text-on-surface-variant'}`}>{c.name}</p><p className="text-label-sm text-on-surface-variant shrink-0 ml-2">{c.time}</p></div><p className="text-label-sm text-on-surface-variant truncate">{c.sub}</p></div>
@@ -75,13 +170,21 @@ export default function TeacherMessagesPage() {
       </aside>
       <div className="flex-1 flex flex-col bg-background">
         <div className="md:hidden p-3 bg-surface-container-low border-b border-outline-variant/30">
-          <select value={active} onChange={event => setActive(event.target.value)} className="w-full px-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md">
-            {conversations.map(conversation => <option key={conversation.id} value={conversation.id}>{conversation.name}</option>)}
+          <select value={selectedGroup} onChange={event => changeGroup(event.target.value as ConversationGroup)} className="w-full px-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md mb-2">
+            {groups.map(group => <option key={group.id} value={group.id}>{group.label}</option>)}
+          </select>
+          <select value={activeConv?.id ?? ''} onChange={event => setActive(event.target.value)} className="w-full px-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md">
+            {filteredConversations.map(conversation => <option key={conversation.id} value={conversation.id}>{conversation.name}</option>)}
           </select>
         </div>
         <div className="px-4 py-3 bg-surface border-b border-outline-variant/30 flex items-center gap-3 shrink-0">
           <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-label-sm">{activeConv?.avatar}</div>
-          <div><p className="font-label-md font-bold text-on-surface">{activeConv?.name}</p><p className="text-label-sm text-green-600">{activeStudent ? 'Absence reason workflow' : 'Online'}</p></div>
+          <div>
+            <p className="font-label-md font-bold text-on-surface">{activeConv?.name}</p>
+            <p className="text-label-sm text-green-600">
+              {activeStudent ? 'Class student / parent direct workflow' : groups.find(group => group.id === selectedGroup)?.label}
+            </p>
+          </div>
         </div>
         {activeStudent && (
           <div className="px-4 py-3 bg-surface-container-low border-b border-outline-variant/30 text-label-md">
@@ -96,12 +199,18 @@ export default function TeacherMessagesPage() {
               </div>
             </div>
           ))}
+          {thread.length === 0 && (
+            <div className="rounded-xl border border-dashed border-outline-variant bg-white p-5 text-center text-on-surface-variant">
+              No messages yet. Type below to prepare a frontend demo message for this group or direct contact.
+            </div>
+          )}
         </div>
         <div className="p-3 bg-surface border-t border-outline-variant/30 shrink-0">
+          {sentNotice && <p className="mb-2 text-label-md font-bold text-primary">{sentNotice}</p>}
           <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant">
             <input className="flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder:text-on-surface-variant outline-none" placeholder={activeStudent ? 'Reason review is read-only in this frontend demo.' : 'Type a message...'} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newMsg.trim()) setNewMsg(''); }} />
             <button className="text-on-surface-variant hover:text-primary transition-colors p-1"><span className="material-symbols-outlined text-[20px]">attach_file</span></button>
-            <button onClick={() => setNewMsg('')} className={`p-1.5 rounded-full transition-colors ${newMsg.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button>
+            <button onClick={sendMessage} className={`p-1.5 rounded-full transition-colors ${newMsg.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button>
           </div>
         </div>
       </div>

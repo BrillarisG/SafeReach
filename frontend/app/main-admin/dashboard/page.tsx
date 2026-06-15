@@ -226,6 +226,8 @@ export default function MainAdminDashboardPage() {
   }
 
   function removeStudent(studentId: string) {
+    const student = selectedSection.students.find(item => item.id === studentId);
+    if (!window.confirm(`Delete ${student?.name ?? 'this student'} from ${selectedSchool.name} ${selectedClass.className}-${selectedSection.name}?`)) return;
     setSchools(current => current.map(school => school.id !== selectedSchool.id ? school : {
       ...school,
       classes: school.classes.map(item => item.className !== selectedClass.className ? item : {

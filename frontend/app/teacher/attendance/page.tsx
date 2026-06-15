@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { readDailyIds, writeDailyIds } from '@/lib/dailyActionLocks';
 import { travelStatusClass, travelStatusIcon, travelStatusLabel, useStudentTravelState } from '@/lib/studentTravel';
 
 type AttendanceStatus = 'present' | 'absent' | 'late' | 'reached_school';
@@ -16,12 +17,88 @@ const btnCls = (cur: AttendanceStatus, tgt: AttendanceStatus) => {
   return base + 'bg-surface-container text-on-surface-variant border-outline-variant hover:bg-surface-container-high';
 };
 
+const ATTENDANCE_LOCK_KEY = 'safereach_teacher_attendance_submitted_locks';
+const ATTENDANCE_LOCK_DAY_KEY = 'safereach_teacher_attendance_lock_day';
+
+function attendanceDayKey() {
+  const now = new Date();
+  const reset = new Date(now);
+  reset.setHours(8, 0, 0, 0);
+  if (now < reset) reset.setDate(reset.getDate() - 1);
+  return reset.toISOString().slice(0, 10);
+}
+
+function readSubmittedLocks() {
+  if (typeof window === 'undefined') return [];
+  const currentDay = attendanceDayKey();
+  const storedDay = window.localStorage.getItem(ATTENDANCE_LOCK_DAY_KEY);
+  if (storedDay !== currentDay) {
+    window.localStorage.setItem(ATTENDANCE_LOCK_DAY_KEY, currentDay);
+    window.localStorage.setItem(ATTENDANCE_LOCK_KEY, JSON.stringify([]));
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(ATTENDANCE_LOCK_KEY) ?? '[]') as string[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function TeacherAttendancePage() {
   const { classStudents, counts, smsLogs, actions } = useStudentTravelState();
   const [saved, setSaved] = useState(false);
+  const [submittedIds, setSubmittedIds] = useState<string[]>([]);
   const [leaveIds, setLeaveIds] = useState<string[]>([]);
+  const [leaveSubmittedIds, setLeaveSubmittedIds] = useState<string[]>([]);
   const [leaveSaved, setLeaveSaved] = useState(false);
   const [lastSmsNotice, setLastSmsNotice] = useState('SMS will be sent automatically for teacher status updates.');
+  const [attendanceSearch, setAttendanceSearch] = useState('');
+  const [smsSearch, setSmsSearch] = useState('');
+  const [leaveSearch, setLeaveSearch] = useState('');
+
+  useEffect(() => {
+    setSubmittedIds(readSubmittedLocks());
+    setLeaveSubmittedIds(readDailyIds('safereach_teacher_leave_school'));
+    const timer = window.setInterval(() => setSubmittedIds(readSubmittedLocks()), 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(ATTENDANCE_LOCK_KEY, JSON.stringify(submittedIds));
+    window.localStorage.setItem(ATTENDANCE_LOCK_DAY_KEY, attendanceDayKey());
+  }, [submittedIds]);
+
+  useEffect(() => {
+    writeDailyIds('safereach_teacher_leave_school', leaveSubmittedIds);
+  }, [leaveSubmittedIds]);
+
+  const matchesSearch = (student: typeof classStudents[number], search: string) => {
+    const value = search.trim().toLowerCase();
+    if (!value) return true;
+    return [
+      student.roll,
+      student.name,
+      student.className,
+      student.section,
+      student.parentName,
+      student.parentPhone,
+      student.location,
+      travelStatusLabel(student.status, 'teacher'),
+      student.absenceReason,
+    ].some(item => item.toLowerCase().includes(value));
+  };
+
+  const filteredAttendanceStudents = classStudents.filter(student => matchesSearch(student, attendanceSearch));
+  const filteredLeaveStudents = classStudents.filter(student => matchesSearch(student, leaveSearch));
+  const filteredSmsLogs = smsLogs.filter(log => {
+    const value = smsSearch.trim().toLowerCase();
+    if (!value) return true;
+    return [log.sentAt, log.studentName, log.parentName, log.phone, log.message].some(item => item.toLowerCase().includes(value));
+  });
+  const filteredLeaveIds = filteredLeaveStudents.map(student => student.id);
+  const allFilteredLeaveSelected = filteredLeaveIds.length > 0 && filteredLeaveIds.every(id => leaveIds.includes(id));
+  const submittedSet = useMemo(() => new Set(submittedIds), [submittedIds]);
 
   function currentAttendance(studentId: string): AttendanceStatus {
     const student = classStudents.find(item => item.id === studentId);
@@ -33,6 +110,10 @@ export default function TeacherAttendancePage() {
 
   function mark(studentId: string, status: AttendanceStatus) {
     const student = classStudents.find(item => item.id === studentId);
+    const current = currentAttendance(studentId);
+    const isSubmitted = submittedSet.has(studentId);
+    const canUpdateSubmittedLate = isSubmitted && current === 'late' && (status === 'present' || status === 'absent');
+    if (isSubmitted && !canUpdateSubmittedLate) return;
     if (status === 'present') actions.markPresent(studentId);
     if (status === 'absent') actions.markAbsent(studentId);
     if (status === 'late') actions.markLate(studentId);
@@ -41,15 +122,19 @@ export default function TeacherAttendancePage() {
       const label = status === 'reached_school' ? 'Reached School' : status.charAt(0).toUpperCase() + status.slice(1);
       setLastSmsNotice(`SMS sent to ${student.parentName} (${student.parentPhone}): ${student.name} - ${label}.`);
     }
+    if (canUpdateSubmittedLate) {
+      setSubmittedIds(currentIds => currentIds.filter(id => id !== studentId));
+    }
     setSaved(false);
   }
 
   function markAll(status: AttendanceStatus) {
-    classStudents.forEach(student => mark(student.id, status));
+    filteredAttendanceStudents.forEach(student => mark(student.id, status));
     setSaved(false);
   }
 
   function toggleLeave(studentId: string, checked: boolean) {
+    if (leaveSubmittedIds.includes(studentId)) return;
     setLeaveIds(current => checked ? [...current, studentId] : current.filter(id => id !== studentId));
     setLeaveSaved(false);
   }
@@ -57,9 +142,43 @@ export default function TeacherAttendancePage() {
   function submitLeave() {
     const selectedStudents = classStudents.filter(student => leaveIds.includes(student.id));
     actions.markLeavingSchool(leaveIds);
+    setLeaveSubmittedIds(current => Array.from(new Set([...current, ...leaveIds])));
     setLastSmsNotice(`${selectedStudents.length} go-out SMS ${selectedStudents.length === 1 ? 'was' : 'were'} sent to parent phones.`);
     setLeaveIds([]);
     setLeaveSaved(true);
+  }
+
+  function toggleAllVisibleLeave(checked: boolean) {
+    setLeaveIds(current => {
+      if (checked) return Array.from(new Set([...current, ...filteredLeaveIds.filter(id => !leaveSubmittedIds.includes(id))]));
+      return current.filter(id => !filteredLeaveIds.includes(id));
+    });
+    setLeaveSaved(false);
+  }
+
+  function isAttendanceButtonDisabled(studentId: string, target: AttendanceStatus) {
+    if (!submittedSet.has(studentId)) return false;
+    const current = currentAttendance(studentId);
+    return !(current === 'late' && (target === 'present' || target === 'absent'));
+  }
+
+  function submitAttendance() {
+    const idsToSubmit = classStudents
+      .filter(student => {
+        const current = currentAttendance(student.id);
+        return current === 'present' || current === 'absent' || current === 'late';
+      })
+      .map(student => student.id);
+    setSubmittedIds(current => Array.from(new Set([...current, ...idsToSubmit])));
+    setSaved(true);
+  }
+
+  function rowStatusClass(student: typeof classStudents[number], index: number) {
+    if (student.status === 'going_home') return 'bg-yellow-50 border-l-4 border-yellow-400';
+    if (student.status === 'to_school') return 'bg-blue-50 border-l-4 border-blue-400';
+    if (student.status === 'absent') return 'bg-red-50 border-l-4 border-error';
+    if (student.status === 'reached_home' || student.status === 'present' || student.status === 'reached_school') return index % 2 !== 0 ? 'bg-surface-container/10' : '';
+    return index % 2 !== 0 ? 'bg-surface-container/10' : '';
   }
 
   return (
@@ -77,35 +196,39 @@ export default function TeacherAttendancePage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-stack-lg">
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center"><p className="font-headline-lg text-headline-lg text-blue-600">{counts.toSchool}</p><p className="text-label-md text-blue-700">To School</p></div>
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center"><p className="font-headline-lg text-headline-lg text-blue-600">{counts.toSchool}</p><p className="text-label-md text-blue-700">Tracking to School</p></div>
         <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-center"><p className="font-headline-lg text-headline-lg text-green-600">{counts.present}</p><p className="text-label-md text-green-700">Present</p></div>
         <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-center"><p className="font-headline-lg text-headline-lg text-error">{counts.absent}</p><p className="text-label-md text-red-700">Absent</p></div>
-        <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-center"><p className="font-headline-lg text-headline-lg text-yellow-600">{counts.goingHome}</p><p className="text-label-md text-yellow-700">Going Home</p></div>
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center"><p className="font-headline-lg text-headline-lg text-primary">{counts.reachedHome}</p><p className="text-label-md text-primary">Reached Home</p></div>
+        <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-center"><p className="font-headline-lg text-headline-lg text-yellow-600">{counts.goingHome}</p><p className="text-label-md text-yellow-700">Tracking to Home</p></div>
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center"><p className="font-headline-lg text-headline-lg text-primary">{counts.reachedHome}</p><p className="text-label-md text-primary">SafeReach Home</p></div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4">
-        <span className="text-label-md text-on-surface-variant self-center">Mark All:</span>
-        <button onClick={() => markAll('present')} className="px-4 py-1.5 rounded-lg text-label-md bg-green-500 text-white hover:bg-green-600 transition-colors">Present</button>
-        <button onClick={() => markAll('absent')} className="px-4 py-1.5 rounded-lg text-label-md bg-error text-white hover:opacity-90">Absent</button>
-        <button onClick={() => markAll('late')} className="px-4 py-1.5 rounded-lg text-label-md bg-yellow-400 text-white hover:bg-yellow-500">Late</button>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+        <label className="relative w-full md:max-w-md">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+          <input
+            value={attendanceSearch}
+            onChange={event => setAttendanceSearch(event.target.value)}
+            className="w-full pl-10 pr-3 py-2.5 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none"
+            placeholder="Search attendance students..."
+          />
+        </label>
+        <span className="text-label-sm text-on-surface-variant">{filteredAttendanceStudents.length} visible students</span>
       </div>
-
-      <section className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-stack-lg flex flex-col md:flex-row md:items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0">
-          <span className="material-symbols-outlined">sms</span>
-        </div>
-        <div className="flex-1">
-          <h2 className="font-headline-sm text-title-md text-blue-900">Parent SMS Enabled</h2>
-          <p className="text-label-md text-blue-800">{lastSmsNotice}</p>
-        </div>
-        <span className="px-3 py-1 rounded-full bg-white text-blue-700 text-label-sm font-bold border border-blue-200">Frontend demo only</span>
-      </section>
 
       <section className="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden mb-stack-lg">
-        <div className="p-stack-md border-b border-outline-variant/30">
-          <h2 className="font-headline-md text-headline-md text-primary">Morning Attendance and Travel Status</h2>
-          <p className="text-label-md text-on-surface-variant">Present, Absent, Late, Reached School, and Go Out actions create parent SMS previews for families without smartphones.</p>
+        <div className="p-stack-md border-b border-outline-variant/30 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <h2 className="font-headline-md text-headline-md text-primary">Morning Attendance and Travel Status</h2>
+            <p className="text-label-md text-on-surface-variant">Primary and assistant incharge can submit attendance. Present/Absent lock until the next 8:00 AM reset; Late can still become Present or Absent.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {saved && <span className="flex items-center gap-1 text-green-600 text-label-md"><span className="material-symbols-outlined text-[18px]">check_circle</span>Attendance submitted.</span>}
+            <button onClick={submitAttendance} className="flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-label-md hover:bg-primary-container transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-[18px]">save</span>
+              Submit Attendance
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1120px] text-left">
@@ -113,8 +236,8 @@ export default function TeacherAttendancePage() {
               <tr>{['Roll', 'Student', 'Travel Status', 'Parent SMS / Reason', 'Attendance'].map(head => <th key={head} className="px-4 py-3 font-bold">{head}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/30">
-              {classStudents.map((student, idx) => (
-                <tr key={student.id} className={idx % 2 !== 0 ? 'bg-surface-container/10' : ''}>
+              {filteredAttendanceStudents.map((student, idx) => (
+                <tr key={student.id} className={rowStatusClass(student, idx)}>
                   <td className="px-4 py-3 text-label-sm text-on-surface-variant">{student.roll}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -146,23 +269,57 @@ export default function TeacherAttendancePage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1.5">
-                      <button title="Mark present and send parent SMS" onClick={() => mark(student.id, 'present')} className={btnCls(currentAttendance(student.id), 'present')}>P</button>
-                      <button title="Mark absent and send parent SMS" onClick={() => mark(student.id, 'absent')} className={btnCls(currentAttendance(student.id), 'absent')}>A</button>
-                      <button title="Mark late and send parent SMS" onClick={() => mark(student.id, 'late')} className={btnCls(currentAttendance(student.id), 'late')}>L</button>
-                      <button title="Mark reached school and send parent SMS" onClick={() => mark(student.id, 'reached_school')} className={btnCls(currentAttendance(student.id), 'reached_school')}>R</button>
+                      {([
+                        ['present', 'P', 'Mark present and send parent SMS'],
+                        ['absent', 'A', 'Mark absent and send parent SMS'],
+                        ['late', 'L', 'Mark late and send parent SMS'],
+                        ['reached_school', 'R', 'Mark reached school and send parent SMS'],
+                      ] as const).map(([status, label, title]) => {
+                        const disabled = isAttendanceButtonDisabled(student.id, status);
+                        return (
+                          <button
+                            key={status}
+                            title={disabled ? 'Submitted attendance is locked. Late students may still be changed to Present or Absent.' : title}
+                            disabled={disabled}
+                            onClick={() => mark(student.id, status)}
+                            className={`${btnCls(currentAttendance(student.id), status)} ${disabled ? 'opacity-45 cursor-not-allowed hover:bg-surface-container' : ''}`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
                     </div>
+                    {submittedSet.has(student.id) && (
+                      <p className="mt-2 text-[11px] font-bold text-green-700">
+                        {currentAttendance(student.id) === 'late' ? 'Submitted late - can update to P/A' : 'Submitted and locked'}
+                      </p>
+                    )}
                   </td>
                 </tr>
               ))}
+              {filteredAttendanceStudents.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-6 text-center text-on-surface-variant">No attendance students match this search.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
       </section>
 
       <section className="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden mb-stack-lg">
-        <div className="p-stack-md border-b border-outline-variant/30">
-          <h2 className="font-headline-md text-headline-md text-primary">Recent Parent SMS Log</h2>
-          <p className="text-label-md text-on-surface-variant">Frontend-only SMS records generated by teacher status updates.</p>
+        <div className="p-stack-md border-b border-outline-variant/30 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <h2 className="font-headline-md text-headline-md text-primary">Recent Parent SMS Log</h2>
+            <p className="text-label-md text-on-surface-variant">Frontend-only SMS records generated by teacher status updates.</p>
+          </div>
+          <label className="relative w-full lg:w-80">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+            <input
+              value={smsSearch}
+              onChange={event => setSmsSearch(event.target.value)}
+              className="w-full pl-10 pr-3 py-2.5 bg-surface-container border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none"
+              placeholder="Search SMS logs..."
+            />
+          </label>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left">
@@ -170,7 +327,7 @@ export default function TeacherAttendancePage() {
               <tr>{['Time', 'Student', 'Parent', 'Phone', 'SMS Message'].map(head => <th key={head} className="px-4 py-3 font-bold">{head}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/30">
-              {smsLogs.slice(0, 8).map(log => (
+              {filteredSmsLogs.slice(0, 8).map(log => (
                 <tr key={log.id}>
                   <td className="px-4 py-3 text-label-sm text-on-surface-variant">{log.sentAt}</td>
                   <td className="px-4 py-3 font-bold text-on-surface">{log.studentName}</td>
@@ -179,8 +336,8 @@ export default function TeacherAttendancePage() {
                   <td className="px-4 py-3 text-label-md">{log.message}</td>
                 </tr>
               ))}
-              {smsLogs.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-6 text-center text-on-surface-variant">No SMS records yet. Mark a student status to create the first parent SMS.</td></tr>
+              {filteredSmsLogs.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-6 text-center text-on-surface-variant">{smsLogs.length === 0 ? 'No SMS records yet. Mark a student status to create the first parent SMS.' : 'No SMS logs match this search.'}</td></tr>
               )}
             </tbody>
           </table>
@@ -189,17 +346,40 @@ export default function TeacherAttendancePage() {
 
       <section className="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden mb-stack-lg">
         <div className="p-stack-md border-b border-outline-variant/30">
-          <h2 className="font-headline-md text-headline-md text-primary">Go Out Attendance</h2>
-          <p className="text-label-md text-on-surface-variant">Select students leaving school and submit. Parent cards will show Going Home and enable Reached Home confirmation.</p>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div>
+              <h2 className="font-headline-md text-headline-md text-primary">Go Out Attendance</h2>
+              <p className="text-label-md text-on-surface-variant">Select students leaving school and submit. Parent cards will show Going Home and enable Reached Home confirmation.</p>
+            </div>
+            <label className="relative w-full lg:w-80">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+              <input
+                value={leaveSearch}
+                onChange={event => setLeaveSearch(event.target.value)}
+                className="w-full pl-10 pr-3 py-2.5 bg-surface-container border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none"
+                placeholder="Search go out students..."
+              />
+            </label>
+          </div>
+          <label className="mt-4 inline-flex items-center gap-3 rounded-lg bg-primary/5 border border-primary/15 px-4 py-2 text-primary font-bold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={allFilteredLeaveSelected}
+              onChange={event => toggleAllVisibleLeave(event.target.checked)}
+              className="w-5 h-5 rounded text-primary"
+            />
+            Select all visible students ({filteredLeaveStudents.length})
+          </label>
         </div>
         <div className="divide-y divide-outline-variant/20">
-          {classStudents.map(student => (
+          {filteredLeaveStudents.map(student => (
             <label key={student.id} className="flex items-center gap-4 px-4 py-3 hover:bg-surface-container-low cursor-pointer">
               <input
                 type="checkbox"
                 checked={leaveIds.includes(student.id)}
+                disabled={leaveSubmittedIds.includes(student.id)}
                 onChange={event => toggleLeave(student.id, event.target.checked)}
-                className="w-5 h-5 rounded text-primary"
+                className="w-5 h-5 rounded text-primary disabled:opacity-40"
               />
               <div className="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-primary font-bold text-label-md shrink-0">{student.avatar}</div>
               <div className="flex-1">
@@ -207,8 +387,12 @@ export default function TeacherAttendancePage() {
                 <p className="text-xs text-on-surface-variant">{student.parentName} - {student.parentPhone}</p>
               </div>
               <span className={`${travelStatusClass(student.status)} px-3 py-1 rounded-full text-label-sm font-bold`}>{travelStatusLabel(student.status, 'teacher')}</span>
+              {leaveSubmittedIds.includes(student.id) && <span className="text-xs font-bold text-green-700">Submitted today</span>}
             </label>
           ))}
+          {filteredLeaveStudents.length === 0 && (
+            <div className="px-4 py-6 text-center text-on-surface-variant">No go out students match this search.</div>
+          )}
         </div>
         <div className="p-stack-md flex justify-end gap-3 border-t border-outline-variant/30">
           {leaveSaved && <span className="flex items-center gap-1 text-green-600 text-label-md"><span className="material-symbols-outlined text-[18px]">check_circle</span>Go out attendance submitted.</span>}
@@ -218,11 +402,6 @@ export default function TeacherAttendancePage() {
           </button>
         </div>
       </section>
-
-      <div className="flex justify-end gap-3">
-        {saved && <span className="flex items-center gap-1 text-green-600 text-label-md"><span className="material-symbols-outlined text-[18px]">check_circle</span>Attendance saved successfully.</span>}
-        <button onClick={() => setSaved(true)} className="flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-label-md hover:bg-primary-container transition-colors shadow-sm"><span className="material-symbols-outlined text-[18px]">save</span>Submit Attendance</button>
-      </div>
     </div>
   );
 }

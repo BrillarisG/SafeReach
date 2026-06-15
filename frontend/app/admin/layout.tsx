@@ -5,13 +5,15 @@ import { useState } from 'react';
 import AdminTopNav from '@/components/AdminTopNav';
 import AdminSidebar from '@/components/AdminSidebar';
 
-type SidebarItem = 'analytics' | 'students' | 'teachers' | 'incident' | 'reports' | 'audit';
-type NavPage = 'dashboard' | 'students' | 'teachers' | 'reports';
+type SidebarItem = 'analytics' | 'students' | 'teachers' | 'messages' | 'incident' | 'reports' | 'audit' | 'timetable';
+type NavPage = 'dashboard' | 'students' | 'teachers' | 'messages' | 'reports' | 'timetable';
 
 function getSidebar(p: string): SidebarItem {
   if (p.includes('/incidents')) return 'incident';
   if (p.includes('/reports')) return 'reports';
+  if (p.includes('/timetable')) return 'timetable';
   if (p.includes('/account')) return 'audit';
+  if (p.includes('/messages')) return 'messages';
   if (p.includes('/teachers')) return 'teachers';
   if (p.includes('/students')) return 'students';
   return 'analytics';
@@ -19,6 +21,8 @@ function getSidebar(p: string): SidebarItem {
 
 function getNav(p: string): NavPage {
   if (p.includes('/reports')) return 'reports';
+  if (p.includes('/timetable')) return 'timetable';
+  if (p.includes('/messages')) return 'messages';
   if (p.includes('/teachers')) return 'teachers';
   if (p.includes('/students')) return 'students';
   return 'dashboard';

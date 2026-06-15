@@ -55,6 +55,7 @@ export default function TeacherDashboardPage() {
   }
 
   function deleteProtocol(index: number) {
+    if (!window.confirm(`Delete safety protocol "${protocols[index]}"?`)) return;
     setProtocols(current => current.filter((_, i) => i !== index));
     setCheckedProtocols(current => current.filter(i => i !== index).map(i => i > index ? i - 1 : i));
     setSubmittedProtocols(current => current.filter(i => i !== index).map(i => i > index ? i - 1 : i));

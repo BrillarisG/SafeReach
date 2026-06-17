@@ -1,0 +1,70 @@
+from __future__ import annotations
+
+from flask import request
+from flask_socketio import emit, join_room
+
+from .security import decode_token
+from .services import safereach_service
+
+
+def register_socket_handlers(socketio):
+    @socketio.on("connect")
+    def on_connect(auth=None):
+        user = None
+        token = (auth or {}).get("token") if isinstance(auth, dict) else None
+        if token:
+            try:
+                user = decode_token(token)
+                join_room(f"user:{user['sub']}")
+                if user.get("school_id"):
+                    join_room(f"school:{user['school_id']}")
+                join_room(f"role:{user['role']}")
+            except Exception:
+                user = None
+        emit("safe.connected", {"sid": request.sid, "authenticated": bool(user), "user": user})
+
+    @socketio.on("auth.login")
+    def on_login(payload):
+        try:
+            result = safereach_service.login(payload.get("email", ""), payload.get("password", ""))
+            emit("auth.login.success", result)
+        except Exception as exc:
+            emit("auth.login.error", {"message": str(exc)})
+
+    @socketio.on("data.bootstrap")
+    def on_bootstrap(payload=None):
+        try:
+            emit("data.bootstrap.success", safereach_service.bootstrap())
+        except Exception as exc:
+            emit("data.bootstrap.error", {"message": str(exc)})
+
+    @socketio.on("student.ready_to_school")
+    def on_ready(payload):
+        _handle_student_event("student.status.changed", lambda: safereach_service.mark_ready_to_school(payload["studentId"], payload.get("actorUserId")))
+
+    @socketio.on("attendance.submit")
+    def on_attendance(payload):
+        _handle_student_event("attendance.marked", lambda: safereach_service.submit_attendance(payload["studentId"], payload["status"], payload.get("actorUserId")))
+
+    @socketio.on("travel.go_out")
+    def on_go_out(payload):
+        _handle_student_event("student.status.changed", lambda: safereach_service.submit_go_out(payload["studentId"], payload.get("actorUserId")))
+
+    @socketio.on("parent.reached_home")
+    def on_reached(payload):
+        _handle_student_event("student.status.changed", lambda: safereach_service.mark_reached_home(payload["studentId"], payload.get("actorUserId")))
+
+    @socketio.on("timetable.break.move")
+    def on_timetable_break_move(payload):
+        try:
+            result = safereach_service.move_timetable_break(payload["sectionId"], payload["breakKey"], int(payload["afterPeriod"]), payload.get("actorUserId"))
+            emit("timetable.updated", result, broadcast=True)
+        except Exception as exc:
+            emit("timetable.error", {"message": str(exc)})
+
+    def _handle_student_event(event_name, action):
+        try:
+            result = action()
+            emit(event_name, result, broadcast=True)
+        except Exception as exc:
+            emit("safe.error", {"message": str(exc)})

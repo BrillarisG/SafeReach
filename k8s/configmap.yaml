@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: safereach-config
+  namespace: safereach
+data:
+  SAFE_REACH_ENV: "production"
+  FRONTEND_ORIGIN: "https://your-frontend-domain.example"
+  MONGODB_DB: "safereach2026"
+  REDIS_URL: "redis://safereach-redis:6379/0"
+  UPSTASH_REDIS_REST_URL: "https://your-upstash-redis-rest-url.example"
+  NEXT_PUBLIC_SAFEREACH_API_URL: "https://your-backend-domain.example/api/v1"

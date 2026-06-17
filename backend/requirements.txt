@@ -1,0 +1,16 @@
+Flask==3.0.3
+Flask-Cors==4.0.1
+Flask-SocketIO==5.3.6
+eventlet==0.36.1
+gunicorn==22.0.0
+psycopg[binary]==3.2.1
+python-dotenv==1.0.1
+PyJWT==2.9.0
+Werkzeug==3.0.4
+redis==5.0.8
+pymongo==4.8.0
+twilio==9.2.3
+resend==2.4.0
+sentry-sdk[flask]==2.13.0
+google-api-python-client==2.143.0
+google-auth==2.34.0

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safereach-frontend
+  namespace: safereach
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: safereach-frontend
+  template:
+    metadata:
+      labels:
+        app: safereach-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/your-org/safereach-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: safereach-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: safereach-frontend
+  namespace: safereach
+spec:
+  selector:
+    app: safereach-frontend
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: safereach-frontend-hpa
+  namespace: safereach
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: safereach-frontend
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

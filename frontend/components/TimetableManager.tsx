@@ -1,31 +1,54 @@
 'use client';
 
 import { Fragment, useEffect, useState } from 'react';
-import { defaultTimetable, readTimetable, type TimetableBreak, type TimetableData, writeTimetable } from '@/lib/timetable';
+import { type TimetableBreak, type TimetableData } from '@/lib/timetable';
+import { useBackendBootstrap } from '@/lib/backendData';
+
+const emptyTimetable: TimetableData = {
+  className: '',
+  section: '',
+  breakAfterPeriod2: '',
+  lunchAfterPeriod4: '',
+  breakAfterPeriod6: '',
+  breaks: [],
+  days: [],
+};
 
 export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' | 'parent' }) {
   const editable = mode !== 'parent';
-  const [data, setData] = useState<TimetableData>(defaultTimetable);
-  const [selectedChild, setSelectedChild] = useState('Leo Thompson - Class 4-B');
+  const { data: bootstrap, loading, error } = useBackendBootstrap();
+  const [data, setData] = useState<TimetableData>(emptyTimetable);
+  const [selectedChild, setSelectedChild] = useState('');
   const [notice, setNotice] = useState('');
   const [draggedBreakId, setDraggedBreakId] = useState<TimetableBreak['id'] | null>(null);
   const periodCount = data.days[0]?.periods.length || 8;
 
   useEffect(() => {
-    setData(readTimetable());
-    const refresh = () => setData(readTimetable());
-    window.addEventListener('storage', refresh);
-    window.addEventListener('safereach-timetable-updated', refresh);
-    return () => {
-      window.removeEventListener('storage', refresh);
-      window.removeEventListener('safereach-timetable-updated', refresh);
-    };
-  }, []);
+    if (!bootstrap.timetable.days.length) return;
+    const breaks: TimetableBreak[] = bootstrap.timetable.breaks.map(item => ({
+      id: item.id as TimetableBreak['id'],
+      label: item.label,
+      afterPeriod: item.afterPeriod,
+      tone: (item.tone === 'lunch' ? 'lunch' : 'interval') as TimetableBreak['tone'],
+    }));
+    setData({
+      className: bootstrap.timetable.className,
+      section: bootstrap.timetable.section,
+      breaks,
+      days: bootstrap.timetable.days,
+      breakAfterPeriod2: breaks.find(item => item.id === 'interval1')?.label || '',
+      lunchAfterPeriod4: breaks.find(item => item.id === 'lunch')?.label || '',
+      breakAfterPeriod6: breaks.find(item => item.id === 'interval2')?.label || '',
+    });
+    if (!selectedChild && bootstrap.students.length) {
+      const firstStudent = bootstrap.students[0];
+      setSelectedChild(`${firstStudent.full_name} - ${firstStudent.class_name}-${firstStudent.section_name}`);
+    }
+  }, [bootstrap, selectedChild]);
 
   function save(next: TimetableData, message: string) {
     setData(next);
-    writeTimetable(next);
-    setNotice(message);
+    setNotice(`${message} Backend write sync is planned; this screen starts from stored DB data.`);
   }
 
   function updatePeriod(dayId: string, index: number, value: string) {
@@ -87,6 +110,21 @@ export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' |
     save({ ...data, days: data.days.map(day => ({ ...day, periods: day.periods.slice(0, -1) })) }, 'Last period column deleted.');
   }
 
+  if (loading) {
+    return <div className="p-container-padding-mobile md:p-container-padding-desktop text-primary font-bold">Loading stored timetable data...</div>;
+  }
+
+  if (error || !data.days.length) {
+    return (
+      <div className="p-container-padding-mobile md:p-container-padding-desktop">
+        <section className="bg-white rounded-xl border border-error/20 shadow-sm p-stack-md">
+          <h1 className="font-headline-md text-headline-md text-primary">Class Timetable</h1>
+          <p className="mt-2 text-error font-bold">Stored timetable data is unavailable{error ? `: ${error}` : '.'}</p>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop space-y-stack-lg">
       <section className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md">
@@ -97,8 +135,9 @@ export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' |
           </div>
           {mode === 'parent' ? (
             <select value={selectedChild} onChange={event => setSelectedChild(event.target.value)} className="px-4 py-3 rounded-lg bg-surface-container border border-outline-variant">
-              <option>Leo Thompson - Class 4-B</option>
-              <option>Maya Thompson - Class 4-B</option>
+              {bootstrap.students.map(student => (
+                <option key={student.id}>{student.full_name} - {student.class_name}-{student.section_name}</option>
+              ))}
             </select>
           ) : (
             <div className="flex flex-wrap gap-2">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { type BackendStudent, useBackendBootstrap } from '@/lib/backendData';
 
 export type StudentTravelStatus =
   | 'at_home'
@@ -61,6 +62,7 @@ export const DB3_REALTIME_STORAGE_KEY = 'safereach_db3_realtime_events';
 const TRAVEL_EVENT = 'safereach-travel-state-updated';
 
 const nowLabel = () => new Date().toLocaleString();
+let backendBaseRecords: StudentTravelRecord[] = [];
 
 export const seedTravelRecords: StudentTravelRecord[] = [
   {
@@ -185,18 +187,69 @@ export const seedTravelRecords: StudentTravelRecord[] = [
   },
 ];
 
-function normalizeRecords(records: StudentTravelRecord[]) {
+function normalizeRecords(records: StudentTravelRecord[], baseRecords: StudentTravelRecord[] = backendBaseRecords) {
   const stored = new Map(records.map(record => [record.id, record]));
-  return seedTravelRecords.map(seed => ({ ...seed, ...(stored.get(seed.id) ?? {}) }));
+  return baseRecords.map(seed => ({ ...seed, ...(stored.get(seed.id) ?? {}) }));
 }
 
-export function readTravelRecords() {
-  if (typeof window === 'undefined') return seedTravelRecords;
+function safeStatus(status: string): StudentTravelStatus {
+  const allowed: StudentTravelStatus[] = ['at_home', 'to_school', 'reached_school', 'present', 'absent', 'going_home', 'reached_home'];
+  return allowed.includes(status as StudentTravelStatus) ? status as StudentTravelStatus : 'at_home';
+}
+
+function safeAttendance(status: string): AttendanceMark {
+  const allowed: AttendanceMark[] = ['pending', 'present', 'absent', 'late'];
+  return allowed.includes(status as AttendanceMark) ? status as AttendanceMark : 'pending';
+}
+
+function locationForStatus(status: StudentTravelStatus) {
+  const labels: Record<StudentTravelStatus, string> = {
+    at_home: 'Home',
+    to_school: 'Tracking to school',
+    reached_school: 'Reached school campus',
+    present: 'SafeReach at school',
+    absent: 'Not reached school',
+    going_home: 'Tracking to home',
+    reached_home: 'SafeReach at home',
+  };
+  return labels[status];
+}
+
+function initials(name: string) {
+  return name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'SR';
+}
+
+function backendStudentToTravelRecord(student: BackendStudent): StudentTravelRecord {
+  const status = safeStatus(student.travel_status);
+  return {
+    id: student.id,
+    name: student.full_name,
+    roll: student.roll_no,
+    className: student.class_name,
+    section: student.section_name,
+    parentName: student.guardian_name,
+    parentPhone: student.parent_phone,
+    teacherName: 'Stored teacher',
+    avatar: initials(student.full_name),
+    location: locationForStatus(status),
+    isParentChild: true,
+    status,
+    attendance: safeAttendance(student.attendance_status),
+    absenceReason: '',
+    absenceReasonRequested: status === 'absent',
+    absenceSmsSentAt: '',
+    smsHistory: [],
+    updatedAt: 'DB stored record',
+  };
+}
+
+export function readTravelRecords(baseRecords: StudentTravelRecord[] = backendBaseRecords) {
+  if (typeof window === 'undefined') return baseRecords;
   try {
     const parsed = JSON.parse(window.localStorage.getItem(TRAVEL_STORAGE_KEY) ?? '[]') as StudentTravelRecord[];
-    return normalizeRecords(Array.isArray(parsed) ? parsed : []);
+    return normalizeRecords(Array.isArray(parsed) ? parsed : [], baseRecords);
   } catch {
-    return seedTravelRecords;
+    return baseRecords;
   }
 }
 
@@ -345,18 +398,20 @@ export function travelStatusClass(status: StudentTravelStatus) {
 }
 
 export function useStudentTravelState() {
-  const [records, setRecords] = useState<StudentTravelRecord[]>(seedTravelRecords);
+  const { data: backend } = useBackendBootstrap();
+  const [records, setRecords] = useState<StudentTravelRecord[]>([]);
 
   useEffect(() => {
-    setRecords(readTravelRecords());
-    const refresh = () => setRecords(readTravelRecords());
+    backendBaseRecords = backend.students.map(backendStudentToTravelRecord);
+    setRecords(readTravelRecords(backendBaseRecords));
+    const refresh = () => setRecords(readTravelRecords(backendBaseRecords));
     window.addEventListener('storage', refresh);
     window.addEventListener(TRAVEL_EVENT, refresh);
     return () => {
       window.removeEventListener('storage', refresh);
       window.removeEventListener(TRAVEL_EVENT, refresh);
     };
-  }, []);
+  }, [backend.students]);
 
   const actions = useMemo(() => ({
     readyToSend(studentId: string) {
@@ -465,8 +520,8 @@ export function useStudentTravelState() {
       setRecords(updateOneWithSms(studentId, status, {}));
     },
     resetDemo() {
-      writeTravelRecords(seedTravelRecords);
-      setRecords(seedTravelRecords);
+      writeTravelRecords(backendBaseRecords);
+      setRecords(backendBaseRecords);
     },
   }), []);
 

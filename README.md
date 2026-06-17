@@ -12,7 +12,7 @@
     <img alt="React" src="https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white" />
     <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
     <img alt="Tailwind" src="https://img.shields.io/badge/Tailwind-CSS-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white" />
-    <img alt="Backend Plan" src="https://img.shields.io/badge/Backend%20Plan-Flask%20%2B%20MongoDB-00A77F?style=for-the-badge" />
+    <img alt="Backend" src="https://img.shields.io/badge/Backend-Flask%20%2B%20PostgreSQL%20%2B%20MongoDB-00A77F?style=for-the-badge" />
   </p>
 
   <p>
@@ -46,7 +46,7 @@ SafeReach is designed for real-world school safety operations:
 - Teacher manages assigned class students, attendance, SMS status updates, and class messages.
 - Parent monitors children, attendance, travel status, messages, and reports.
 
-The current codebase is frontend-only. Backend, database, SMS, WebSocket, and production authentication are planned but not created yet.
+The current codebase contains the SafeReach frontend plus an initial Flask/Socket.IO backend foundation. DB-1, DB-2, MongoDB DB-3, Google Sheets export, Twilio test SMS, deployment config, and CI scaffolding are started; production authentication, full write APIs, and final cloud secret setup still need completion.
 
 ## Quick Start
 
@@ -121,22 +121,23 @@ Important routes:
 
 ## Backend Blueprint
 
-Recommended future backend stack:
+Current backend foundation and target stack:
 
 | Layer | Recommendation |
 | --- | --- |
-| API | Python Flask |
-| App Server | Gunicorn |
-| Primary DB | MongoDB |
-| Audit DB | Separate append-only MongoDB audit/backup store |
+| API | Python Flask with HTTP fallback endpoints and Socket.IO/WebSocket event handlers |
+| App Server | Gunicorn with eventlet worker |
+| Primary DB | DB-1 Supabase PostgreSQL for editable operational records |
+| Backup DB | DB-2 Supabase PostgreSQL protected mirror of DB-1 tables |
+| Realtime DB | MongoDB DB-3 for status, travel, notification, and event logs |
 | Cache / Queue | Redis |
 | Realtime | WebSocket or Socket.IO |
 | Notifications | SMS, email, Firebase push |
-| Deployment | Render first, Kubernetes later |
+| Deployment | Render backend, Vercel frontend, Kubernetes scale plan |
 | Monitoring | Prometheus, Grafana, ELK |
 | CI/CD | GitHub Actions |
 
-Planned backend modules:
+Backend modules started or planned:
 
 - Authentication and JWT sessions
 - Refresh tokens
@@ -149,6 +150,7 @@ Planned backend modules:
 - Student travel lifecycle
 - Emergency alerts
 - SMS, email, push notifications
+- Google Sheets schema/data export for DB visibility
 - Reports and analytics
 - Audit logs
 - Terms and consent records
@@ -223,9 +225,10 @@ flowchart LR
   AdminPortal[School Admin Portal] -->|Class Records and Reports| Frontend
   MainAdmin[Main Admin Portal] -->|School Approval and Terms| Frontend
 
-  Frontend -->|Future API requests| FlaskAPI[Flask Backend API]
-  FlaskAPI --> PrimaryDB[(MongoDB Primary)]
-  FlaskAPI --> AuditDB[(Immutable Audit DB)]
+  Frontend -->|Bootstrap/read data now; write APIs planned| FlaskAPI[Flask Backend API]
+  FlaskAPI --> PrimaryDB[(DB-1 Supabase PostgreSQL)]
+  FlaskAPI --> AuditDB[(DB-2 Protected Mirror PostgreSQL)]
+  FlaskAPI --> DB3[(MongoDB DB-3 Realtime Events)]
   FlaskAPI --> RedisQueue[(Redis Cache and Queue)]
 
   RedisQueue --> SMSProvider[SMS Provider]
@@ -240,7 +243,7 @@ flowchart LR
 
 ## DB3 Realtime Travel Logic
 
-SafeReach plans a separate `DB3` realtime event store for live status and event updates. This is not Google Sheets storage and is not implemented as backend code yet. In the current frontend demo, the same idea is represented with localStorage event records.
+SafeReach now includes a MongoDB-backed `DB3` event/log layer for realtime status and event updates. It is separate from Google Sheets. The backend writes student status, travel, SMS, timetable, and system check events to DB3 when configured.
 
 ![SafeReach DB3 realtime travel flow](doc/backend/safereach_db3_realtime_travel_flow.png)
 
@@ -321,26 +324,31 @@ Default timetable behavior:
 
 ## Google Sheets DB Plan
 
-SafeReach can optionally connect a single Google Sheet workbook through Google Cloud APIs for spreadsheet-backed storage or mirroring. This is a future backend plan only.
+SafeReach can export DB visibility into one Google Sheet workbook through Google Cloud APIs. The backend export script creates the main index tabs `sheet-1`, `sheet-2`, and `sheet-3`, then creates separate data tabs such as `sheet-1.1 schools`, `sheet-1.12 students`, and `sheet-3.1 student_status`.
 
 ```mermaid
 flowchart LR
-  Frontend[SafeReach Frontend] -->|Future API requests only| Backend[Flask Backend API]
+  Frontend[SafeReach Frontend] -->|Reads backend bootstrap data| Backend[Flask Backend API]
   Backend -->|Validate RBAC and rows| GoogleCloud[Google Cloud APIs]
   GoogleCloud --> Sheets[(Single Google Sheet Workbook)]
 
   Sheets --> DB1[DB-1 Editable Store]
   Sheets --> DB2[DB-2 Protected Store]
 
-  DB1 --> S1[Sheet-1 DB1_Index]
-  DB1 --> S11[Sheet-1.1 Students_Values]
-  DB1 --> S12[Sheet-1.2 Attendance_Values]
-  DB1 --> S13[Sheet-1.3 Teachers_Values]
+  DB1 --> S1[Sheet-1 Index]
+  DB1 --> S11[Sheet-1.1 Schools]
+  DB1 --> S12[Sheet-1.12 Students]
+  DB1 --> S13[Sheet-1.13 Attendance]
 
-  DB2 --> S2[Sheet-2 DB2_Audit_Index]
-  DB2 --> S21[Sheet-2.1 Audit_Events]
-  DB2 --> S22[Sheet-2.2 Backup_Snapshots]
-  DB2 --> S23[Sheet-2.3 Consent_History]
+  DB2 --> S2[Sheet-2 Index]
+  DB2 --> S21[Sheet-2.1 Schools]
+  DB2 --> S22[Sheet-2.12 Students]
+  DB2 --> S23[Sheet-2.13 Attendance]
+
+  Sheets --> DB3[DB-3 Realtime Log Export]
+  DB3 --> S31[Sheet-3.1 Student Status]
+  DB3 --> S32[Sheet-3.2 Travel Events]
+  DB3 --> S33[Sheet-3.5 SMS Events]
 
   Admin[School Admin] -->|Add / edit / soft-delete| Backend
   Backend -->|Append audit rows only| DB2
@@ -353,18 +361,18 @@ flowchart LR
 
 | Sheet Area | Example Tabs | Rule |
 | --- | --- | --- |
-| `DB-1` editable store | `Sheet-1`, `Sheet-1.1`, `Sheet-1.2` | Add, edit, read, and controlled soft-delete allowed through backend validation |
-| `DB-1` schema/index | `Sheet-1 DB1_Index` | Stores table keys, tab names, attributes, primary keys, and allowed actions |
-| `DB-2` protected store | `Sheet-2`, `Sheet-2.1`, `Sheet-2.2` | Append-only audit/backup store; no normal update/delete path |
-| `DB-2` schema/index | `Sheet-2 DB2_Audit_Index` | Stores protected audit tab names, retention rules, and append sources |
+| `sheet-1` DB-1 index | Links to `sheet-1.1 schools`, `sheet-1.2 roles`, and every DB-1 table tab | Editable operational database mirror; frontend must read through backend APIs, not Sheets directly |
+| `sheet-2` DB-2 index | Links to the same table set as DB-1, such as schools, users, students, attendance, reports, and incidents | Protected mirror visibility; insert/sync allowed, update/delete blocked |
+| `sheet-3` DB-3 index | Links to MongoDB event/status collection exports | Realtime/event store visibility, not the main editable database |
+| `api-test-results` | Integration test result rows | Shows DB, SMS, email, Redis, MongoDB, and Google Sheet test status |
 
 Important rules:
 
 - Frontend must not write directly to Google Sheets.
 - Backend should use Google Cloud service credentials stored only in environment variables or secret manager.
-- `DB-1` can support add, edit, read, and controlled soft-delete.
-- `DB-2` should expose append-only audit and backup functions.
-- MongoDB remains the recommended primary database for production-scale deployments.
+- `DB-1` supports add, edit, read, and controlled soft-delete through backend validation.
+- `DB-2` stores the same table structure/data shape as DB-1 for protected backup visibility. It allows inserts/sync copies but blocks update/delete operations.
+- MongoDB DB-3 stores realtime status/events and is not exported as the primary source of truth.
 
 ## Permission Model
 
@@ -455,18 +463,20 @@ Frontend:
 ```text
 Platform: Vercel or GitHub Pages static export workflow
 Root Directory: frontend
-Install Command: npm install
+Install Command: npm ci
 Build Command: npm run build
+Environment: NEXT_PUBLIC_SAFEREACH_API_URL
 ```
 
-Backend later:
+Backend:
 
 ```text
 Platform: Render first
-Runtime: Python Flask + Gunicorn
-Database: MongoDB
-Cache/Queue: Redis
-Future Scale: Kubernetes
+Runtime: Python Flask + Gunicorn + eventlet
+Database: DB-1 Supabase PostgreSQL, DB-2 protected mirror Supabase PostgreSQL, MongoDB DB-3
+Cache/Queue: Redis or Upstash Redis REST
+Future Scale: Kubernetes manifests with 2 frontend/backend replicas and Redis PVC
+CI/CD: GitHub Actions on main branch
 ```
 
 ---

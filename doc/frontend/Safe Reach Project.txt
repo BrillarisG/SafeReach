@@ -148,3 +148,25 @@ SMS will be sent automatically for teacher status updates.
 Frontend demo only" in teacher in attendance page. the attendance table not have submit button to add the button. and automatically reset on morning 8.00am once submit not allow to edit. only late option status students only allow to select after submit to click present or absent if click anyone to any allow to click submit. in late student can click to allow for click present or absent. already click present or absent after click the submit button to disable to again click particulare students
 
 samething see this login the parent can access moring 8.00am to enable the ready to school button if click not enble again click, then the teacher have same logic of i told the attendance same it, the teacher can mark the attendance of in attendence to enble moring 8.00am, the end of school attendence also click once to enble on monring 8.00am, the parent in reached button only enble on teacher click the student out button, then parent can click once reached button not allow to again click, next day the teacher can click school end student out button to enble. you can understand this button enbleing login implement on frontend but dont implement the backend and add this login on same doc in same above login place in frontend and backend doc dont create a new doc and modify the old db3 imge to add this in same image on both doc and readme file. the student reached on school and out on school the teacher can mark it at a time send the notification on for each parents, the notification is not working to correclty  add the notification page to all user but the this student notification not need to send the teacher. to allow this attendance part for assisent inchange also. to add the timetable section on school admin, teacher and each currect std timetable. this timetable can see on child container because one parent have more childs. the school admin can able to edit, delete. the teacher also able to edit and delelte and the parent can only to see. the timetable can defaultly 6 days with each 8 periods of classes if add to alter to add or remove the day or table column, to able to add the subject on peroid add the intervels and lanch. the intervel can display on after 2nd period and after 6th peroid and lunch can display on after 4th peroid if need to move the intervel and lunch from admin or teachers. you can implement this frontend but not implement the backent but add this in both frontend and backend same doc dont create new doc. to add the diagram image for this login and image of sample timetable in doc and readme file.
+
+APIs:
+
+DB-1
+
+db url: postgresql://postgres.tkwtrfgqroalgfsvxnex:Safe.reach%402026@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+
+public key: sb_publishable_33lwf_ivMRttp7-9PWPnyQ_5lZQw2un
+
+project url: https://tkwtrfgqroalgfsvxnex.supabase.co
+
+DB-2:
+
+db url: postgresql://postgres.jixouutrscrducvkoodm:Safe.reach%402026@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+
+project url: https://jixouutrscrducvkoodm.supabase.co
+
+public key: sb_publishable_rFVz-bmjVV-L8TfSC2P51A_sE06sPAk
+
+google sheet link: https://docs.google.com/spreadsheets/d/1720rZslTQRxHjiXJtp4AoKUZ59rik0f9YcICWe4MqXg/edit?usp=sharing
+
+google cloud api: "E:\Projects\Live\SafeReach\safereach-499510-547d074a1ae9.json"

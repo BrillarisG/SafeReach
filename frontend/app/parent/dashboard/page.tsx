@@ -102,7 +102,7 @@ export default function ParentDashboardPage() {
     <div className="px-container-padding-mobile md:px-container-padding-desktop py-stack-lg">
       <section className="mb-stack-lg">
         <h3 className="font-headline-lg text-headline-lg text-on-background mb-2">Welcome back, Sarah.</h3>
-        <p className="font-body-lg text-body-lg text-on-surface-variant">Your children are currently in safe zones. Dashboard cards use frontend demo data only.</p>
+        <p className="font-body-lg text-body-lg text-on-surface-variant">Your children are currently loaded from stored SafeReach records.</p>
       </section>
       {notice && <div className="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-lg font-label-md">{notice}</div>}
       <div className="bento-grid flex flex-col lg:grid lg:grid-cols-12">
@@ -121,7 +121,7 @@ export default function ParentDashboardPage() {
               </div>
               <div className="bg-surface-container rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-2"><span className="material-symbols-outlined text-primary text-[18px]">location_on</span><span className="text-label-md font-bold">Travel Status</span></div>
-                <p className="text-label-sm text-on-surface-variant">{child.location} - updated {child.updatedAt} from frontend demo records.</p>
+                <p className="text-label-sm text-on-surface-variant">{child.location} - updated {child.updatedAt}.</p>
                 {child.status === 'at_home' && travelAlarmIds.includes(child.id) && (
                   <p className="mt-2 text-label-sm text-yellow-700 font-bold flex items-center gap-1">
                     <span className="material-symbols-outlined text-[16px]">alarm</span>

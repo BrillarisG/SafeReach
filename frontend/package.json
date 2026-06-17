@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/run-next.cjs dev",
-    "build": "node scripts/run-next.cjs build",
+    "dev": "next dev",
+    "build": "next build",
     "build:pages": "node scripts/build-pages.cjs",
-    "start": "node scripts/run-next.cjs start",
-    "lint": "node scripts/run-next.cjs lint"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "next": "^15.0.0",

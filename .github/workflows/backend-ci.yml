@@ -26,10 +26,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install minimal backend dependencies
+      - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install Flask==3.0.3 Flask-Cors==4.0.1 Flask-SocketIO==5.3.6 eventlet==0.36.1 psycopg[binary]==3.2.1 python-dotenv==1.0.1 PyJWT==2.9.0 redis==5.0.8 pymongo==4.8.0 sentry-sdk==2.13.0
+          pip install -r requirements.txt
 
       - name: Compile backend
         run: python -m compileall app scripts

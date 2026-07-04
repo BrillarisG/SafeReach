@@ -10,6 +10,7 @@ const tableStyle: Record<string, string> = {
   parent_events: 'bg-primary/10 text-primary',
   travel_events: 'bg-yellow-100 text-yellow-700',
   sms_events: 'bg-surface-container-high text-on-surface-variant',
+  payment_events: 'bg-purple-100 text-purple-700',
 };
 
 export default function NotificationCenter({ audience }: { audience: NotificationAudience }) {

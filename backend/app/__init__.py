@@ -22,8 +22,8 @@ def create_app() -> Flask:
             environment=app.config["SAFE_REACH_ENV"],
         )
 
-    CORS(app, origins=[app.config["FRONTEND_ORIGIN"]], supports_credentials=True)
-    socketio.init_app(app, cors_allowed_origins=[app.config["FRONTEND_ORIGIN"]])
+    CORS(app, origins=app.config["FRONTEND_ORIGINS"], supports_credentials=True)
+    socketio.init_app(app, cors_allowed_origins=app.config["FRONTEND_ORIGINS"])
 
     app.register_blueprint(health_bp)
     app.register_blueprint(api_bp, url_prefix="/api/v1")

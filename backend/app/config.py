@@ -27,6 +27,11 @@ class Config:
     JWT_REFRESH_DELTA = timedelta(days=JWT_REFRESH_DAYS)
 
     FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
+    FRONTEND_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv("FRONTEND_ORIGINS", f"{FRONTEND_ORIGIN},http://127.0.0.1:3000").split(",")
+        if origin.strip()
+    ]
 
     DB1_URL = _database_url("DB1_URL")
     DB2_URL = _database_url("DB2_URL")

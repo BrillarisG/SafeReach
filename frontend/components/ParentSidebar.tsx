@@ -2,6 +2,7 @@
 
 import Link from '@/src/next-link';
 import LogoutConfirmButton from './LogoutConfirmButton';
+import LogoMark from './LogoMark';
 
 type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'timetable';
 
@@ -18,9 +19,7 @@ export default function ParentSidebar({ activeItem, className = 'hidden md:flex'
   return (
     <aside className={`${className} flex-col h-full py-stack-lg px-stack-md bg-surface-container-low w-64 fixed left-0 top-0 z-50 border-r border-outline-variant overflow-y-auto`}>
       <div className="flex items-center gap-3 mb-8 px-2">
-        <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-          <span className="material-symbols-outlined text-white">shield</span>
-        </div>
+        <LogoMark className="h-9 w-9 rounded-lg" />
         <div>
           <h1 className="font-label-md font-extrabold text-primary leading-tight">SafeReach</h1>
           <p className="font-label-sm text-label-sm text-on-surface-variant">Parent Portal</p>

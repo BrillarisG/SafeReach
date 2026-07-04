@@ -2,6 +2,7 @@
 
 import Link from '@/src/next-link';
 import LogoutConfirmButton from './LogoutConfirmButton';
+import LogoMark from './LogoMark';
 
 type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'timetable';
 
@@ -19,9 +20,7 @@ export default function TeacherSidebar({ activeItem, className = 'hidden md:flex
     <aside className={`${className} flex-col h-full py-stack-lg px-stack-md bg-surface-container-low w-64 fixed left-0 top-0 z-50 border-r border-outline-variant overflow-y-auto`}>
       <div className="mb-8 flex flex-col gap-1">
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-[18px]">shield</span>
-          </div>
+          <LogoMark className="h-8 w-8 rounded-lg" />
           <h1 className="font-headline-md text-headline-md font-extrabold text-primary">SafeReach</h1>
         </div>
         <p className="font-label-sm text-label-sm text-on-surface-variant opacity-70 pl-10">Teacher Portal</p>

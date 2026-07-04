@@ -3,6 +3,7 @@
 import Link from '@/src/next-link';
 import { useRouter } from '@/src/next-navigation';
 import { useState } from 'react';
+import LogoMark from '@/components/LogoMark';
 
 const MAIN_ADMIN_EMAIL = 'mainadmin@safereach.app';
 const MAIN_ADMIN_PASSWORD = 'MainAdmin@2025';
@@ -32,9 +33,7 @@ export default function MainAdminLoginPage() {
         </Link>
 
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-[20px]">admin_panel_settings</span>
-          </div>
+          <LogoMark className="h-10 w-10 rounded-xl" />
           <div>
             <h1 className="font-headline-md text-headline-md text-primary font-bold leading-tight">SafeReach Main Admin</h1>
             <p className="text-label-sm text-on-surface-variant">App-level owner access only</p>

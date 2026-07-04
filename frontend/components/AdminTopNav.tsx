@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import Link from '@/src/next-link';
+import LogoMark from './LogoMark';
 
 type ActivePage = 'dashboard' | 'students' | 'teachers' | 'messages' | 'reports' | 'timetable';
 
@@ -19,9 +20,7 @@ export default function AdminTopNav({ activePage, onMenuToggle }: AdminTopNavPro
         <button type="button" onClick={onMenuToggle} className="lg:hidden text-on-surface-variant hover:text-primary p-2 -ml-2 rounded-lg hover:bg-surface-container" aria-label="Toggle navigation menu">
           <span className="material-symbols-outlined">menu</span>
         </button>
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-          <span className="material-symbols-outlined text-white text-[18px]">shield</span>
-        </div>
+        <LogoMark className="h-8 w-8 rounded-lg" />
         <span className="text-headline-md font-bold text-primary">SafeReach</span>
       </div>
       <nav className="hidden md:flex items-center gap-6">

@@ -3,6 +3,7 @@
 import Link from '@/src/next-link';
 import { useState } from 'react';
 import LogoutConfirmButton from './LogoutConfirmButton';
+import LogoMark from './LogoMark';
 
 type MainAdminShellProps = {
   active: 'dashboard' | 'reports' | 'terms' | 'notifications';
@@ -24,9 +25,7 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
   const sidebar = (
     <aside className="w-64 h-screen bg-white border-r border-outline-variant/50 flex flex-col p-4 shadow-sm">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-          <span className="material-symbols-outlined text-white">shield</span>
-        </div>
+        <LogoMark className="h-10 w-10 rounded-xl" />
         <div>
           <p className="font-bold text-primary leading-tight">SafeReach</p>
           <p className="text-label-sm text-on-surface-variant">Main Admin</p>

@@ -3,6 +3,7 @@
 import { useRouter } from '@/src/next-navigation';
 import Link from '@/src/next-link';
 import { useState } from 'react';
+import LogoMark from '@/components/LogoMark';
 
 export default function ParentLoginPage() {
   const [showPwd, setShowPwd] = useState(false);
@@ -27,9 +28,7 @@ export default function ParentLoginPage() {
           {/* Header */}
           <div className="bg-gradient-to-r from-[#4b1c00] to-[#92400e] p-6 text-white">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-[22px]">family_restroom</span>
-              </div>
+              <LogoMark className="h-10 w-10 rounded-xl" />
               <div>
                 <h1 className="font-headline-md text-headline-md font-bold">Parent Portal</h1>
                 <p className="text-white/80 text-label-sm">SafeReach</p>

@@ -1,0 +1,48 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: "class",
+  content: [
+    "./index.html",
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+    "./lib/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: "#00236f",
+        "on-primary": "#ffffff",
+        "primary-container": "#1e3a8a",
+        "on-primary-container": "#90a8ff",
+        secondary: "#006b5f",
+        "on-secondary": "#ffffff",
+        "secondary-container": "#6df5e1",
+        tertiary: "#4b1c00",
+        error: "#ba1a1a",
+        "error-container": "#ffdad6",
+        background: "#f8f9fb",
+        "on-background": "#191c1e",
+        surface: "#f8f9fb",
+        "on-surface": "#191c1e",
+        "surface-variant": "#e1e2e4",
+        "on-surface-variant": "#444651",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f3f4f6",
+        "surface-container": "#edeef0",
+        "surface-container-high": "#e7e8ea",
+        "surface-container-highest": "#e1e2e4",
+        outline: "#757682",
+        "outline-variant": "#c5c5d3",
+      },
+      spacing: {
+        "container-padding-mobile": "16px",
+        "container-padding-desktop": "32px",
+        "stack-sm": "8px",
+        "stack-md": "16px",
+        "stack-lg": "24px",
+      },
+    },
+  },
+  plugins: [],
+};

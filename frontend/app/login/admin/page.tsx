@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from '@/src/next-navigation';
 import Link from '@/src/next-link';
+import LogoMark from '@/components/LogoMark';
 
 export default function AdminLoginPage() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -33,9 +34,7 @@ export default function AdminLoginPage() {
 
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-[20px]">shield</span>
-          </div>
+          <LogoMark className="h-10 w-10 rounded-xl" />
           <div>
             <h1 className="font-headline-md text-headline-md text-primary font-bold leading-tight">SafeReach</h1>
             <p className="text-label-sm text-on-surface-variant">Administrator Access</p>

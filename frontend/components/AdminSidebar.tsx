@@ -3,6 +3,7 @@
 import Link from '@/src/next-link';
 import LogoutConfirmButton from './LogoutConfirmButton';
 import { downloadTextFile } from '@/lib/downloadFile';
+import LogoMark from './LogoMark';
 
 type AnalyticsItem = 'analytics' | 'students' | 'teachers' | 'messages' | 'incident' | 'reports' | 'audit' | 'timetable';
 type Variant = 'analytics' | 'hub';
@@ -34,9 +35,7 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen p-stack-md bg-surface-container-low border-r border-outline-variant w-64 z-50">
         <div className="mb-8 px-2">
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[18px]">shield</span>
-            </div>
+            <LogoMark className="h-8 w-8 rounded-lg" />
             <h2 className="text-label-md font-bold text-primary">SafeReach</h2>
           </div>
           <p className="text-label-sm text-on-surface-variant pl-10">Super Admin</p>

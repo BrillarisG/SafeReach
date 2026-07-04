@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import Link from '@/src/next-link';
+import LogoMark from '@/components/LogoMark';
 
 const roles = [
   {
@@ -45,8 +46,8 @@ export default function LoginRoleSelectorPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex flex-col items-center justify-center p-4 md:p-8">
       <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-14 h-14 bg-primary rounded-2xl mb-4 shadow-lg">
-          <span className="material-symbols-outlined text-white text-[30px]" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
+        <div className="inline-flex mb-4 shadow-lg rounded-2xl">
+          <LogoMark className="h-14 w-14 rounded-2xl" />
         </div>
         <h1 className="font-headline-lg text-headline-lg text-primary font-extrabold tracking-tight">SafeReach Login</h1>
         <p className="text-body-md text-on-surface-variant mt-1">Choose your role to continue</p>

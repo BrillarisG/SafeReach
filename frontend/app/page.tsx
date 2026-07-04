@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import Link from '@/src/next-link';
+import LogoMark from '@/components/LogoMark';
 
 const statusChips = [
   { label: 'Reached School', icon: 'school', cls: 'bg-green-500/20 text-green-100 border-green-300/40' },
@@ -80,9 +81,7 @@ export default function SafeReachLandingPage() {
         <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-white/10 px-5 py-4 backdrop-blur-xl md:px-10">
           <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-primary shadow-lg">
-              <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
-            </div>
+            <LogoMark className="h-11 w-11 rounded-xl shadow-lg" />
             <div>
               <p className="text-xl font-black tracking-tight">SafeReach</p>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-100/70">School safety platform</p>

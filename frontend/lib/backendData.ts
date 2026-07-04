@@ -118,9 +118,15 @@ export function useBackendBootstrap() {
   useEffect(() => {
     let active = true;
     fetch(`${API_BASE}/bootstrap`, { cache: 'no-store' })
-      .then(response => {
-        if (!response.ok) throw new Error(`Backend returned ${response.status}`);
-        return response.json() as Promise<BackendBootstrap>;
+      .then(async response => {
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          const message = payload && typeof payload.message === 'string'
+            ? payload.message
+            : `Backend returned ${response.status}`;
+          throw new Error(message);
+        }
+        return payload as BackendBootstrap;
       })
       .then(payload => {
         if (!active) return;

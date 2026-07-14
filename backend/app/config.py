@@ -53,3 +53,4 @@ class Config:
     RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
     RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "SafeReach <noreply@safereach.local>")
     SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+    JSON_BACKUP_DIR = os.getenv("JSON_BACKUP_DIR", str(BASE_DIR / "json_backups"))

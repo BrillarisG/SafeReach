@@ -1,7 +1,6 @@
 'use client';
 
 import { DB3_REALTIME_STORAGE_KEY, type Db3RealtimeEvent } from './studentTravel';
-import { readPremiumPaymentRequests } from './industryAccess';
 
 export type NotificationAudience = 'admin' | 'teacher' | 'parent' | 'main-admin';
 
@@ -34,19 +33,7 @@ export function readDb3Notifications(audience: NotificationAudience) {
   if (typeof window === 'undefined') return fallbackNotifications;
   try {
     const parsed = JSON.parse(window.localStorage.getItem(DB3_REALTIME_STORAGE_KEY) ?? '[]') as Db3RealtimeEvent[];
-    const paymentEvents: Db3RealtimeEvent[] = readPremiumPaymentRequests().map(request => ({
-      id: request.id,
-      table: 'payment_events',
-      studentId: request.schoolId,
-      studentName: request.schoolName,
-      actor: request.status === 'Requested' ? 'admin' : 'main-admin',
-      event: `Premium ${request.status}`,
-      status: request.status === 'Enabled' ? 'menu_enabled' : request.status === 'Rejected' ? 'payment_rejected' : 'payment_requested',
-      detail: `${request.planName} ${request.billing} ${request.price}. PayPal is display-only in this frontend demo.`,
-      createdAt: request.handledAt || request.requestedAt,
-    }));
-    const baseEvents = Array.isArray(parsed) && parsed.length > 0 ? parsed : fallbackNotifications;
-    const events = [...paymentEvents, ...baseEvents];
+    const events = Array.isArray(parsed) && parsed.length > 0 ? parsed : fallbackNotifications;
     if (audience === 'teacher') {
       return events.filter(event => event.actor !== 'teacher');
     }

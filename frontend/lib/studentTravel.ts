@@ -26,12 +26,12 @@ export type StudentSmsLog = {
 
 export type Db3RealtimeEvent = {
   id: string;
-  table: 'students_status' | 'teacher_events' | 'parent_events' | 'travel_events' | 'sms_events' | 'payment_events';
+  table: 'students_status' | 'teacher_events' | 'parent_events' | 'travel_events' | 'sms_events';
   studentId: string;
   studentName: string;
-  actor: 'parent' | 'teacher' | 'system' | 'admin' | 'main-admin';
+  actor: 'parent' | 'teacher' | 'system';
   event: string;
-  status: StudentTravelStatus | AttendanceMark | TeacherSmsStatus | 'payment_requested' | 'menu_enabled' | 'payment_rejected';
+  status: StudentTravelStatus | AttendanceMark | TeacherSmsStatus;
   detail: string;
   createdAt: string;
 };

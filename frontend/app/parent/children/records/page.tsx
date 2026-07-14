@@ -1,38 +1,166 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Link from '@/src/next-link';
+import { travelStatusClass, travelStatusIcon, travelStatusLabel, useStudentTravelState } from '@/lib/studentTravel';
 
-const records = [
-  { child: 'Aarav Mehta', standard: 'Grade 8 - Section A', roll: 'STU-0042', attendance: '94%', lastReport: 'Term 2 Progress Report', safety: 'No open alerts' },
-  { child: 'Diya Mehta', standard: 'Grade 5 - Section C', roll: 'STU-0091', attendance: '97%', lastReport: 'Term 2 Progress Report', safety: 'No open alerts' },
-];
+const childProfiles: Record<string, {
+  dateOfBirth: string;
+  bloodGroup: string;
+  address: string;
+  emergency: string;
+  route: string;
+  pickup: string;
+  medical: string;
+  allergies: string;
+  authorizedPickup: string[];
+}> = {
+  'st-leo-thompson': {
+    dateOfBirth: '14 March 2017',
+    bloodGroup: 'O+',
+    address: '42 Sunrise Colony, Mumbai',
+    emergency: '+1 (555) 012-3456',
+    route: 'Blue Route - Stop 04',
+    pickup: 'Gate 2 family pickup',
+    medical: 'Asthma inhaler in school clinic',
+    allergies: 'Severe nut allergy',
+    authorizedPickup: ['Sarah Thompson', 'David Thompson'],
+  },
+  'st-maya-thompson': {
+    dateOfBirth: '22 August 2019',
+    bloodGroup: 'A+',
+    address: '42 Sunrise Colony, Mumbai',
+    emergency: '+1 (555) 019-8765',
+    route: 'Blue Route - Stop 04',
+    pickup: 'Gate 1 family pickup',
+    medical: 'No active medical note',
+    allergies: 'No known allergies',
+    authorizedPickup: ['Sarah Thompson', 'David Thompson'],
+  },
+};
+
+function DetailCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-surface-container/50 rounded-lg p-3">
+      <p className="text-label-sm text-on-surface-variant">{label}</p>
+      <p className="font-bold text-on-background break-words">{value}</p>
+    </div>
+  );
+}
 
 export default function ParentChildRecordsPage() {
+  const { parentChildren } = useStudentTravelState();
+  const [selectedId, setSelectedId] = useState('');
+  const selectedChild = useMemo(() => {
+    if (parentChildren.length === 0) return null;
+    return parentChildren.find(child => child.id === selectedId) ?? parentChildren[0];
+  }, [parentChildren, selectedId]);
+
+  const profile = selectedChild ? childProfiles[selectedChild.id] ?? {
+    dateOfBirth: 'Not updated',
+    bloodGroup: 'Not updated',
+    address: 'Not updated',
+    emergency: selectedChild.parentPhone,
+    route: 'Not assigned',
+    pickup: 'School pickup desk',
+    medical: 'No active medical note',
+    allergies: 'No known allergies',
+    authorizedPickup: [selectedChild.parentName],
+  } : null;
+
   return (
     <div className="px-container-padding-mobile md:px-container-padding-desktop py-stack-lg space-y-stack-lg">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="font-headline-lg text-headline-lg text-primary">Child Records</h3>
-          <p className="text-body-md text-on-surface-variant">Quick access records opened from My Children.</p>
+          <p className="text-body-md text-on-surface-variant">Select one child to view the full child details page.</p>
         </div>
-        <Link href="/parent/students" className="px-4 py-2 border border-outline-variant rounded-lg text-primary font-bold hover:bg-surface-container">Back</Link>
+        <Link href="/parent/dashboard" className="w-fit px-4 py-2 border border-outline-variant rounded-lg text-primary font-bold hover:bg-surface-container">Back</Link>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
-        {records.map(record => (
-          <section key={record.roll} className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-primary font-bold">{record.child.split(' ').map(part => part[0]).join('')}</div>
-              <div><h4 className="font-headline-md text-primary">{record.child}</h4><p className="text-label-md text-on-surface-variant">{record.standard}</p></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-surface-container/50 rounded-lg p-3"><p className="text-label-sm text-on-surface-variant">Roll ID</p><p className="font-bold">{record.roll}</p></div>
-              <div className="bg-surface-container/50 rounded-lg p-3"><p className="text-label-sm text-on-surface-variant">Attendance</p><p className="font-bold text-green-700">{record.attendance}</p></div>
-              <div className="bg-surface-container/50 rounded-lg p-3"><p className="text-label-sm text-on-surface-variant">Last Report</p><p className="font-bold">{record.lastReport}</p></div>
-              <div className="bg-surface-container/50 rounded-lg p-3"><p className="text-label-sm text-on-surface-variant">Safety</p><p className="font-bold text-primary">{record.safety}</p></div>
+
+      <section className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
+        <label className="block text-label-md font-bold text-on-surface-variant mb-2" htmlFor="child-select">Select Student</label>
+        <select
+          id="child-select"
+          value={selectedChild?.id ?? ''}
+          onChange={event => setSelectedId(event.target.value)}
+          className="w-full rounded-lg border border-outline-variant bg-surface-container px-3 py-3 text-body-md outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        >
+          {parentChildren.map(child => (
+            <option key={child.id} value={child.id}>{child.name} - {child.className} Section {child.section}</option>
+          ))}
+        </select>
+      </section>
+
+      {selectedChild && profile && (
+        <>
+          <section className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 rounded-xl bg-primary-container flex items-center justify-center text-primary font-bold">{selectedChild.avatar}</div>
+                <div>
+                  <h4 className="font-headline-md text-primary">{selectedChild.name}</h4>
+                  <p className="text-label-md text-on-surface-variant">{selectedChild.className} - Section {selectedChild.section}</p>
+                  <p className="text-label-sm text-on-surface-variant">Student ID: {selectedChild.roll}</p>
+                </div>
+              </div>
+              <span className={`${travelStatusClass(selectedChild.status)} w-fit px-3 py-1 rounded-full text-label-sm font-bold flex items-center gap-1`}>
+                <span className="material-symbols-outlined text-[14px]">{travelStatusIcon(selectedChild.status)}</span>
+                {travelStatusLabel(selectedChild.status, 'parent')}
+              </span>
             </div>
           </section>
-        ))}
-      </div>
+
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+            <div className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
+              <h4 className="font-headline-md text-primary mb-4">Personal Details</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <DetailCard label="Date of Birth" value={profile.dateOfBirth} />
+                <DetailCard label="Blood Group" value={profile.bloodGroup} />
+                <DetailCard label="Address" value={profile.address} />
+                <DetailCard label="Emergency Contact" value={profile.emergency} />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
+              <h4 className="font-headline-md text-primary mb-4">School Details</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <DetailCard label="Class Teacher" value={selectedChild.teacherName} />
+                <DetailCard label="Guardian" value={selectedChild.parentName} />
+                <DetailCard label="Route" value={profile.route} />
+                <DetailCard label="Pickup Point" value={profile.pickup} />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
+              <h4 className="font-headline-md text-primary mb-4">Safety & Medical</h4>
+              <div className="grid grid-cols-1 gap-3">
+                <DetailCard label="Medical Note" value={profile.medical} />
+                <DetailCard label="Allergies" value={profile.allergies} />
+                <DetailCard label="Current Safety Status" value={selectedChild.absenceReasonRequested ? 'Absence reason requested from parent' : 'No open alerts'} />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
+              <h4 className="font-headline-md text-primary mb-4">Travel & Communication</h4>
+              <div className="grid grid-cols-1 gap-3">
+                <DetailCard label="Current Location" value={selectedChild.location} />
+                <DetailCard label="Last Updated" value={selectedChild.updatedAt} />
+                <DetailCard label="Parent Phone" value={selectedChild.parentPhone} />
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
+            <h4 className="font-headline-md text-primary mb-4">Authorized Pickup People</h4>
+            <div className="flex flex-wrap gap-2">
+              {profile.authorizedPickup.map(person => (
+                <span key={person} className="rounded-full bg-primary/10 px-3 py-1 text-label-md font-bold text-primary">{person}</span>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

@@ -11,10 +11,8 @@ const statusChips = [
 ];
 
 const portalLinks = [
-  { title: 'School Admin', href: '/login/admin', icon: 'admin_panel_settings', body: 'Manage students, staff, incidents, safety reports, exports, and school operations.' },
   { title: 'Teacher', href: '/login/teacher', icon: 'school', body: 'Track class attendance, send parent SMS alerts, manage students, and review travel status.' },
   { title: 'Parent', href: '/login/parent', icon: 'family_restroom', body: 'Monitor child travel status, attendance, messages, reports, and safety updates.' },
-  { title: 'Register School', href: '/school-registration', icon: 'domain_add', body: 'Submit school and school-admin details to request SafeReach access through the normal registration flow.' },
 ];
 
 const flowSteps = [
@@ -78,7 +76,7 @@ export default function SafeReachLandingPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#06142b]/96 via-[#06285c]/78 to-[#031b2f]/34" />
         <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#07111f] to-transparent" />
 
-        <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-white/10 px-5 py-4 backdrop-blur-xl md:px-10">
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0a1b34]/80 px-5 py-4 backdrop-blur-xl md:px-10">
           <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
             <LogoMark className="h-11 w-11 rounded-xl shadow-lg" />
@@ -91,8 +89,6 @@ export default function SafeReachLandingPage() {
             <a href="#flow" className="hover:text-white">Safety Flow</a>
             <a href="#portals" className="hover:text-white">Portals</a>
             <a href="#reports" className="hover:text-white">Reports</a>
-            <Link href="/login" className="hover:text-white">Login</Link>
-            <Link href="/school-registration" className="rounded-full bg-white px-4 py-2 text-primary hover:bg-blue-50">Register School</Link>
           </nav>
           </div>
         </header>
@@ -109,12 +105,12 @@ export default function SafeReachLandingPage() {
             <p className="mt-6 max-w-2xl text-lg leading-8 text-blue-50/85 md:text-2xl">
               Give schools, teachers, and parents a live safety picture from home departure to school arrival, attendance, dismissal, and safe return.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 font-black text-primary shadow-xl transition hover:-translate-y-0.5 hover:bg-blue-50">
+            <div className="mt-8 grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
+              <Link href="/login" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-center font-black text-primary shadow-xl transition hover:-translate-y-0.5 hover:bg-blue-50">
                 Login
                 <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
               </Link>
-              <Link href="/school-registration" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-4 font-black text-white backdrop-blur transition hover:bg-white/20">
+              <Link href="/school-registration" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-4 text-center font-black text-white backdrop-blur transition hover:bg-white/20">
                 Register School
                 <span className="material-symbols-outlined text-[20px]">domain_add</span>
               </Link>
@@ -137,7 +133,7 @@ export default function SafeReachLandingPage() {
           <div className="relative mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
               <p className="text-sm font-black uppercase tracking-[0.2em] text-[#008a72]">Daily safety lifecycle</p>
-              <h2 className="mt-2 text-3xl font-black md:text-5xl">From home to school and back.</h2>
+              <h2 className="mt-2 text-3xl font-black md:text-5xl">From home to school and back to home.</h2>
             </div>
             <p className="max-w-xl text-[#49636d]">SafeReach turns everyday student movement into a visible, auditable, role-based workflow.</p>
           </div>
@@ -210,15 +206,15 @@ export default function SafeReachLandingPage() {
       </section>
 
       <section className="px-5 py-16 md:px-10" id="portals">
-        <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2">
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
           {portalLinks.map(portal => (
-            <Link key={portal.title} href={portal.href} className="group rounded-xl border border-white/10 bg-white/[0.07] p-6 transition hover:-translate-y-1 hover:bg-white/[0.1]">
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-primary">
+            <Link key={portal.title} href={portal.href} className="group rounded-md border border-white/15 bg-[#12233d] p-8 shadow-[0_18px_50px_rgba(0,0,0,0.22)] transition hover:-translate-y-1 hover:border-cyan-200/50 hover:bg-[#172a47]">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-md bg-white text-primary shadow-sm">
                 <span className="material-symbols-outlined text-[28px]">{portal.icon}</span>
               </div>
-              <h3 className="text-2xl font-black">{portal.title}</h3>
-              <p className="mt-2 text-blue-100/70">{portal.body}</p>
-              <span className="mt-5 inline-flex items-center gap-2 font-black text-cyan-200">
+              <h3 className="text-3xl font-black tracking-tight">{portal.title}</h3>
+              <p className="mt-3 min-h-14 text-lg leading-7 text-blue-100/72">{portal.body}</p>
+              <span className="mt-7 inline-flex items-center gap-2 border-b border-cyan-200/60 pb-1 font-black text-cyan-200">
                 Open portal
                 <span className="material-symbols-outlined text-[18px] transition group-hover:translate-x-1">arrow_forward</span>
               </span>
@@ -266,6 +262,24 @@ export default function SafeReachLandingPage() {
           </div>
         </div>
       </section>
+
+      <footer className="border-t border-white/10 bg-[#06142b] px-5 py-8 text-blue-100/75 md:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <LogoMark className="h-10 w-10 rounded-xl" />
+            <div>
+              <p className="font-black text-white">SafeReach</p>
+              <p className="text-sm">School safety platform for daily travel, attendance, and alerts.</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4 text-sm font-bold">
+            <a href="#flow" className="hover:text-white">Safety Flow</a>
+            <a href="#portals" className="hover:text-white">Portals</a>
+            <a href="#reports" className="hover:text-white">Reports</a>
+            <Link href="/sub-main" className="hover:text-white">Sub Admin</Link>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

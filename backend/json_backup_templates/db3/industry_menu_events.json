@@ -1,0 +1,16 @@
+{
+  "database": "db3",
+  "collection": "industry_menu_events",
+  "purpose": "Realtime event copy for menu enable/disable changes.",
+  "documentShape": {
+    "event": "industry.menu.updated",
+    "schoolId": "SCH-001",
+    "menuKey": "messages",
+    "enabled": true,
+    "actorUserId": "main-admin-demo",
+    "createdAt": "2026-07-06T00:00:00Z"
+  },
+  "security": {
+    "passwordStorage": "No plain passwords, tokens, secrets, or API keys are stored in DB-3 event backups."
+  }
+}

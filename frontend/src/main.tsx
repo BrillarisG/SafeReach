@@ -17,6 +17,7 @@ import MainAdminDashboardPage from "@/app/main-admin/dashboard/page";
 import MainAdminNotificationsPage from "@/app/main-admin/notifications/page";
 import MainAdminReportsPage from "@/app/main-admin/reports/page";
 import MainAdminTermsPage from "@/app/main-admin/terms/page";
+import SubMainLoginPage from "@/app/sub-main/page";
 import AdminDashboardPage from "@/app/admin/dashboard/page";
 import AdminAccountPage from "@/app/admin/account/page";
 import AdminAccessPage from "@/app/admin/access/page";
@@ -63,7 +64,7 @@ const plainRoutes: Record<string, React.ComponentType> = {
   "/": HomePage,
   "/school-registration": SchoolRegistrationPage,
   "/login": LoginPage,
-  "/login/admin": AdminLoginPage,
+  "/login/admin": SubMainLoginPage,
   "/login/teacher": TeacherLoginPage,
   "/login/parent": ParentLoginPage,
   "/login/forgot-password": ForgotPasswordPage,
@@ -73,6 +74,7 @@ const plainRoutes: Record<string, React.ComponentType> = {
   "/main-admin/notifications": MainAdminNotificationsPage,
   "/main-admin/reports": MainAdminReportsPage,
   "/main-admin/terms": MainAdminTermsPage,
+  "/sub-main": SubMainLoginPage,
 };
 
 const adminRoutes: Record<string, React.ComponentType> = {

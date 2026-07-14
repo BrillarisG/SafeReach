@@ -1,0 +1,26 @@
+{
+  "database": "db2",
+  "table": "industry_menu_access",
+  "purpose": "Protected mirror copy of DB-1 menu visibility controls.",
+  "primaryKey": ["school_id", "menu_key"],
+  "columns": {
+    "school_id": "text",
+    "menu_key": "text",
+    "enabled": "boolean",
+    "updated_by": "text",
+    "updated_at": "timestamptz"
+  },
+  "rows": [
+    {
+      "school_id": "SCH-001",
+      "menu_key": "messages",
+      "enabled": true,
+      "updated_by": "main-admin-demo",
+      "updated_at": "2026-07-06T00:00:00Z"
+    }
+  ],
+  "security": {
+    "mode": "Mirror data from DB-1. Do not use this template for direct user edits.",
+    "passwordStorage": "Never store plain passwords. Store backend password hashes or protected hash objects only."
+  }
+}

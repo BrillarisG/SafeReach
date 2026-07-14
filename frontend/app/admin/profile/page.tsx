@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import ProfileImageUploader from '@/components/ProfileImageUploader';
-import { createPremiumPaymentRequest, premiumPlans, readIndustryMenuAccess } from '@/lib/industryAccess';
 
 export default function AdminProfilePage() {
   const [notice, setNotice] = useState('');
@@ -25,13 +24,6 @@ export default function AdminProfilePage() {
     travelTracking: 'Enabled',
     smsAlerts: 'Enabled',
   });
-  const activeIndustry = {
-    schoolId: 'SCH-001',
-    schoolName: school.name,
-    adminName: admin.name,
-  };
-  const [premiumNotice, setPremiumNotice] = useState('Choose a plan and send a PayPal activation request to Main Admin.');
-  const activeAccess = readIndustryMenuAccess([{ id: activeIndustry.schoolId, name: activeIndustry.schoolName }])[0];
 
   function updateAdmin(field: keyof typeof admin, value: string) {
     setAdmin(current => ({ ...current, [field]: value }));
@@ -164,55 +156,6 @@ export default function AdminProfilePage() {
           </div>
         </form>
 
-        <div className="mt-stack-lg rounded-xl border border-outline-variant/40 bg-surface-container-low p-stack-md">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
-            <div>
-              <h3 className="font-headline-md text-headline-md text-primary">Premium Menu Payment Request</h3>
-              <p className="text-body-md text-on-surface-variant">Request premium menu access for this school industry. PayPal is display-only in this frontend demo; no live payment is collected here.</p>
-            </div>
-            <span className="status-chip bg-yellow-100 text-yellow-700">PayPal request mode</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-            {premiumPlans.map(plan => (
-              <article key={plan.id} className="rounded-xl border border-outline-variant bg-white p-4 flex flex-col">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h4 className="font-bold text-primary">{plan.name}</h4>
-                    <p className="text-label-md text-on-surface-variant">{plan.billing}</p>
-                  </div>
-                  <p className="font-headline-md text-headline-md text-primary">{plan.price}</p>
-                </div>
-                <p className="text-body-md text-on-surface-variant mt-3 flex-1">{plan.description}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {plan.menus.map(menu => <span key={menu} className="status-chip bg-primary/10 text-primary capitalize">{menu}</span>)}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const request = createPremiumPaymentRequest({ ...activeIndustry, plan });
-                    setPremiumNotice(`Request ${request.id} sent to Main Admin for ${plan.name} ${plan.billing}. Main Admin can approve or auto-enable based on industry settings.`);
-                  }}
-                  className="mt-5 w-full rounded-lg bg-primary text-on-primary py-3 font-bold hover:opacity-90 transition-opacity"
-                >
-                  Request via PayPal
-                </button>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-5 rounded-xl border border-outline-variant bg-white p-4">
-            <p className="font-bold text-primary">Current industry menu status</p>
-            <p className="text-label-md text-on-surface-variant mt-1">{premiumNotice}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {Object.entries(activeAccess.menus).map(([key, enabled]) => (
-                <span key={key} className={`status-chip capitalize ${enabled ? 'bg-green-100 text-green-700' : 'bg-surface-container-high text-on-surface-variant'}`}>
-                  {key}: {enabled ? 'enabled' : 'disabled'}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
     </div>
   );

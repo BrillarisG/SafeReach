@@ -1,9 +1,12 @@
-﻿'use client';
+'use client';
 
+import { useState } from 'react';
 import { useRouter } from '@/src/next-navigation';
 import Link from '@/src/next-link';
-import { useState } from 'react';
 import LogoMark from '@/components/LogoMark';
+
+const TEACHER_EMAIL = 'teacher@demo.safereach.edu';
+const TEACHER_PASSWORD = 'Teacher@2025';
 
 export default function TeacherLoginPage() {
   const [showPwd, setShowPwd] = useState(false);
@@ -15,87 +18,81 @@ export default function TeacherLoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-
-        {/* Back */}
-        <Link href="/" className="inline-flex items-center gap-1 text-secondary text-label-md hover:underline mb-8">
+    <main className="min-h-screen bg-[#eefbf6] flex">
+      <section className="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-20 py-12 max-w-xl w-full mx-auto lg:mx-0">
+        <Link href="/" className="inline-flex items-center gap-1 text-[#006b5f] text-label-md hover:underline mb-10">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Back to role selection
+          Back to SafeReach
         </Link>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-outline-variant/20 overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-[#006b5f] to-[#047857] p-6 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <LogoMark className="h-10 w-10 rounded-xl" />
-              <div>
-                <h1 className="font-headline-md text-headline-md font-bold">Teacher Portal</h1>
-                <p className="text-white/80 text-label-sm">SafeReach</p>
-              </div>
-            </div>
-            <p className="text-white/80 text-body-md">Sign in to manage your class and communicate with parents.</p>
+        <div className="flex items-center gap-3 mb-8">
+          <LogoMark className="h-10 w-10 rounded-xl" />
+          <div>
+            <h1 className="font-headline-md text-headline-md text-[#006b5f] font-bold leading-tight">SafeReach Teacher Portal</h1>
+            <p className="text-label-sm text-on-surface-variant">Class teacher access</p>
           </div>
+        </div>
 
-          <div className="p-6">
-            {/* Demo credentials */}
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-              <p className="text-label-sm font-bold text-green-800 flex items-center gap-1.5 mb-2">
-                <span className="material-symbols-outlined text-[14px]">info</span>
-                Demo Credentials
-              </p>
-              <div className="space-y-1 text-label-sm">
-                <div className="flex justify-between">
-                  <span className="text-green-700">Email</span>
-                  <span className="font-mono font-bold text-green-900">teacher@demo.safereach.edu</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-green-700">Password</span>
-                  <span className="font-mono font-bold text-green-900">Teacher@2025</span>
-                </div>
-              </div>
+        <div className="bg-white border border-emerald-200 rounded-xl p-4 mb-6 shadow-sm">
+          <p className="text-label-sm font-bold text-[#006b5f] flex items-center gap-1.5 mb-2">
+            <span className="material-symbols-outlined text-[14px]">info</span>
+            Default Teacher Access
+          </p>
+          <div className="space-y-2 text-label-sm">
+            <div className="rounded-lg bg-emerald-50 px-3 py-2">
+              <span className="block text-emerald-700">Email</span>
+              <span className="block min-w-0 break-all font-mono text-[13px] font-bold text-emerald-950 sm:text-label-sm">{TEACHER_EMAIL}</span>
             </div>
-
-            <h2 className="font-headline-md text-on-surface mb-4">Sign In</h2>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-label-md text-on-surface-variant font-medium" htmlFor="email">Email Address</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
-                  <input id="email" required type="email" defaultValue="teacher@demo.safereach.edu" className="w-full pl-11 pr-4 py-3 bg-surface-container border border-outline-variant rounded-xl focus:border-secondary focus:ring-1 focus:ring-secondary outline-none text-body-md" />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex justify-between">
-                  <label className="text-label-md text-on-surface-variant font-medium" htmlFor="password">Password</label>
-                  <Link href="/login/forgot-password?role=teacher" className="text-label-sm text-secondary hover:underline">Forgot?</Link>
-                </div>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">lock</span>
-                  <input id="password" required type={showPwd ? 'text' : 'password'} defaultValue="Teacher@2025" className="w-full pl-11 pr-12 py-3 bg-surface-container border border-outline-variant rounded-xl focus:border-secondary focus:ring-1 focus:ring-secondary outline-none text-body-md" />
-                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-outline hover:text-secondary">
-                    <span className="material-symbols-outlined text-[20px]">{showPwd ? 'visibility_off' : 'visibility'}</span>
-                  </button>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <input id="remember" type="checkbox" className="w-4 h-4 rounded text-secondary border-outline-variant focus:ring-secondary" />
-                <label htmlFor="remember" className="text-label-md text-on-surface-variant cursor-pointer">Remember me</label>
-              </div>
-              <button type="submit" className="w-full h-12 bg-gradient-to-r from-[#006b5f] to-[#047857] text-white font-bold rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2">
-                Sign Into Teacher Portal
-                <span className="material-symbols-outlined text-[18px]">login</span>
-              </button>
-            </form>
+            <div className="rounded-lg bg-emerald-50 px-3 py-2">
+              <span className="block text-emerald-700">Password</span>
+              <span className="block min-w-0 break-all font-mono font-bold text-emerald-950">{TEACHER_PASSWORD}</span>
+            </div>
           </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-outline-variant/40 p-6 shadow-sm">
+          <h2 className="font-headline-md text-headline-md text-on-surface mb-1">Teacher Sign In</h2>
+          <p className="text-body-md text-on-surface-variant mb-6">Use this page for assigned class attendance, student tracking, messages, and reports.</p>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <label className="block space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-medium">Email Address</span>
+              <input required type="email" defaultValue={TEACHER_EMAIL} className="w-full px-4 py-3 bg-surface-container border border-outline-variant rounded-xl focus:border-[#006b5f] focus:ring-1 focus:ring-[#006b5f] outline-none" />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-medium">Password</span>
+              <div className="relative">
+                <input required type={showPwd ? 'text' : 'password'} defaultValue={TEACHER_PASSWORD} className="w-full px-4 py-3 pr-12 bg-surface-container border border-outline-variant rounded-xl focus:border-[#006b5f] focus:ring-1 focus:ring-[#006b5f] outline-none" />
+                <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-[#006b5f]" aria-label="Toggle password visibility">
+                  <span className="material-symbols-outlined text-[20px]">{showPwd ? 'visibility_off' : 'visibility'}</span>
+                </button>
+              </div>
+            </label>
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-label-md text-on-surface-variant">
+                <input type="checkbox" className="w-4 h-4 rounded text-[#006b5f] border-outline-variant focus:ring-[#006b5f]" />
+                Remember me
+              </label>
+              <Link href="/login/forgot-password?role=teacher" className="text-label-sm text-[#006b5f] hover:underline">Forgot?</Link>
+            </div>
+            <button type="submit" className="w-full h-12 bg-[#006b5f] text-white font-bold rounded-xl hover:opacity-90 active:scale-[0.98] transition-all">
+              Sign Into Teacher Portal
+            </button>
+          </form>
         </div>
 
         <p className="mt-6 text-center text-label-sm text-on-surface-variant flex items-center justify-center gap-1">
           <span className="material-symbols-outlined text-[14px]">lock</span>
-          Secure Â· Encrypted Â· FERPA Compliant
+          Secure &middot; Encrypted &middot; FERPA Compliant
         </p>
-      </div>
+      </section>
+
+      <section className="hidden lg:flex flex-1 bg-gradient-to-br from-[#053b35] via-[#075e54] to-[#0f766e] flex-col items-center justify-center p-16 text-white relative overflow-hidden">
+        <div className="relative z-10 text-center max-w-md">
+          <span className="material-symbols-outlined text-[84px] text-white/30 mb-6 block">school</span>
+          <h2 className="font-headline-lg text-headline-lg font-bold mb-4">Class teacher access is controlled.</h2>
+          <p className="text-white/80 text-body-md leading-relaxed">Work: mark attendance, update travel status, manage assigned students, send parent SMS, and review class reports. Access: assigned class or section only, including assistant incharge permission when approved. Policy: update records accurately and keep parent communication professional.</p>
+        </div>
+      </section>
     </main>
   );
 }
-

@@ -4,16 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import MainAdminShell from '@/components/MainAdminShell';
 import {
   INDUSTRY_ACCESS_EVENT,
-  enableMenusForPlan,
+  fetchIndustryMenuAccess,
   industryMenuItems,
-  premiumPlans,
   readIndustryMenuAccess,
-  readPremiumPaymentRequests,
+  saveIndustryMenuAccess,
   writeIndustryMenuAccess,
-  writePremiumPaymentRequests,
   type IndustryMenuAccess,
   type IndustryMenuKey,
-  type PremiumPaymentRequest,
 } from '@/lib/industryAccess';
 
 type RequestStatus = 'Pending' | 'Accepted' | 'Rejected';
@@ -197,7 +194,6 @@ export default function MainAdminDashboardPage() {
   const [permissions, setPermissions] = useState(initialPermissions);
   const [smsLog, setSmsLog] = useState('No SMS action sent in this session.');
   const [industryAccess, setIndustryAccess] = useState<IndustryMenuAccess[]>(() => readIndustryMenuAccess(seedSchools));
-  const [paymentRequests, setPaymentRequests] = useState<PremiumPaymentRequest[]>([]);
 
   useEffect(() => {
     setRequests(readRequests());
@@ -206,9 +202,9 @@ export default function MainAdminDashboardPage() {
   useEffect(() => {
     const refreshAccess = () => {
       setIndustryAccess(readIndustryMenuAccess(schools));
-      setPaymentRequests(readPremiumPaymentRequests());
     };
     refreshAccess();
+    fetchIndustryMenuAccess(schools).then(setIndustryAccess);
     window.addEventListener('storage', refreshAccess);
     window.addEventListener(INDUSTRY_ACCESS_EVENT, refreshAccess);
     return () => {
@@ -289,37 +285,20 @@ export default function MainAdminDashboardPage() {
     writeIndustryMenuAccess(next);
   }
 
-  function toggleIndustryMenu(schoolId: string, menuKey: IndustryMenuKey) {
-    updateIndustryAccessRecord(schoolId, record => ({
-      ...record,
-      menus: { ...record.menus, [menuKey]: !record.menus[menuKey] },
-      lastUpdatedAt: new Date().toLocaleString(),
-    }));
-  }
-
-  function toggleAutoEnable(schoolId: string) {
-    updateIndustryAccessRecord(schoolId, record => ({
-      ...record,
-      autoEnablePaidMenus: !record.autoEnablePaidMenus,
-      lastUpdatedAt: new Date().toLocaleString(),
-    }));
-  }
-
-  function handlePaymentRequest(request: PremiumPaymentRequest, status: 'Enabled' | 'Rejected') {
-    const handled = paymentRequests.map(item => item.id === request.id ? { ...item, status, handledAt: new Date().toLocaleString() } : item);
-    setPaymentRequests(handled);
-    writePremiumPaymentRequests(handled);
-
-    if (status === 'Enabled') {
-      const plan = premiumPlans.find(item => item.id === request.planId);
-      if (plan) {
-        enableMenusForPlan(request.schoolId, request.schoolName, plan, `${request.planName} ${request.billing}`);
-        setIndustryAccess(readIndustryMenuAccess(schools));
-      }
-      setSmsLog(`Notification to ${request.schoolName}: Premium ${request.planName} ${request.billing} is enabled by Main Admin. Menus are now available for permitted users.`);
-    } else {
-      setSmsLog(`Notification to ${request.schoolName}: Premium request ${request.id} was rejected. Please contact SafeReach billing support.`);
-    }
+  function toggleIndustryMenu(schoolId: string, menuKey: IndustryMenuKey, enabled: boolean) {
+    let updatedRecord: IndustryMenuAccess | undefined;
+    updateIndustryAccessRecord(schoolId, record => {
+      const next = {
+        ...record,
+        menus: { ...record.menus, [menuKey]: enabled },
+        lastUpdatedAt: new Date().toLocaleString(),
+      };
+      updatedRecord = next;
+      return next;
+    });
+    const schoolName = updatedRecord?.schoolName ?? schools.find(school => school.id === schoolId)?.name ?? schoolId;
+    saveIndustryMenuAccess({ schoolId, schoolName, menuKey, enabled });
+    setSmsLog(`Menu access updated: ${schoolName} ${menuKey} is now ${enabled ? 'enabled' : 'disabled'} for industry users.`);
   }
 
   return (
@@ -388,14 +367,13 @@ export default function MainAdminDashboardPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-gutter">
-          <div className="xl:col-span-2 bg-white rounded-xl border border-outline-variant/50 shadow-sm p-stack-md">
+        <section className="bg-white rounded-xl border border-outline-variant/50 shadow-sm p-stack-md">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
               <div>
                 <h2 className="font-headline-md text-headline-md text-primary">Industry Menu Access Control</h2>
-                <p className="text-label-md text-on-surface-variant">Enable or disable premium menus for every user inside a selected school industry.</p>
+                <p className="text-label-md text-on-surface-variant">Main admin directly controls which menus display for every user inside each school industry.</p>
               </div>
-              <span className="status-chip bg-primary/10 text-primary">Frontend entitlement demo</span>
+              <span className="status-chip bg-primary/10 text-primary">Backend synced when available</span>
             </div>
 
             <div className="space-y-4">
@@ -404,69 +382,41 @@ export default function MainAdminDashboardPage() {
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div>
                       <h3 className="font-bold text-primary text-title-md">{record.schoolName}</h3>
-                      <p className="text-label-md text-on-surface-variant">Last plan: {record.lastPaymentPlan} | Updated: {record.lastUpdatedAt}</p>
+                      <p className="text-label-md text-on-surface-variant">Updated: {record.lastUpdatedAt}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => toggleAutoEnable(record.schoolId)}
-                      className={`px-4 py-2 rounded-full font-bold border transition-colors ${record.autoEnablePaidMenus ? 'bg-green-100 text-green-700 border-green-200' : 'bg-white text-on-surface-variant border-outline-variant'}`}
-                    >
-                      Auto Enable {record.autoEnablePaidMenus ? 'On' : 'Off'}
-                    </button>
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {industryMenuItems.map(menu => (
-                      <div key={menu.key} className="rounded-xl bg-white border border-outline-variant p-3 flex items-start justify-between gap-3">
+                      <div key={menu.key} className="rounded-xl bg-white border border-outline-variant p-3">
                         <div>
                           <p className="font-bold text-on-surface">{menu.label}</p>
                           <p className="text-xs text-on-surface-variant">{menu.description}</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => toggleIndustryMenu(record.schoolId, menu.key)}
-                          className={`min-w-24 px-3 py-2 rounded-full text-label-md font-bold ${record.menus[menu.key] ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}
-                          aria-pressed={record.menus[menu.key]}
-                        >
-                          {record.menus[menu.key] ? 'Enabled' : 'Disabled'}
-                        </button>
+                        <div className="mt-4 inline-flex rounded-full bg-purple-600 p-1 shadow-sm">
+                          <button
+                            type="button"
+                            onClick={() => toggleIndustryMenu(record.schoolId, menu.key, true)}
+                            className={`min-w-24 px-4 py-2 rounded-full text-label-md font-bold transition-all ${record.menus[menu.key] ? 'bg-white text-purple-700 shadow-sm' : 'text-white/80 hover:text-white'}`}
+                            aria-pressed={record.menus[menu.key]}
+                          >
+                            Enable
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleIndustryMenu(record.schoolId, menu.key, false)}
+                            className={`min-w-24 px-4 py-2 rounded-full text-label-md font-bold transition-all ${!record.menus[menu.key] ? 'bg-white text-purple-700 shadow-sm' : 'text-white/80 hover:text-white'}`}
+                            aria-pressed={!record.menus[menu.key]}
+                          >
+                            Disable
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </article>
               ))}
             </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-outline-variant/50 shadow-sm p-stack-md">
-            <h2 className="font-headline-md text-headline-md text-primary mb-2">Premium Payment Requests</h2>
-            <p className="text-label-md text-on-surface-variant mb-4">School admins request PayPal activation here. Payment capture is planned only, not executed in this frontend.</p>
-            <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
-              {paymentRequests.map(request => (
-                <article key={request.id} className="rounded-xl border border-outline-variant p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-bold text-primary">{request.schoolName}</p>
-                      <p className="text-label-sm text-on-surface-variant">{request.planName} - {request.billing} - {request.price}</p>
-                      <p className="text-xs text-on-surface-variant">Requested by {request.adminName} at {request.requestedAt}</p>
-                    </div>
-                    <span className={`status-chip ${request.status === 'Enabled' ? 'bg-green-100 text-green-700' : request.status === 'Rejected' ? 'bg-error-container text-error' : 'bg-yellow-100 text-yellow-700'}`}>{request.status}</span>
-                  </div>
-                  {request.status === 'Requested' && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button type="button" onClick={() => handlePaymentRequest(request, 'Enabled')} className="px-3 py-2 rounded-lg bg-primary text-on-primary font-bold">Enable Menus</button>
-                      <button type="button" onClick={() => handlePaymentRequest(request, 'Rejected')} className="px-3 py-2 rounded-lg bg-error-container text-error font-bold">Reject</button>
-                    </div>
-                  )}
-                </article>
-              ))}
-              {paymentRequests.length === 0 && (
-                <div className="rounded-xl border border-dashed border-outline-variant p-5 text-center text-on-surface-variant">
-                  No premium payment requests yet.
-                </div>
-              )}
-            </div>
-          </div>
         </section>
 
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-gutter">

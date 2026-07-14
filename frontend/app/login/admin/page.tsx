@@ -47,13 +47,21 @@ export default function AdminLoginPage() {
             <span className="material-symbols-outlined text-[14px]">info</span>
             Demo Credentials
           </p>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-label-sm">
-            <span className="text-on-surface-variant">Email:</span>
-            <span className="font-mono font-bold text-on-surface">admin@demo.safereach.edu</span>
-            <span className="text-on-surface-variant">Password:</span>
-            <span className="font-mono font-bold text-on-surface">Admin@2025</span>
-            <span className="text-on-surface-variant">OTP Code:</span>
-            <span className="font-mono font-bold text-primary">000000</span>
+          <div className="space-y-2 text-label-sm">
+            <div className="rounded-lg bg-white px-3 py-2">
+              <span className="block text-on-surface-variant">Email</span>
+              <span className="block min-w-0 break-all font-mono text-[13px] font-bold text-on-surface sm:text-label-sm">admin@demo.safereach.edu</span>
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="rounded-lg bg-white px-3 py-2">
+                <span className="block text-on-surface-variant">Password</span>
+                <span className="block min-w-0 break-all font-mono font-bold text-on-surface">Admin@2025</span>
+              </div>
+              <div className="rounded-lg bg-white px-3 py-2">
+                <span className="block text-on-surface-variant">OTP Code</span>
+                <span className="block min-w-0 break-all font-mono font-bold text-primary">000000</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -132,8 +140,8 @@ export default function AdminLoginPage() {
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary to-primary-container flex-col items-center justify-center p-16 text-on-primary relative overflow-hidden">
         <div className="relative z-10 text-center max-w-md">
           <span className="material-symbols-outlined text-[80px] text-white/30 mb-6 block" style={{fontVariationSettings: "'FILL' 1"}}>shield_person</span>
-          <h2 className="font-headline-lg text-headline-lg font-bold mb-4">Protecting what matters most.</h2>
-          <p className="text-on-primary/80 text-body-md leading-relaxed">SafeReach provides the most advanced real-time tracking and safety management suite for modern educational institutions.</p>
+          <h2 className="font-headline-lg text-headline-lg font-bold mb-4">School operations access with controlled permissions.</h2>
+          <p className="text-on-primary/80 text-body-md leading-relaxed">Work: manage school users, classes, attendance, reports, messages, and safety workflows. Access: assigned school environment only. Policy: use approved school data, follow role permissions, and keep administrator credentials private.</p>
           <div className="grid grid-cols-3 gap-4 mt-10">
             {[['2,400+', 'Students Tracked'], ['99.9%', 'System Uptime'], ['15s', 'Alert Response']].map(([val, label]) => (
               <div key={label} className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">

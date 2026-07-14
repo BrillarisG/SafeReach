@@ -4,7 +4,7 @@ from flask import request
 from flask_socketio import emit, join_room
 
 from .security import decode_token
-from .services import safereach_service
+from .services import industry_menu_service, safereach_service
 
 
 def register_socket_handlers(socketio):
@@ -61,6 +61,20 @@ def register_socket_handlers(socketio):
             emit("timetable.updated", result, broadcast=True)
         except Exception as exc:
             emit("timetable.error", {"message": str(exc)})
+
+    @socketio.on("industry.menu.set")
+    def on_industry_menu_set(payload):
+        try:
+            result = industry_menu_service.set_access(
+                school_id=payload["schoolId"],
+                menu_key=payload["menuKey"],
+                enabled=bool(payload["enabled"]),
+                actor_user_id=payload.get("actorUserId"),
+                school_name=payload.get("schoolName"),
+            )
+            emit("industry.menu.updated", result, broadcast=True)
+        except Exception as exc:
+            emit("industry.menu.error", {"message": str(exc)})
 
     def _handle_student_event(event_name, action):
         try:

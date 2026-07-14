@@ -5,16 +5,16 @@ import LogoMark from '@/components/LogoMark';
 
 const roles = [
   {
-    key: 'admin',
-    title: 'School Administrator',
-    description: 'Manage students, staff, incidents, safety reports, and school operations.',
-    icon: 'admin_panel_settings',
-    gradient: 'from-[#00236f] to-[#1e3a8a]',
-    accent: 'border-blue-200',
-    href: '/login/admin',
-    email: 'admin@demo.safereach.edu',
-    password: 'Admin@2025',
-    extra: 'OTP: 000000',
+    key: 'parent',
+    title: 'Parent / Guardian',
+    description: 'Track child travel status, attendance, messages, reports, and safety updates.',
+    icon: 'family_restroom',
+    gradient: 'from-[#4b1c00] to-[#92400e]',
+    accent: 'border-orange-200',
+    href: '/login/parent',
+    email: 'parent@demo.safereach.edu',
+    password: 'Parent@2025',
+    extra: null,
   },
   {
     key: 'teacher',
@@ -26,18 +26,6 @@ const roles = [
     href: '/login/teacher',
     email: 'teacher@demo.safereach.edu',
     password: 'Teacher@2025',
-    extra: null,
-  },
-  {
-    key: 'parent',
-    title: 'Parent / Guardian',
-    description: 'Track child travel status, attendance, messages, reports, and safety updates.',
-    icon: 'family_restroom',
-    gradient: 'from-[#4b1c00] to-[#92400e]',
-    accent: 'border-orange-200',
-    href: '/login/parent',
-    email: 'parent@demo.safereach.edu',
-    password: 'Parent@2025',
     extra: null,
   },
 ];
@@ -53,7 +41,7 @@ export default function LoginRoleSelectorPage() {
         <p className="text-body-md text-on-surface-variant mt-1">Choose your role to continue</p>
       </div>
 
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6">
         {roles.map(role => (
           <div key={role.key} className={`bg-white rounded-2xl shadow-md border ${role.accent} overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-200`}>
             <div className={`bg-gradient-to-br ${role.gradient} p-6 text-white`}>
@@ -98,6 +86,8 @@ export default function LoginRoleSelectorPage() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3">
+        <Link href="/sub-main" className="text-primary font-bold hover:underline">School Administrator / Sub Admin login</Link>
+        <Link href="/main-admin/login" className="text-primary font-bold hover:underline">Main Admin login</Link>
         <Link href="/school-registration" className="text-primary font-bold hover:underline">Register a school admin account</Link>
         <p className="text-label-sm text-on-surface-variant flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[14px] text-secondary">verified_user</span>

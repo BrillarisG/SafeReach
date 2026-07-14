@@ -1,9 +1,12 @@
-﻿'use client';
+'use client';
 
+import { useState } from 'react';
 import { useRouter } from '@/src/next-navigation';
 import Link from '@/src/next-link';
-import { useState } from 'react';
 import LogoMark from '@/components/LogoMark';
+
+const PARENT_EMAIL = 'parent@demo.safereach.edu';
+const PARENT_PASSWORD = 'Parent@2025';
 
 export default function ParentLoginPage() {
   const [showPwd, setShowPwd] = useState(false);
@@ -15,93 +18,81 @@ export default function ParentLoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-
-        {/* Back */}
-        <Link href="/" className="inline-flex items-center gap-1 text-[#4b1c00] text-label-md hover:underline mb-8">
+    <main className="min-h-screen bg-[#fff7ed] flex">
+      <section className="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-20 py-12 max-w-xl w-full mx-auto lg:mx-0">
+        <Link href="/" className="inline-flex items-center gap-1 text-[#92400e] text-label-md hover:underline mb-10">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Back to role selection
+          Back to SafeReach
         </Link>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-outline-variant/20 overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-[#4b1c00] to-[#92400e] p-6 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <LogoMark className="h-10 w-10 rounded-xl" />
-              <div>
-                <h1 className="font-headline-md text-headline-md font-bold">Parent Portal</h1>
-                <p className="text-white/80 text-label-sm">SafeReach</p>
-              </div>
-            </div>
-            <p className="text-white/80 text-body-md">Track your children in real-time and stay connected with their school.</p>
+        <div className="flex items-center gap-3 mb-8">
+          <LogoMark className="h-10 w-10 rounded-xl" />
+          <div>
+            <h1 className="font-headline-md text-headline-md text-[#92400e] font-bold leading-tight">SafeReach Parent Portal</h1>
+            <p className="text-label-sm text-on-surface-variant">Guardian access for linked children</p>
           </div>
+        </div>
 
-          <div className="p-6">
-            {/* Demo credentials */}
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
-              <p className="text-label-sm font-bold text-orange-800 flex items-center gap-1.5 mb-2">
-                <span className="material-symbols-outlined text-[14px]">info</span>
-                Demo Credentials
-              </p>
-              <div className="space-y-1 text-label-sm">
-                <div className="flex justify-between">
-                  <span className="text-orange-700">Email</span>
-                  <span className="font-mono font-bold text-orange-900">parent@demo.safereach.edu</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-orange-700">Password</span>
-                  <span className="font-mono font-bold text-orange-900">Parent@2025</span>
-                </div>
-              </div>
+        <div className="bg-white border border-orange-200 rounded-xl p-4 mb-6 shadow-sm">
+          <p className="text-label-sm font-bold text-[#92400e] flex items-center gap-1.5 mb-2">
+            <span className="material-symbols-outlined text-[14px]">info</span>
+            Default Parent Access
+          </p>
+          <div className="space-y-2 text-label-sm">
+            <div className="rounded-lg bg-orange-50 px-3 py-2">
+              <span className="block text-orange-700">Email</span>
+              <span className="block min-w-0 break-all font-mono text-[13px] font-bold text-orange-950 sm:text-label-sm">{PARENT_EMAIL}</span>
             </div>
-
-            <h2 className="font-headline-md text-on-surface mb-4">Sign In</h2>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-label-md text-on-surface-variant font-medium" htmlFor="email">Email Address</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
-                  <input id="email" required type="email" defaultValue="parent@demo.safereach.edu" className="w-full pl-11 pr-4 py-3 bg-surface-container border border-outline-variant rounded-xl focus:ring-1 outline-none text-body-md" style={{borderColor: 'rgb(180 83 9 / 0.4)'}} />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex justify-between">
-                  <label className="text-label-md text-on-surface-variant font-medium" htmlFor="password">Password</label>
-                  <Link href="/login/forgot-password?role=parent" className="text-label-sm text-[#92400e] hover:underline">Forgot?</Link>
-                </div>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">lock</span>
-                  <input id="password" required type={showPwd ? 'text' : 'password'} defaultValue="Parent@2025" className="w-full pl-11 pr-12 py-3 bg-surface-container border border-outline-variant rounded-xl focus:ring-1 outline-none text-body-md" />
-                  <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-outline">
-                    <span className="material-symbols-outlined text-[20px]">{showPwd ? 'visibility_off' : 'visibility'}</span>
-                  </button>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <input id="remember" type="checkbox" className="w-4 h-4 rounded border-outline-variant" />
-                <label htmlFor="remember" className="text-label-md text-on-surface-variant cursor-pointer">Remember me</label>
-              </div>
-              <button type="submit" className="w-full h-12 bg-gradient-to-r from-[#4b1c00] to-[#92400e] text-white font-bold rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2">
-                Sign Into Parent Portal
-                <span className="material-symbols-outlined text-[18px]">login</span>
-              </button>
-            </form>
-
-            {/* Child safety reminder */}
-            <div className="mt-4 flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl">
-              <span className="material-symbols-outlined text-amber-600 text-[18px] mt-0.5">child_care</span>
-              <p className="text-label-sm text-amber-800">Your children&apos;s safety is our priority. Real-time tracking is active 24/7 during school hours.</p>
+            <div className="rounded-lg bg-orange-50 px-3 py-2">
+              <span className="block text-orange-700">Password</span>
+              <span className="block min-w-0 break-all font-mono font-bold text-orange-950">{PARENT_PASSWORD}</span>
             </div>
           </div>
         </div>
 
+        <div className="bg-white rounded-2xl border border-outline-variant/40 p-6 shadow-sm">
+          <h2 className="font-headline-md text-headline-md text-on-surface mb-1">Parent Sign In</h2>
+          <p className="text-body-md text-on-surface-variant mb-6">Use this page to view child travel, attendance, messages, timetable, reports, and safety updates.</p>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <label className="block space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-medium">Email Address</span>
+              <input required type="email" defaultValue={PARENT_EMAIL} className="w-full px-4 py-3 bg-surface-container border border-outline-variant rounded-xl focus:border-[#92400e] focus:ring-1 focus:ring-[#92400e] outline-none" />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-medium">Password</span>
+              <div className="relative">
+                <input required type={showPwd ? 'text' : 'password'} defaultValue={PARENT_PASSWORD} className="w-full px-4 py-3 pr-12 bg-surface-container border border-outline-variant rounded-xl focus:border-[#92400e] focus:ring-1 focus:ring-[#92400e] outline-none" />
+                <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-[#92400e]" aria-label="Toggle password visibility">
+                  <span className="material-symbols-outlined text-[20px]">{showPwd ? 'visibility_off' : 'visibility'}</span>
+                </button>
+              </div>
+            </label>
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-label-md text-on-surface-variant">
+                <input type="checkbox" className="w-4 h-4 rounded border-outline-variant" />
+                Remember me
+              </label>
+              <Link href="/login/forgot-password?role=parent" className="text-label-sm text-[#92400e] hover:underline">Forgot?</Link>
+            </div>
+            <button type="submit" className="w-full h-12 bg-[#92400e] text-white font-bold rounded-xl hover:opacity-90 active:scale-[0.98] transition-all">
+              Sign Into Parent Portal
+            </button>
+          </form>
+        </div>
+
         <p className="mt-6 text-center text-label-sm text-on-surface-variant flex items-center justify-center gap-1">
           <span className="material-symbols-outlined text-[14px]">lock</span>
-          Secure Â· Encrypted Â· COPPA Compliant
+          Secure &middot; Encrypted &middot; COPPA Compliant
         </p>
-      </div>
+      </section>
+
+      <section className="hidden lg:flex flex-1 bg-gradient-to-br from-[#4b1c00] via-[#7c2d12] to-[#92400e] flex-col items-center justify-center p-16 text-white relative overflow-hidden">
+        <div className="relative z-10 text-center max-w-md">
+          <span className="material-symbols-outlined text-[84px] text-white/30 mb-6 block">family_restroom</span>
+          <h2 className="font-headline-lg text-headline-lg font-bold mb-4">Parent access is child-specific.</h2>
+          <p className="text-white/80 text-body-md leading-relaxed">Work: view child travel, attendance, messages, timetable, reports, and school safety updates. Access: linked child records only, with no access to other students or admin screens. Policy: use information for child safety and keep the account private.</p>
+        </div>
+      </section>
     </main>
   );
 }
-

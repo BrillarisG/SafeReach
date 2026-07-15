@@ -24,9 +24,9 @@ export default function TeacherReportsPage() {
 
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop space-y-stack-lg">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-4">
         {[{label:'Class Avg Score',value:'76%',icon:'school',c:'text-primary',bg:'bg-primary/5 border-primary/20'},{label:'Attendance Rate',value:'91%',icon:'how_to_reg',c:'text-green-600',bg:'bg-green-50 border-green-100'},{label:'Incidents Filed',value:'3',icon:'warning',c:'text-orange-600',bg:'bg-orange-50 border-orange-100'},{label:'Reports Submitted',value:'11',icon:'description',c:'text-secondary',bg:'bg-secondary/5 border-secondary/20'}].map(c=>(
-          <div key={c.label} className={`p-4 rounded-xl border ${c.bg}`}><div className="flex items-center justify-between mb-2"><p className="text-label-sm text-on-surface-variant">{c.label}</p><span className={`material-symbols-outlined text-[20px] ${c.c}`}>{c.icon}</span></div><p className={`font-headline-md text-headline-md ${c.c}`}>{c.value}</p></div>
+          <div key={c.label} className={`p-2 md:p-4 rounded-lg md:rounded-xl border ${c.bg}`}><div className="flex items-center justify-between gap-1 mb-1 md:mb-2"><p className="text-[10px] md:text-label-sm leading-tight text-on-surface-variant">{c.label}</p><span className={`material-symbols-outlined text-[15px] md:text-[20px] ${c.c}`}>{c.icon}</span></div><p className={`font-bold text-lg md:font-headline-md md:text-headline-md ${c.c}`}>{c.value}</p></div>
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-stack-lg">

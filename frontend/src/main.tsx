@@ -37,6 +37,7 @@ import AdminSupportPage from "@/app/admin/support/page";
 import AdminTeachersPage from "@/app/admin/teachers/page";
 import AdminTeachersProfilePage from "@/app/admin/teachers/profile/page";
 import AdminTimetablePage from "@/app/admin/timetable/page";
+import AdminTimetableEditPage from "@/app/admin/timetable/edit/page";
 import TeacherAttendancePage from "@/app/teacher/attendance/page";
 import TeacherDashboardPage from "@/app/teacher/dashboard/page";
 import TeacherMessagesPage from "@/app/teacher/messages/page";
@@ -48,6 +49,7 @@ import TeacherStudentsPage from "@/app/teacher/students/page";
 import TeacherStudentsEditPage from "@/app/teacher/students/edit/page";
 import TeacherSupportPage from "@/app/teacher/support/page";
 import TeacherTimetablePage from "@/app/teacher/timetable/page";
+import TeacherTimetableEditPage from "@/app/teacher/timetable/edit/page";
 import ParentAttendancePage from "@/app/parent/attendance/page";
 import ParentChildrenRecordsPage from "@/app/parent/children/records/page";
 import ParentDashboardPage from "@/app/parent/dashboard/page";
@@ -98,6 +100,7 @@ const adminRoutes: Record<string, React.ComponentType> = {
   "/admin/teachers": AdminTeachersPage,
   "/admin/teachers/profile": AdminTeachersProfilePage,
   "/admin/timetable": AdminTimetablePage,
+  "/admin/timetable/edit": AdminTimetableEditPage,
 };
 
 const teacherRoutes: Record<string, React.ComponentType> = {
@@ -113,6 +116,7 @@ const teacherRoutes: Record<string, React.ComponentType> = {
   "/teacher/students/edit": TeacherStudentsEditPage,
   "/teacher/support": TeacherSupportPage,
   "/teacher/timetable": TeacherTimetablePage,
+  "/teacher/timetable/edit": TeacherTimetableEditPage,
 };
 
 const parentRoutes: Record<string, React.ComponentType> = {

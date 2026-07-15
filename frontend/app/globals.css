@@ -21,6 +21,14 @@ body { font-family: 'Inter', sans-serif; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
 .student-table-container { scrollbar-width: thin; scrollbar-color: #c5c5d3 transparent; }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
 @supports selector(:has(*)) {
   .overflow-x-auto:has(> table),
@@ -369,6 +377,55 @@ body { font-family: 'Inter', sans-serif; }
 }
 
 @media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .text-display-lg,
+  .text-display-md,
+  .text-headline-lg {
+    font-size: 1.75rem;
+    line-height: 2.15rem;
+  }
+
+  .text-headline-md,
+  .text-title-lg {
+    font-size: 1.35rem;
+    line-height: 1.75rem;
+  }
+
+  .text-title-md,
+  .text-body-lg {
+    font-size: 0.98rem;
+    line-height: 1.45rem;
+  }
+
+  .text-body-md,
+  .text-label-md {
+    font-size: 0.9rem;
+    line-height: 1.3rem;
+  }
+
+  .text-label-sm {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .rounded-2xl {
+    border-radius: 1rem;
+  }
+
+  .p-stack-lg {
+    padding: 1rem;
+  }
+
+  .gap-stack-lg {
+    gap: 1rem;
+  }
+
   .campus-grid {
     right: -42%;
     top: 24%;

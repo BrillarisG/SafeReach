@@ -1,6 +1,7 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import Link from '@/src/next-link';
 import { type TimetableBreak, type TimetableData } from '@/lib/timetable';
 import { useBackendBootstrap } from '@/lib/backendData';
 
@@ -14,14 +15,44 @@ const emptyTimetable: TimetableData = {
   days: [],
 };
 
-export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' | 'parent' }) {
-  const editable = mode !== 'parent';
+const TEACHER_ASSIGNMENT_KEY = 'safereach_timetable_subject_teacher_assignments';
+const teacherOptions = [
+  'Mr. James Anderson',
+  'Ms. Anita Roy',
+  'Mrs. Sarah Jenkins',
+  'Mr. David Lee',
+  'Counselor Deepa',
+  'Dr. Meera Patel',
+];
+
+export default function TimetableManager({ mode, editMode = false }: { mode: 'admin' | 'teacher' | 'parent'; editMode?: boolean }) {
+  const canEdit = mode !== 'parent';
+  const editable = canEdit && editMode;
+  const editHref = mode === 'admin' ? '/admin/timetable/edit' : '/teacher/timetable/edit';
+  const viewHref = mode === 'admin' ? '/admin/timetable' : '/teacher/timetable';
   const { data: bootstrap, loading, error } = useBackendBootstrap();
   const [data, setData] = useState<TimetableData>(emptyTimetable);
   const [selectedChild, setSelectedChild] = useState('');
   const [notice, setNotice] = useState('');
   const [draggedBreakId, setDraggedBreakId] = useState<TimetableBreak['id'] | null>(null);
+  const [subjectTeachers, setSubjectTeachers] = useState<Record<string, string>>({});
   const periodCount = data.days[0]?.periods.length || 8;
+  const uniqueSubjects = useMemo(() => {
+    const ignored = new Set(['', '-', 'free', 'interval', 'interval-1', 'interval-2', 'lunch', 'subject']);
+    return Array.from(new Set(data.days.flatMap(day => day.periods)
+      .map(period => period.trim())
+      .filter(period => !ignored.has(period.toLowerCase()))))
+      .sort((first, second) => first.localeCompare(second));
+  }, [data.days]);
+
+  useEffect(() => {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(TEACHER_ASSIGNMENT_KEY) ?? '{}') as Record<string, string>;
+      setSubjectTeachers(parsed && typeof parsed === 'object' ? parsed : {});
+    } catch {
+      setSubjectTeachers({});
+    }
+  }, []);
 
   useEffect(() => {
     if (!bootstrap.timetable.days.length) return;
@@ -49,6 +80,15 @@ export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' |
   function save(next: TimetableData, message: string) {
     setData(next);
     setNotice(`${message} Backend write sync is planned; this screen starts from stored DB data.`);
+  }
+
+  function updateSubjectTeacher(subject: string, teacher: string) {
+    setSubjectTeachers(current => ({ ...current, [subject]: teacher }));
+  }
+
+  function saveSubjectTeachers() {
+    window.localStorage.setItem(TEACHER_ASSIGNMENT_KEY, JSON.stringify(subjectTeachers));
+    setNotice('Subject teacher assignments saved. Teacher timetable allocation will use these saved subject mappings.');
   }
 
   function updatePeriod(dayId: string, index: number, value: string) {
@@ -131,7 +171,6 @@ export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' |
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h1 className="font-headline-lg text-headline-lg text-primary">Class Timetable</h1>
-            <p className="text-body-md text-on-surface-variant">{data.className}-{data.section} weekly timetable with 8 default periods and movable break labels.</p>
           </div>
           {mode === 'parent' ? (
             <select value={selectedChild} onChange={event => setSelectedChild(event.target.value)} className="px-4 py-3 rounded-lg bg-surface-container border border-outline-variant">
@@ -139,12 +178,18 @@ export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' |
                 <option key={student.id}>{student.full_name} - {student.class_name}-{student.section_name}</option>
               ))}
             </select>
-          ) : (
+          ) : editMode ? (
             <div className="flex flex-wrap gap-2">
+              <Link href={viewHref} className="px-4 py-2 rounded-lg border border-outline text-on-surface font-bold">View</Link>
               <button onClick={addDay} className="px-4 py-2 rounded-lg bg-secondary text-on-secondary font-bold">Add Day</button>
               <button onClick={addPeriodColumn} className="px-4 py-2 rounded-lg bg-primary text-on-primary font-bold">Add Period</button>
               <button onClick={removePeriodColumn} className="px-4 py-2 rounded-lg border border-error text-error font-bold">Delete Period</button>
             </div>
+          ) : (
+            <Link href={editHref} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-bold">
+              <span className="material-symbols-outlined text-[18px]">edit</span>
+              Edit
+            </Link>
           )}
         </div>
         {notice && <p className="mt-4 rounded-lg bg-primary/5 border border-primary/15 px-4 py-3 text-primary font-bold">{notice}</p>}
@@ -162,8 +207,8 @@ export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' |
             ))}
           </div>
           <div className="mt-5">
-            <p className="text-label-md font-bold text-primary mb-3">Drag Break Timing</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+            <p className="text-label-sm font-bold text-primary mb-2">Drag Break Timing</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2">
               {Array.from({ length: periodCount }, (_, index) => {
                 const afterPeriod = index + 1;
                 const slotBreaks = breaksAfter(afterPeriod);
@@ -175,19 +220,19 @@ export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' |
                       if (draggedBreakId) moveBreak(draggedBreakId, afterPeriod);
                       setDraggedBreakId(null);
                     }}
-                    className="min-h-24 rounded-lg border border-dashed border-outline-variant bg-surface-container-low p-3"
+                    className="min-h-20 rounded-lg border border-dashed border-outline-variant bg-surface-container-low p-2"
                   >
-                    <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-on-surface-variant">After P{afterPeriod}</p>
-                    <div className="space-y-2">
+                    <p className="mb-1.5 text-[10px] font-extrabold uppercase tracking-wide text-on-surface-variant">After P{afterPeriod}</p>
+                    <div className="space-y-1.5">
                       {slotBreaks.map(item => (
                         <div
                           key={item.id}
                           draggable
                           onDragStart={() => setDraggedBreakId(item.id)}
                           onDragEnd={() => setDraggedBreakId(null)}
-                          className={`cursor-move rounded-md bg-white px-3 py-2 text-center text-label-md font-extrabold shadow-sm ring-1 ring-outline-variant/50 ${breakTone(item)}`}
+                          className={`cursor-move rounded-md bg-white px-2 py-1.5 text-center text-[11px] font-extrabold shadow-sm ring-1 ring-outline-variant/50 ${breakTone(item)}`}
                         >
-                          Drag {item.label}
+                          {item.label}
                         </div>
                       ))}
                     </div>
@@ -257,6 +302,53 @@ export default function TimetableManager({ mode }: { mode: 'admin' | 'teacher' |
           </table>
         </div>
       </section>
+
+      {editable && (
+        <section className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 className="font-headline-md text-headline-md text-primary">Subject Teacher Assignment</h2>
+              <p className="text-label-md text-on-surface-variant">Subjects are generated automatically from the timetable without duplicates. Assigning a teacher updates the teacher timetable allocation flow.</p>
+            </div>
+            <button onClick={saveSubjectTeachers} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-on-primary font-bold">
+              <span className="material-symbols-outlined text-[18px]">save</span>
+              Save
+            </button>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-outline-variant">
+            <table className="w-full min-w-[640px] text-left">
+              <thead className="bg-primary text-on-primary">
+                <tr>
+                  <th className="px-4 py-3">Subject Name</th>
+                  <th className="px-4 py-3">Teacher Name</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/30">
+                {uniqueSubjects.map(subject => (
+                  <tr key={subject}>
+                    <td className="px-4 py-3 font-bold text-on-surface">{subject}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={subjectTeachers[subject] ?? ''}
+                        onChange={event => updateSubjectTeacher(subject, event.target.value)}
+                        className="w-full rounded-lg border border-outline-variant bg-surface-container px-4 py-2.5 text-label-md"
+                      >
+                        <option value="">Select teacher</option>
+                        {teacherOptions.map(teacher => <option key={teacher} value={teacher}>{teacher}</option>)}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+                {uniqueSubjects.length === 0 && (
+                  <tr>
+                    <td colSpan={2} className="px-4 py-6 text-center text-on-surface-variant">No timetable subjects available for assignment.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -93,7 +93,13 @@ function formFromStudent(student: TeacherStudent): StudentFormState {
   };
 }
 
-export default function TeacherStudentsPage() {
+type TeacherStudentsPageProps = {
+  mode?: 'full' | 'dashboard' | 'add';
+};
+
+export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPageProps = {}) {
+  const dashboardMode = mode === 'dashboard';
+  const addMode = mode === 'add';
   const [teacherStudents, setTeacherStudents] = useState<TeacherStudent[]>(teacherStudentSeed);
   const [formState, setFormState] = useState<StudentFormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -163,40 +169,45 @@ export default function TeacherStudentsPage() {
     <div className="p-container-padding-mobile md:p-container-padding-desktop flex flex-col gap-stack-lg">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-stack-md">
         <div>
-          <h2 className="font-headline-lg text-headline-lg text-primary">Student Records Management</h2>
+          <h2 className="font-headline-lg text-headline-lg text-primary">{addMode ? 'Add Student to Assigned Class' : 'Student Records Management'}</h2>
           <p className="text-on-surface-variant font-body-md">Manage assigned {assignedClass} students and their live tracking status.</p>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <button onClick={downloadTemplate} className="px-5 py-3 border border-outline text-on-surface font-label-md rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all">
+        {!addMode && (
+        <div className="flex items-center justify-end gap-2 sm:gap-3">
+          <button onClick={downloadTemplate} title="Download Template" aria-label="Download Template" className="h-10 w-10 sm:h-auto sm:w-auto sm:px-5 sm:py-3 border border-outline text-on-surface font-label-md rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all">
             <span className="material-symbols-outlined">download</span>
-            Download Template
+            <span className="hidden sm:inline">Download Template</span>
           </button>
-          <button onClick={simulateUpload} className="px-5 py-3 bg-secondary text-on-secondary font-label-md rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md">
+          <button onClick={simulateUpload} title="Upload Excel" aria-label="Upload Excel" className="h-10 w-10 sm:h-auto sm:w-auto sm:px-5 sm:py-3 bg-secondary text-on-secondary font-label-md rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md">
             <span className="material-symbols-outlined">upload_file</span>
-            Upload Excel
+            <span className="hidden sm:inline">Upload Excel</span>
           </button>
         </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-stack-md">
+      {!addMode && (
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-stack-md">
         {[
           { icon: 'group', bg: 'bg-primary-container/10', c: 'text-primary', label: 'Assigned Class', value: assignedClass },
           { icon: 'school', bg: 'bg-secondary-container/20', c: 'text-secondary', label: 'Students', value: String(stats.students) },
           { icon: 'edit_note', bg: 'bg-tertiary-fixed/40', c: 'text-tertiary-fixed-dim', label: 'Access', value: 'Incharge / Assistant' },
           { icon: 'warning', bg: 'bg-error-container/40', c: 'text-error', label: 'Alerts/Missing', value: String(stats.alerts), border: true },
         ].map(stat => (
-          <div key={stat.label} className={`bg-surface p-stack-md rounded-xl border border-outline-variant shadow-sm flex items-center gap-stack-md ${stat.border ? 'border-l-4 border-l-error' : ''}`}>
-            <div className={`w-12 h-12 rounded-full ${stat.bg} flex items-center justify-center ${stat.c}`}>
-              <span className="material-symbols-outlined">{stat.icon}</span>
+          <div key={stat.label} className={`bg-surface p-3 md:p-stack-md rounded-xl border border-outline-variant shadow-sm flex items-center gap-2 md:gap-stack-md min-w-0 ${stat.border ? 'border-l-4 border-l-error' : ''}`}>
+            <div className={`w-9 h-9 md:w-12 md:h-12 rounded-full ${stat.bg} flex items-center justify-center ${stat.c} shrink-0`}>
+              <span className="material-symbols-outlined text-[19px] md:text-[24px]">{stat.icon}</span>
             </div>
             <div className="min-w-0">
-              <p className="text-on-surface-variant text-label-sm uppercase tracking-wider">{stat.label}</p>
-              <p className={`text-2xl font-bold leading-tight ${stat.border ? 'text-error' : ''}`}>{stat.value}</p>
+              <p className="text-on-surface-variant text-[10px] md:text-label-sm uppercase tracking-wider truncate">{stat.label}</p>
+              <p className={`text-base md:text-2xl font-bold leading-tight truncate ${stat.border ? 'text-error' : ''}`}>{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
+      )}
 
+      {!dashboardMode && (
       <form onSubmit={saveStudent} className="bg-surface rounded-xl border border-outline-variant shadow-sm p-stack-md">
         <div className="flex flex-col gap-stack-md">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-stack-sm">
@@ -246,7 +257,9 @@ export default function TeacherStudentsPage() {
           </div>
         </div>
       </form>
+      )}
 
+      {!addMode && (
       <div className="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
         <div className="p-stack-md flex flex-col md:flex-row md:items-center justify-between gap-stack-md border-b border-outline-variant">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -267,16 +280,20 @@ export default function TeacherStudentsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/teacher/students/add" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90">
+              <span className="material-symbols-outlined text-[18px]">person_add</span>
+              Add
+            </Link>
             <button className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">view_column</span></button>
             <button className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">print</span></button>
           </div>
         </div>
         <div className="student-table-container overflow-x-auto">
-          <table className="w-full min-w-[1120px] text-left border-collapse">
+          <table className="w-full min-w-[760px] text-left border-collapse">
             <thead className="bg-surface-container-low sticky top-0">
               <tr>
                 <th className="p-4 w-12"><input className="rounded text-primary focus:ring-primary" type="checkbox" /></th>
-                {['Student Name', 'Student ID', 'Grade / Section', 'Tracking Status', 'Guardian Contact', 'Last Activity', 'Actions'].map(header => (
+                {['Student Name', 'Student ID', 'Tracking Status', 'Actions'].map(header => (
                   <th key={header} className="p-4 font-label-md text-label-sm text-on-surface-variant uppercase tracking-wider">{header}</th>
                 ))}
               </tr>
@@ -295,7 +312,6 @@ export default function TeacherStudentsPage() {
                     </div>
                   </td>
                   <td className="p-4 text-on-surface-variant font-label-md">{student.id}</td>
-                  <td className="p-4"><span className="px-2 py-1 bg-surface-container-high rounded text-xs font-bold text-on-surface">{student.grade}</span></td>
                   <td className="p-4">
                     <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${student.stCls}`}>
                       <span className="w-2 h-2 rounded-full bg-current"></span>
@@ -303,16 +319,7 @@ export default function TeacherStudentsPage() {
                     </div>
                   </td>
                   <td className="p-4">
-                    <p className="font-label-md">{student.guardian}</p>
-                    <p className="text-xs text-on-surface-variant">{student.gSub}</p>
-                    <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${student.parentSmsEnabled === false ? 'bg-surface-container-high text-on-surface-variant' : 'bg-green-100 text-green-700'}`}>
-                      <span className="material-symbols-outlined text-[13px]">sms</span>
-                      SMS {student.parentSmsEnabled === false ? 'Off' : 'On'}
-                    </span>
-                  </td>
-                  <td className={`p-4 text-xs ${student.alert ? 'text-error font-bold' : 'text-on-surface-variant'}`}>{student.activity}</td>
-                  <td className="p-4">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-start md:justify-end gap-2">
                       <Link href={`/teacher/students/edit?id=${encodeURIComponent(student.id)}`} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/15">
                         <span className="material-symbols-outlined text-[18px]">edit</span>
                         Edit
@@ -339,6 +346,7 @@ export default function TeacherStudentsPage() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

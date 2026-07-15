@@ -30,7 +30,7 @@ export default function TeacherSidebar({ activeItem, className = 'hidden md:flex
           <span className="material-symbols-outlined text-[20px]">dashboard</span>
           <span className="font-label-md text-label-md">Dashboard</span>
         </Link>
-        <Link href="/teacher/students" onClick={onNavigate} className={activeItem === 'students' ? activeClass : inactiveClass}>
+        <Link href="/teacher/students" onClick={onNavigate} className={`hidden ${activeItem === 'students' ? activeClass : inactiveClass}`}>
           <span className="material-symbols-outlined text-[20px]">school</span>
           <span className="font-label-md text-label-md">My Students</span>
         </Link>

@@ -36,6 +36,22 @@ const baseThreads: Record<string, Message[]> = {
   ],
 };
 
+function conversationTimeScore(time: string) {
+  const normalized = time.trim().toLowerCase();
+  if (normalized.includes('today')) return 20000;
+  const timeMatch = normalized.match(/(\d{1,2}):(\d{2})\s*(am|pm)/);
+  if (timeMatch) {
+    let hour = Number(timeMatch[1]);
+    const minute = Number(timeMatch[2]);
+    const period = timeMatch[3];
+    if (period === 'pm' && hour < 12) hour += 12;
+    if (period === 'am' && hour === 12) hour = 0;
+    return 10000 + hour * 60 + minute;
+  }
+  if (normalized.includes('yesterday')) return 1000;
+  return 0;
+}
+
 export default function ParentMessagesPage() {
   const { parentChildren, actions } = useStudentTravelState();
   const absenceConversations = useMemo(() => parentChildren
@@ -51,11 +67,17 @@ export default function ParentMessagesPage() {
       preview: child.absenceReason ? `Reason sent: ${child.absenceReason}` : `SMS received: please send reason for ${child.name}.`,
       studentId: child.id,
     })), [parentChildren]);
-  const conversations = [...absenceConversations, ...baseConversations];
+  const conversations = useMemo(
+    () => [...absenceConversations, ...baseConversations].sort((a, b) => conversationTimeScore(b.time) - conversationTimeScore(a.time)),
+    [absenceConversations]
+  );
   const [active, setActive] = useState(conversations[0]?.id ?? 'base-1');
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [newMsg, setNewMsg] = useState('');
   const activeConv = conversations.find(c => c.id === active) ?? conversations[0];
   const activeStudent = parentChildren.find(child => child.id === activeConv?.studentId);
+  const unreadCount = conversations.reduce((sum, conversation) => sum + conversation.unread, 0);
+  const groupCount = conversations.filter(conversation => conversation.role.toLowerCase().includes('administration') || conversation.role.toLowerCase().includes('safety')).length;
 
   const thread = useMemo<Message[]>(() => {
     if (activeStudent) {
@@ -75,6 +97,11 @@ export default function ParentMessagesPage() {
     setNewMsg('');
   }
 
+  function openMobileConversation(id: string) {
+    setActive(id);
+    setMobileChatOpen(true);
+  }
+
   return (
     <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
@@ -91,13 +118,58 @@ export default function ParentMessagesPage() {
           ))}
         </div>
       </aside>
-      <div className="flex-1 flex flex-col bg-background">
-        <div className="md:hidden p-3 bg-surface-container-low border-b border-outline-variant/30">
-          <select value={active} onChange={event => setActive(event.target.value)} className="w-full px-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md">
-            {conversations.map(conversation => <option key={conversation.id} value={conversation.id}>{conversation.name}</option>)}
-          </select>
+      <div className={`${mobileChatOpen ? 'hidden' : 'flex'} md:hidden flex-1 flex-col bg-background`}>
+        <div className="px-3 py-2 bg-surface border-b border-outline-variant/30 overflow-x-auto">
+          <div className="flex items-center gap-2 min-w-max">
+            {[
+              ['All', ''],
+              ['Unread', String(unreadCount)],
+              ['Favourites', ''],
+              ['Groups', String(groupCount)],
+            ].map(([label, count], index) => (
+              <button key={label} className={`rounded-full border px-4 py-1.5 text-label-md whitespace-nowrap ${index === 0 ? 'bg-surface-container border-outline-variant text-on-surface' : 'bg-white border-outline-variant/70 text-on-surface-variant'}`}>
+                {label}{count ? ` ${count}` : ''}
+              </button>
+            ))}
+            <button className="h-9 w-9 rounded-full border border-outline-variant bg-white flex items-center justify-center text-on-surface-variant" aria-label="New message">
+              <span className="material-symbols-outlined text-[20px]">add</span>
+            </button>
+          </div>
         </div>
+        <div className="flex-1 overflow-y-auto bg-background">
+          {conversations.map(conversation => (
+            <button
+              key={conversation.id}
+              type="button"
+              onClick={() => openMobileConversation(conversation.id)}
+              className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-surface-container transition-colors"
+            >
+              <div className="relative shrink-0">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-primary-container text-primary flex items-center justify-center text-label-md font-bold">
+                  {conversation.avatar}
+                </div>
+                {conversation.online && <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></span>}
+              </div>
+              <div className="min-w-0 flex-1 border-b border-outline-variant/20 pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-body-lg font-medium text-on-surface truncate">{conversation.name}</p>
+                  <p className={`text-label-sm shrink-0 ${conversation.unread > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>{conversation.time}</p>
+                </div>
+                <div className="mt-1 flex items-center gap-2">
+                  <p className="text-label-md text-on-surface-variant truncate flex-1">{conversation.preview}</p>
+                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span>
+                  {conversation.unread > 0 && <span className="w-5 h-5 rounded-full bg-secondary text-on-secondary text-label-sm font-bold flex items-center justify-center shrink-0">{conversation.unread}</span>}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-background min-w-0`}>
         <div className="px-4 py-3 bg-surface border-b border-outline-variant/30 flex items-center gap-3 shrink-0">
+          <button type="button" onClick={() => setMobileChatOpen(false)} className="md:hidden -ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages">
+            <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+          </button>
           <div className="relative"><div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-label-sm">{activeConv?.avatar}</div>{activeConv?.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></span>}</div>
           <div><p className="font-label-md font-bold text-on-surface">{activeConv?.name}</p><p className="text-label-sm text-on-surface-variant">{activeConv?.role}</p></div>
         </div>

@@ -49,7 +49,7 @@ export default function ParentSidebar({ activeItem, className = 'hidden md:flex'
         </Link>
         <Link href="/parent/reports" onClick={onNavigate} className={activeItem === 'reports' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">description</span>
-          <span className="font-label-md text-label-md">Reports</span>
+          <span className="font-label-md text-label-md">Results</span>
         </Link>
       </nav>
       <div className="mt-auto pt-6 border-t border-outline-variant space-y-2">

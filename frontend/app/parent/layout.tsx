@@ -22,7 +22,7 @@ const titleMap: Record<string, { title: string; sub: string }> = {
   '/parent/students': { title: 'My Children', sub: 'Live tracking and activity' },
   '/parent/attendance': { title: 'Attendance', sub: 'Monthly attendance records' },
   '/parent/messages': { title: 'Messages', sub: 'School communications' },
-  '/parent/reports': { title: 'Reports', sub: 'Academic and safety reports' },
+  '/parent/reports': { title: 'Results', sub: 'Academic results and safety records' },
   '/parent/settings': { title: 'Settings', sub: 'Parent profile and notification preferences' },
   '/parent/support': { title: 'Support', sub: 'Help requests and school support contacts' },
   '/parent/children/records': { title: 'Child Records', sub: 'Detailed records from quick access' },

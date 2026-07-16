@@ -8,9 +8,13 @@ services:
     startCommand: gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT run:app
     healthCheckPath: /health
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: SAFE_REACH_ENV
         value: production
       - key: FRONTEND_ORIGIN
+        sync: false
+      - key: FRONTEND_ORIGINS
         sync: false
       - key: SECRET_KEY
         sync: false

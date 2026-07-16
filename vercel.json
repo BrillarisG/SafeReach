@@ -3,5 +3,9 @@
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "installCommand": "cd frontend && npm install",
-  "framework": "vite"
+  "framework": "vite",
+  "env": {
+    "VITE_SAFEREACH_API_URL": "https://safereach-backend.onrender.com/api/v1",
+    "VITE_SAFEREACH_WS_URL": "wss://safereach-backend.onrender.com/ws/safereach"
+  }
 }

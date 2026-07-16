@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: github-pages-frontend
+  group: github-pages-static-frontend
   cancel-in-progress: true
 
 jobs:
@@ -58,7 +58,7 @@ jobs:
           VITE_SAFEREACH_API_URL: https://safereach-backend-olac.onrender.com/api/v1
           VITE_SAFEREACH_WS_URL: https://safereach-backend-olac.onrender.com
 
-      - name: Publish static frontend to gh-pages branch
+      - name: Publish static frontend to github-pages-static branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
@@ -67,8 +67,8 @@ jobs:
           git init
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b gh-pages
+          git checkout -b github-pages-static
           git add -A
           git commit -m "Deploy SafeReach frontend to GitHub Pages"
           git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push --force origin gh-pages
+          git push --force origin github-pages-static

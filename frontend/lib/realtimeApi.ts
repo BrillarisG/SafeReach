@@ -1,6 +1,7 @@
 'use client';
 
 import { io, type Socket } from 'socket.io-client';
+import { socketBaseUrl } from './runtimeConfig';
 
 export type SafeReachRealtimeEvent<TPayload = unknown> = {
   type: string;
@@ -10,14 +11,14 @@ export type SafeReachRealtimeEvent<TPayload = unknown> = {
 
 type Handler = (event: SafeReachRealtimeEvent) => void;
 
-const DEFAULT_SOCKET_URL = 'http://localhost:5000';
+const DEFAULT_SOCKET_URL = socketBaseUrl;
 
 class SafeReachRealtimeClient {
   private socket: Socket | null = null;
   private handlers = new Set<Handler>();
   private offlineEvents: SafeReachRealtimeEvent[] = [];
 
-  connect(url = import.meta.env.VITE_SAFEREACH_WS_URL ?? DEFAULT_SOCKET_URL) {
+  connect(url = DEFAULT_SOCKET_URL) {
     if (typeof window === 'undefined' || this.socket?.connected) return;
     try {
       this.socket = io(url, {

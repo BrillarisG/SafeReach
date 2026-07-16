@@ -1,3 +1,5 @@
+import { apiBaseUrl } from './runtimeConfig';
+
 export type IndustryMenuKey = 'table' | 'messages' | 'attendance' | 'timetable' | 'reports';
 
 export type IndustryMenuAccess = {
@@ -9,7 +11,7 @@ export type IndustryMenuAccess = {
 
 export const INDUSTRY_MENU_ACCESS_KEY = 'safereach_industry_menu_access';
 export const INDUSTRY_ACCESS_EVENT = 'safereach-industry-access-updated';
-const API_BASE = import.meta.env.VITE_SAFEREACH_API_URL ?? 'http://localhost:5000/api/v1';
+const API_BASE = apiBaseUrl;
 
 export const industryMenuItems: { key: IndustryMenuKey; label: string; description: string }[] = [
   { key: 'table', label: 'Tables', description: 'Class, student, report, and operations table views.' },

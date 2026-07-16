@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { apiBaseUrl } from './runtimeConfig';
 
-const API_BASE = import.meta.env.VITE_SAFEREACH_API_URL ?? 'http://localhost:5000/api/v1';
+const API_BASE = apiBaseUrl;
 
 export type BackendStudent = {
   id: string;

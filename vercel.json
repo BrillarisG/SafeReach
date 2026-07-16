@@ -4,6 +4,9 @@
   "outputDirectory": "frontend/dist",
   "installCommand": "cd frontend && npm install",
   "framework": "vite",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "env": {
     "VITE_SAFEREACH_API_URL": "https://safereach-backend-olac.onrender.com/api/v1",
     "VITE_SAFEREACH_WS_URL": "https://safereach-backend-olac.onrender.com"

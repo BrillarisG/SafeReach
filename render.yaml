@@ -28,9 +28,15 @@ services:
         sync: false
       - key: MONGODB_DB
         sync: false
+      - key: REDIS_URL
+        sync: false
       - key: UPSTASH_REDIS_REST_URL
         sync: false
       - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_FILE
+        sync: false
+      - key: GOOGLE_SHEET_ID
         sync: false
       - key: TWILIO_ACCOUNT_SID
         sync: false
@@ -40,9 +46,13 @@ services:
         sync: false
       - key: TWILIO_TEST_TO_PHONE
         sync: false
+      - key: SMS_TEST_MODE
+        value: "true"
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL
         sync: false
       - key: SENTRY_DSN
         sync: false
+      - key: JSON_BACKUP_DIR
+        value: /opt/render/project/src/backend/json_backups

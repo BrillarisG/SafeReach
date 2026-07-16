@@ -1,5 +1,7 @@
 'use client';
 
+import { io, type Socket } from 'socket.io-client';
+
 export type SafeReachRealtimeEvent<TPayload = unknown> = {
   type: string;
   payload: TPayload;
@@ -8,32 +10,45 @@ export type SafeReachRealtimeEvent<TPayload = unknown> = {
 
 type Handler = (event: SafeReachRealtimeEvent) => void;
 
-const DEFAULT_SOCKET_URL = 'ws://localhost:5000/ws/safereach';
+const DEFAULT_SOCKET_URL = 'http://localhost:5000';
 
 class SafeReachRealtimeClient {
-  private socket: WebSocket | null = null;
+  private socket: Socket | null = null;
   private handlers = new Set<Handler>();
   private offlineEvents: SafeReachRealtimeEvent[] = [];
 
   connect(url = import.meta.env.VITE_SAFEREACH_WS_URL ?? DEFAULT_SOCKET_URL) {
-    if (typeof window === 'undefined' || this.socket?.readyState === WebSocket.OPEN) return;
+    if (typeof window === 'undefined' || this.socket?.connected) return;
     try {
-      this.socket = new WebSocket(url);
-      this.socket.onmessage = message => {
-        try {
-          this.emit(JSON.parse(message.data) as SafeReachRealtimeEvent);
-        } catch {
-          this.emit({ type: 'system.websocket.invalid_message', payload: message.data, sentAt: new Date().toISOString() });
-        }
-      };
-      this.socket.onopen = () => {
+      this.socket = io(url, {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+      });
+      this.socket.on('connect', () => {
         const queued = [...this.offlineEvents];
         this.offlineEvents = [];
         queued.forEach(event => this.send(event.type, event.payload));
-      };
-      this.socket.onclose = () => {
-        this.socket = null;
-      };
+      });
+      this.socket.on('safe.connected', payload => this.emit({ type: 'safe.connected', payload, sentAt: new Date().toISOString() }));
+      [
+        'auth.login.success',
+        'auth.login.error',
+        'data.bootstrap.success',
+        'data.bootstrap.error',
+        'student.status.changed',
+        'attendance.marked',
+        'timetable.updated',
+        'timetable.error',
+        'industry.menu.updated',
+        'industry.menu.error',
+        'safe.error',
+      ].forEach(eventName => {
+        this.socket?.on(eventName, payload => this.emit({ type: eventName, payload, sentAt: new Date().toISOString() }));
+      });
+      this.socket.on('disconnect', () => {
+        this.emit({ type: 'safe.disconnected', payload: {}, sentAt: new Date().toISOString() });
+      });
     } catch {
       this.socket = null;
     }
@@ -46,8 +61,8 @@ class SafeReachRealtimeClient {
 
   send(type: string, payload: unknown = {}) {
     const event: SafeReachRealtimeEvent = { type, payload, sentAt: new Date().toISOString() };
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(event));
+    if (this.socket?.connected) {
+      this.socket.emit(type, payload);
       return;
     }
     this.offlineEvents.push(event);

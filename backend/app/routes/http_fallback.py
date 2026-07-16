@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from ..services import industry_menu_service, json_backup_service, safereach_service
+from ..services import industry_menu_service, integration_status_service, json_backup_service, safereach_service
 
 api_bp = Blueprint("api", __name__)
 
@@ -57,6 +57,11 @@ def create_json_backup():
         return jsonify(json_backup_service.create_backup())
     except Exception as exc:
         return _api_error("json_backup_failed", exc, 503)
+
+
+@api_bp.get("/integrations/status")
+def integrations_status():
+    return jsonify(integration_status_service.integration_status())
 
 
 def _api_error(code: str, exc: Exception, status: int):

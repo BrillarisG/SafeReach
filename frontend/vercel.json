@@ -4,7 +4,7 @@
   "installCommand": "npm install",
   "outputDirectory": "dist",
   "env": {
-    "VITE_SAFEREACH_API_URL": "https://safereach-backend.onrender.com/api/v1",
-    "VITE_SAFEREACH_WS_URL": "wss://safereach-backend.onrender.com/ws/safereach"
+    "VITE_SAFEREACH_API_URL": "https://safereach-backend-olac.onrender.com/api/v1",
+    "VITE_SAFEREACH_WS_URL": "wss://safereach-backend-olac.onrender.com/ws/safereach"
   }
 }

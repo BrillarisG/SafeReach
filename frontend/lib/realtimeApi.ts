@@ -21,7 +21,7 @@ class SafeReachRealtimeClient {
     if (typeof window === 'undefined' || this.socket?.connected) return;
     try {
       this.socket = io(url, {
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],
         reconnection: true,
         reconnectionAttempts: 5,
       });

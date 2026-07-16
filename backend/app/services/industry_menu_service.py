@@ -24,7 +24,7 @@ def list_access() -> dict:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
-                select s.id school_id, s.name school_name, ima.menu_key, coalesce(ima.enabled, true) enabled,
+                select s.id school_id, s.name school_name, menu.menu_key, coalesce(ima.enabled, true) enabled,
                        coalesce(ima.updated_at, s.created_at) updated_at
                 from schools s
                 cross join (select unnest(%s::text[]) menu_key) menu

@@ -129,7 +129,7 @@ def test_resend() -> tuple[str, bool, str]:
             headers={"Authorization": f"Bearer {api_key}"},
             timeout=8,
         )
-        return result("Resend", response.status_code in {200, 401, 403}, f"HTTP {response.status_code}")
+        return result("Resend", response.ok, f"HTTP {response.status_code}")
     except Exception as exc:
         return result("Resend", False, exc.__class__.__name__)
 

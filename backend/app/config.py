@@ -32,6 +32,12 @@ class Config:
         for origin in os.getenv("FRONTEND_ORIGINS", f"{FRONTEND_ORIGIN},http://127.0.0.1:3000").split(",")
         if origin.strip()
     ]
+    VERCEL_ORIGIN_SUFFIX = os.getenv("VERCEL_ORIGIN_SUFFIX", ".vercel.app")
+    SOCKETIO_CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv("SOCKETIO_CORS_ORIGINS", "*").split(",")
+        if origin.strip()
+    ]
 
     DB1_URL = _database_url("DB1_URL")
     DB2_URL = _database_url("DB2_URL")

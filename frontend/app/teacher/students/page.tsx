@@ -97,6 +97,40 @@ type TeacherStudentsPageProps = {
   mode?: 'full' | 'dashboard' | 'add';
 };
 
+export function TeacherStudentDashboardSummary() {
+  const [students, setStudents] = useState<TeacherStudent[]>(teacherStudentSeed);
+
+  useEffect(() => setStudents(safeReadStudents()), []);
+
+  function downloadTemplate() {
+    downloadTextFile(
+      'safereach-teacher-student-template.csv',
+      'student_name,student_id,class_name,section,roll_no,attendance_status,guardian_name,guardian_phone\n',
+      'text/csv'
+    );
+  }
+
+  const stats = { students: students.length, alerts: students.filter(student => student.alert).length };
+  const summary = [
+    { icon: 'group', bg: 'bg-primary-container/10', c: 'text-primary', label: 'Assigned Class', value: assignedClass },
+    { icon: 'school', bg: 'bg-secondary-container/20', c: 'text-secondary', label: 'Students', value: String(stats.students) },
+    { icon: 'edit_note', bg: 'bg-tertiary-fixed/40', c: 'text-tertiary-fixed-dim', label: 'Access', value: 'Incharge / Assistant' },
+    { icon: 'warning', bg: 'bg-error-container/40', c: 'text-error', label: 'Alerts/Missing', value: String(stats.alerts), border: true },
+  ];
+
+  return (
+    <section className="flex flex-col gap-stack-md">
+      <div className="flex flex-col gap-stack-md lg:flex-row lg:items-center lg:justify-between">
+        <div><h2 className="font-headline-lg text-headline-lg text-primary">Student Records Management</h2><p className="font-body-md text-on-surface-variant">Manage assigned {assignedClass} students and their live tracking status.</p></div>
+        <div className="flex items-center gap-2 sm:gap-3"><button onClick={downloadTemplate} title="Download Template" aria-label="Download Template" className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline text-on-surface hover:bg-surface-container-high sm:h-auto sm:w-auto sm:px-5 sm:py-3"><span className="material-symbols-outlined">download</span><span className="hidden sm:inline">Download Template</span></button><button onClick={() => window.alert('Excel upload is available when the import API is connected.')} title="Upload Excel" aria-label="Upload Excel" className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-on-secondary hover:opacity-90 sm:h-auto sm:w-auto sm:px-5 sm:py-3"><span className="material-symbols-outlined">upload_file</span><span className="hidden sm:inline">Upload Excel</span></button></div>
+      </div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-stack-md">
+        {summary.map(stat => <div key={stat.label} className={`flex min-w-0 items-center gap-2 rounded-xl border border-outline-variant bg-surface p-3 shadow-sm md:gap-stack-md md:p-stack-md ${stat.border ? 'border-l-4 border-l-error' : ''}`}><div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${stat.bg} ${stat.c} md:h-12 md:w-12`}><span className="material-symbols-outlined text-[19px] md:text-[24px]">{stat.icon}</span></div><div className="min-w-0"><p className="truncate text-[10px] uppercase tracking-wider text-on-surface-variant md:text-label-sm">{stat.label}</p><p className={`truncate text-base font-bold leading-tight md:text-2xl ${stat.border ? 'text-error' : ''}`}>{stat.value}</p></div></div>)}
+      </div>
+    </section>
+  );
+}
+
 export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPageProps = {}) {
   const dashboardMode = mode === 'dashboard';
   const addMode = mode === 'add';
@@ -167,7 +201,7 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
 
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop flex flex-col gap-stack-lg">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-stack-md">
+      {!dashboardMode && <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-stack-md">
         <div>
           <h2 className="font-headline-lg text-headline-lg text-primary">{addMode ? 'Add Student to Assigned Class' : 'Student Records Management'}</h2>
           <p className="text-on-surface-variant font-body-md">Manage assigned {assignedClass} students and their live tracking status.</p>
@@ -184,9 +218,9 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
           </button>
         </div>
         )}
-      </div>
+      </div>}
 
-      {!addMode && (
+      {!addMode && !dashboardMode && (
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-stack-md">
         {[
           { icon: 'group', bg: 'bg-primary-container/10', c: 'text-primary', label: 'Assigned Class', value: assignedClass },

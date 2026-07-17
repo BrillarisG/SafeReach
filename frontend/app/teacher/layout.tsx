@@ -47,8 +47,8 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
           <TeacherSidebar activeItem={activeItem} className="flex" onNavigate={() => setMenuOpen(false)} />
         </div>
       )}
-      <div className="md:ml-64 flex flex-col min-h-[calc(100vh-64px)] min-w-0">
-        <header className="fixed top-0 left-0 right-0 md:left-64 z-30 flex justify-between items-center h-16 px-container-padding-mobile md:px-container-padding-desktop bg-surface border-b border-outline-variant/30 shadow-sm shrink-0">
+      <div className="md:ml-60 flex flex-col min-h-[calc(100vh-64px)] min-w-0">
+        <header className="fixed top-0 left-0 right-0 md:left-60 z-30 flex justify-between items-center h-16 px-container-padding-mobile md:px-container-padding-desktop bg-surface border-b border-outline-variant/30 shadow-sm shrink-0">
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => setMenuOpen(open => !open)} className="md:hidden text-on-surface-variant p-2 -ml-2 rounded-lg hover:bg-surface-container" aria-label="Toggle navigation menu">
               <span className="material-symbols-outlined">menu</span>

@@ -81,8 +81,8 @@ export default function TeacherDashboardPage() {
       <section className="grid grid-cols-1 gap-gutter items-start">
         <div className="min-w-0 flex flex-col gap-gutter">
           <TeacherStudentDashboardSummary />
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(320px,520px)] gap-3 md:gap-4 items-start">
-            <div className="w-full max-w-[360px] justify-self-start overflow-hidden rounded-xl border border-outline-variant bg-surface p-stack-md shadow-sm">
+          <div className="mt-4 grid grid-cols-1 items-start gap-3 md:mt-6 md:gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,520px)]">
+            <div className="mx-auto w-full max-w-[360px] overflow-hidden rounded-xl border border-outline-variant bg-surface p-stack-md shadow-sm xl:mx-0">
               <div className="flex items-center justify-between gap-3 mb-4">
                 <button type="button" onClick={previousDay} className="h-10 w-10 rounded-full bg-surface-container text-primary flex items-center justify-center hover:bg-primary/10" aria-label="Previous day">
                   <span className="material-symbols-outlined">arrow_back</span>
@@ -113,7 +113,6 @@ export default function TeacherDashboardPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-3 text-label-sm text-on-surface-variant">A dash (-) means free time. In backend, this allocation should be generated from class timetable subjects mapped to the teacher name.</p>
             </div>
 
             <div className="bg-surface-container-high rounded-xl p-stack-md md:p-stack-lg shadow-sm w-full">

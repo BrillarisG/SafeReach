@@ -120,7 +120,6 @@ export function TeacherStudentDashboardSummary() {
 
   return (
     <section className="flex flex-col gap-stack-md">
-      <div><h2 className="font-headline-lg text-headline-lg text-primary">Student Records Management</h2><p className="font-body-md text-on-surface-variant">Manage assigned {assignedClass} students and their live tracking status.</p></div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-stack-md">
         {summary.map(stat => <div key={stat.label} className={`flex min-w-0 items-center gap-2 rounded-xl border border-outline-variant bg-surface p-3 shadow-sm md:gap-stack-md md:p-stack-md ${stat.border ? 'border-l-4 border-l-error' : ''}`}><div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${stat.bg} ${stat.c} md:h-12 md:w-12`}><span className="material-symbols-outlined text-[19px] md:text-[24px]">{stat.icon}</span></div><div className="min-w-0"><p className="truncate text-[10px] uppercase tracking-wider text-on-surface-variant md:text-label-sm">{stat.label}</p><p className={`truncate text-base font-bold leading-tight md:text-2xl ${stat.border ? 'text-error' : ''}`}>{stat.value}</p></div></div>)}
       </div>
@@ -292,31 +291,62 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
 
       {!addMode && (
       <div className="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
-        <div className="p-stack-md flex flex-col md:flex-row md:items-center justify-between gap-stack-md border-b border-outline-variant">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="relative">
+        <div className="p-stack-md border-b border-outline-variant">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:hidden">
+            <div className={`relative min-w-0 ${dashboardMode ? '' : 'col-span-2'}`}>
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">filter_list</span>
-              <select className="pl-10 pr-8 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-label-md focus:ring-primary focus:border-primary appearance-none">
+              <select className="w-full min-w-0 appearance-none rounded-lg border border-outline-variant bg-surface-container-low py-2 pl-10 pr-8 font-label-md focus:border-primary focus:ring-primary">
                 <option>{assignedClass}</option>
                 <option>Assigned Class Only</option>
               </select>
             </div>
-            <div className="relative">
+            {dashboardMode && <div className="flex items-center gap-1 justify-self-end">
+              <button type="button" onClick={downloadTemplate} title="Export template" aria-label="Export template" className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-outline text-on-surface hover:bg-surface-container-high"><span className="material-symbols-outlined text-[20px]">download</span></button>
+              <button type="button" onClick={simulateUpload} title="Import students" aria-label="Import students" className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-on-secondary hover:opacity-90"><span className="material-symbols-outlined text-[20px]">upload_file</span></button>
+            </div>}
+            <div className="relative min-w-0">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">location_on</span>
-              <select className="pl-10 pr-8 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-label-md focus:ring-primary focus:border-primary appearance-none">
+              <select className="w-full min-w-0 appearance-none rounded-lg border border-outline-variant bg-surface-container-low py-2 pl-10 pr-8 font-label-md focus:border-primary focus:ring-primary">
                 <option>All Status</option>
                 <option>At School</option>
                 <option>Missing Scan</option>
               </select>
             </div>
+            <div className="flex items-center justify-self-end gap-1">
+              <Link href="/teacher/students/add" className="inline-flex h-10 items-center gap-1 rounded-lg bg-primary px-3 text-on-primary font-bold hover:opacity-90">
+                <span className="material-symbols-outlined text-[18px]">person_add</span>
+                Add
+              </Link>
+              <button type="button" title="Choose visible columns" aria-label="Choose visible columns" className="inline-flex h-10 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-high"><span className="material-symbols-outlined">view_column</span></button>
+              <button type="button" title="Print students" aria-label="Print students" className="inline-flex h-10 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-high"><span className="material-symbols-outlined">print</span></button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link href="/teacher/students/add" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90">
+          <div className="hidden md:flex md:items-center md:justify-between md:gap-stack-md">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">filter_list</span>
+                <select className="appearance-none rounded-lg border border-outline-variant bg-surface-container-low py-2 pl-10 pr-8 font-label-md focus:border-primary focus:ring-primary">
+                  <option>{assignedClass}</option>
+                  <option>Assigned Class Only</option>
+                </select>
+              </div>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">location_on</span>
+                <select className="appearance-none rounded-lg border border-outline-variant bg-surface-container-low py-2 pl-10 pr-8 font-label-md focus:border-primary focus:ring-primary">
+                  <option>All Status</option>
+                  <option>At School</option>
+                  <option>Missing Scan</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/teacher/students/add" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90">
               <span className="material-symbols-outlined text-[18px]">person_add</span>
               Add
             </Link>
-            <button className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">view_column</span></button>
-            <button className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">print</span></button>
+              <button type="button" title="Choose visible columns" aria-label="Choose visible columns" className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">view_column</span></button>
+              <button type="button" title="Print students" aria-label="Print students" className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">print</span></button>
+            </div>
           </div>
         </div>
         <div className="student-table-container overflow-x-auto">
@@ -368,7 +398,7 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
         </div>
         <div className="p-stack-md flex flex-col gap-3 border-t border-outline-variant bg-surface md:flex-row md:items-center md:justify-between">
           <p className="text-label-md text-on-surface-variant">{dashboardMode ? `All assigned ${assignedClass} students are displayed.` : `Showing assigned ${assignedClass} students only`}</p>
-          {dashboardMode && <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row"><button onClick={downloadTemplate} className="inline-flex items-center justify-center gap-2 rounded-lg border border-outline px-3 py-2 text-label-sm font-bold text-on-surface hover:bg-surface-container-high"><span className="material-symbols-outlined text-[18px]">download</span>Export Template</button><button onClick={simulateUpload} className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-2 text-label-sm font-bold text-on-secondary hover:opacity-90"><span className="material-symbols-outlined text-[18px]">upload_file</span>Import Students</button></div>}
+          {dashboardMode && <div className="hidden w-full flex-col gap-2 sm:w-auto sm:flex-row md:flex"><button onClick={downloadTemplate} className="inline-flex items-center justify-center gap-2 rounded-lg border border-outline px-3 py-2 text-label-sm font-bold text-on-surface hover:bg-surface-container-high"><span className="material-symbols-outlined text-[18px]">download</span>Export Template</button><button onClick={simulateUpload} className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-2 text-label-sm font-bold text-on-secondary hover:opacity-90"><span className="material-symbols-outlined text-[18px]">upload_file</span>Import Students</button></div>}
           {!dashboardMode && <div className="flex items-center gap-1">
             <button className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg opacity-30" disabled><span className="material-symbols-outlined">chevron_left</span></button>
             <button className="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-lg font-bold text-sm">1</button>

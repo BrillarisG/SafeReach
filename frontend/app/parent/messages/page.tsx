@@ -103,7 +103,7 @@ export default function ParentMessagesPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full overflow-hidden">
+    <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full min-h-0 overflow-hidden">
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
         <div className="p-3 border-b border-outline-variant/20">
           <div className="relative"><span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search conversations..." /></div>
@@ -165,7 +165,7 @@ export default function ParentMessagesPage() {
           ))}
         </div>
       </div>
-      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex w-full min-w-0 flex-1 flex-col bg-background`}>
+      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex w-full min-w-0 min-h-0 flex-1 flex-col bg-background`}>
         <div className="px-4 py-3 bg-surface border-b border-outline-variant/30 flex items-center gap-3 shrink-0">
           <button type="button" onClick={() => setMobileChatOpen(false)} className="md:hidden -ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages">
             <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
@@ -178,7 +178,7 @@ export default function ParentMessagesPage() {
             Absence reason required for {activeStudent.name}. Type the reason below and press send.
           </div>
         )}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
           {thread.map((m, i) => (
             <div key={`${m.time}-${i}`} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'bg-primary text-on-primary rounded-br-sm' : 'bg-white text-on-surface rounded-bl-sm shadow-sm border border-outline-variant/20'}`}>

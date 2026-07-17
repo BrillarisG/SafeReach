@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useStudentTravelState } from '@/lib/studentTravel';
 
-type ConversationGroup = 'admin' | 'teacher' | 'student' | 'direct';
+type ConversationGroup = 'all' | 'admin' | 'teacher' | 'student' | 'direct';
 type Conversation = { id: string; name: string; sub: string; time: string; unread: number; avatar: string; studentId?: string; group: ConversationGroup };
 type Message = { from: string; text: string; time: string; me: boolean };
 
@@ -39,6 +39,7 @@ const baseThreads: Record<string, Message[]> = {
 };
 
 const groups: { id: ConversationGroup; label: string; icon: string }[] = [
+  { id: 'all', label: 'All', icon: 'chat' },
   { id: 'admin', label: 'Admin Group', icon: 'admin_panel_settings' },
   { id: 'teacher', label: 'Teacher Group', icon: 'groups' },
   { id: 'student', label: 'Student Group', icon: 'school' },
@@ -63,7 +64,7 @@ function conversationTimeScore(time: string) {
 
 export default function TeacherMessagesPage() {
   const { classStudents } = useStudentTravelState();
-  const [selectedGroup, setSelectedGroup] = useState<ConversationGroup>('admin');
+  const [selectedGroup, setSelectedGroup] = useState<ConversationGroup>('all');
   const [directRecipient, setDirectRecipient] = useState('base-1');
   const [sentNotice, setSentNotice] = useState('');
   const absenceConversations = useMemo(() => classStudents
@@ -105,7 +106,7 @@ export default function TeacherMessagesPage() {
   ];
   const conversations = [...groupConversations, ...studentGroupConversations, ...absenceConversations, ...baseConversations];
   const filteredConversations = conversations
-    .filter(conversation => conversation.group === selectedGroup)
+    .filter(conversation => selectedGroup === 'all' || conversation.group === selectedGroup)
     .sort((a, b) => conversationTimeScore(b.time) - conversationTimeScore(a.time));
   const [active, setActive] = useState('group-admin');
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
@@ -127,7 +128,9 @@ export default function TeacherMessagesPage() {
 
   function changeGroup(group: ConversationGroup) {
     setSelectedGroup(group);
-    const firstInGroup = conversations.find(conversation => conversation.group === group);
+    const firstInGroup = [...conversations]
+      .sort((a, b) => conversationTimeScore(b.time) - conversationTimeScore(a.time))
+      .find(conversation => group === 'all' || conversation.group === group);
     if (group === 'direct') {
       setActive(directRecipient);
     } else {
@@ -149,19 +152,23 @@ export default function TeacherMessagesPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full overflow-hidden">
+    <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full min-h-0 overflow-hidden">
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
         <div className="border-b border-outline-variant/20 p-3 overflow-x-auto no-scrollbar">
           <div className="flex min-w-max items-center gap-1.5">
-            {groups.map(group => (
-              <button
-                key={group.id}
-                onClick={() => changeGroup(group.id)}
-                className={`rounded-full border px-3 py-1.5 text-label-sm font-bold whitespace-nowrap ${selectedGroup === group.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant/70 bg-white text-on-surface-variant hover:bg-surface-container'}`}
-              >
-                {group.label}
-              </button>
-            ))}
+            {groups.map(group => {
+              const unread = conversations.filter(conversation => (group.id === 'all' || conversation.group === group.id) && conversation.unread > 0).reduce((total, conversation) => total + conversation.unread, 0);
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => changeGroup(group.id)}
+                  className={`rounded-full border px-3 py-1.5 text-label-sm font-bold whitespace-nowrap ${selectedGroup === group.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant/70 bg-white text-on-surface-variant hover:bg-surface-container'}`}
+                >
+                  <span>{group.label}</span>
+                  {unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${selectedGroup === group.id ? 'bg-white/20 text-on-primary' : 'bg-primary-container text-primary'}`}>{unread}</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
         <div className="p-3 border-b border-outline-variant/20">
@@ -195,17 +202,21 @@ export default function TeacherMessagesPage() {
       <div className={`${mobileChatOpen ? 'hidden' : 'flex'} md:hidden w-full min-w-0 flex-1 flex-col bg-background`}>
         <div className="px-2 py-2 bg-surface border-b border-outline-variant/30 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5 min-w-max">
-            {groups.map(group => (
-              <button
-                key={group.id}
-                type="button"
-                onClick={() => changeGroup(group.id)}
-                className={`max-w-[86px] truncate rounded-full border px-2.5 py-1.5 text-[12px] leading-none whitespace-nowrap ${selectedGroup === group.id ? 'bg-primary text-on-primary border-primary' : 'bg-white border-outline-variant/70 text-on-surface-variant'}`}
-                title={group.label}
-              >
-                {group.label}
-              </button>
-            ))}
+            {groups.map(group => {
+              const unread = conversations.filter(conversation => (group.id === 'all' || conversation.group === group.id) && conversation.unread > 0).reduce((total, conversation) => total + conversation.unread, 0);
+              return (
+                <button
+                  key={group.id}
+                  type="button"
+                  onClick={() => changeGroup(group.id)}
+                  className={`max-w-[96px] truncate rounded-full border px-2.5 py-1.5 text-[12px] leading-none whitespace-nowrap ${selectedGroup === group.id ? 'bg-primary text-on-primary border-primary' : 'bg-white border-outline-variant/70 text-on-surface-variant'}`}
+                  title={group.label}
+                >
+                  <span>{group.label}</span>
+                  {unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${selectedGroup === group.id ? 'bg-white/20 text-on-primary' : 'bg-primary-container text-primary'}`}>{unread}</span>}
+                </button>
+              );
+            })}
             <button className="h-8 w-8 rounded-full border border-outline-variant bg-white flex items-center justify-center text-on-surface-variant shrink-0" aria-label="New message">
               <span className="material-symbols-outlined text-[18px]">add</span>
             </button>
@@ -240,7 +251,7 @@ export default function TeacherMessagesPage() {
           )}
         </div>
       </div>
-      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex w-full min-w-0 flex-1 flex-col bg-background`}>
+      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex w-full min-w-0 min-h-0 flex-1 flex-col bg-background`}>
         <div className="px-4 py-3 bg-surface border-b border-outline-variant/30 flex items-center gap-3 shrink-0">
           <button type="button" onClick={() => setMobileChatOpen(false)} className="md:hidden -ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages">
             <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
@@ -258,7 +269,7 @@ export default function TeacherMessagesPage() {
             <span className="font-bold text-primary">{activeStudent.name}</span> status: {activeStudent.absenceReason ? 'Reason received' : 'Waiting for parent reason'}
           </div>
         )}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
           {thread.map((m, i) => (
             <div key={`${m.time}-${i}`} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'bg-primary text-on-primary rounded-br-sm' : 'bg-white text-on-surface rounded-bl-sm shadow-sm border border-outline-variant/20'}`}>

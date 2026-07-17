@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from '@/src/next-navigation';
 
-type MessageGroup = 'common' | 'teacher' | 'parent';
+type MessageGroup = 'all' | 'common' | 'teacher' | 'parent';
 
 type Conversation = {
   id: string;
@@ -62,10 +62,26 @@ const threads: Record<string, Message[]> = {
 };
 
 const groupTabs: { id: MessageGroup; label: string; icon: string; helper: string }[] = [
+  { id: 'all', label: 'All Messages', icon: 'chat', helper: 'All recent conversations' },
   { id: 'common', label: 'Admin Common Group', icon: 'campaign', helper: 'Admin and all teachers included' },
   { id: 'teacher', label: 'Direct Teachers', icon: 'badge', helper: 'Admin can chat with any teacher' },
   { id: 'parent', label: 'Direct Parents', icon: 'family_restroom', helper: 'Admin can chat with parent contacts' },
 ];
+
+function conversationTimeScore(time: string) {
+  const normalized = time.trim().toLowerCase();
+  if (normalized === 'live' || normalized === 'new' || normalized.includes('today')) return 20000;
+  const timeMatch = normalized.match(/(\d{1,2}):(\d{2})\s*(am|pm)/);
+  if (timeMatch) {
+    let hour = Number(timeMatch[1]);
+    const minute = Number(timeMatch[2]);
+    if (timeMatch[3] === 'pm' && hour < 12) hour += 12;
+    if (timeMatch[3] === 'am' && hour === 12) hour = 0;
+    return 10000 + hour * 60 + minute;
+  }
+  if (normalized.includes('yesterday')) return 1000;
+  return 0;
+}
 
 function AdminMessagesContent() {
   const searchParams = useSearchParams();
@@ -87,7 +103,7 @@ function AdminMessagesContent() {
   }, [requestedChat, requestedName, requestedRole]);
   const availableConversations = useMemo(() => dynamicConversation ? [...conversations, dynamicConversation] : conversations, [dynamicConversation]);
   const requestedConversation = availableConversations.find(conversation => conversation.id === requestedChat);
-  const [activeGroup, setActiveGroup] = useState<MessageGroup>(requestedConversation?.group ?? 'common');
+  const [activeGroup, setActiveGroup] = useState<MessageGroup>(requestedConversation?.group ?? 'all');
   const [activeId, setActiveId] = useState(requestedConversation?.id ?? 'common-admin-teachers');
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState('');
@@ -103,16 +119,18 @@ function AdminMessagesContent() {
   }, [availableConversations, requestedChat]);
 
   const visibleConversations = useMemo(() => availableConversations.filter(conversation => {
-    const inGroup = conversation.group === activeGroup;
+    const inGroup = activeGroup === 'all' || conversation.group === activeGroup;
     const match = `${conversation.name} ${conversation.sub}`.toLowerCase().includes(search.toLowerCase());
     return inGroup && match;
-  }), [activeGroup, availableConversations, search]);
+  }).sort((a, b) => conversationTimeScore(b.time) - conversationTimeScore(a.time)), [activeGroup, availableConversations, search]);
 
   const activeConversation = visibleConversations.find(conversation => conversation.id === activeId) ?? visibleConversations[0] ?? availableConversations[0];
   const activeThread = threads[activeConversation.id] ?? [];
 
   function changeGroup(group: MessageGroup) {
-    const first = availableConversations.find(conversation => conversation.group === group);
+    const first = [...availableConversations]
+      .sort((a, b) => conversationTimeScore(b.time) - conversationTimeScore(a.time))
+      .find(conversation => group === 'all' || conversation.group === group);
     setActiveGroup(group);
     setActiveId(first?.id ?? '');
     setSearch('');

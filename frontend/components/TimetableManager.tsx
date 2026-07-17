@@ -168,7 +168,7 @@ export default function TimetableManager({ mode, editMode = false }: { mode: 'ad
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop space-y-stack-lg">
       <section className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="font-headline-lg text-headline-lg text-primary">Class Timetable</h1>
           </div>
@@ -186,9 +186,9 @@ export default function TimetableManager({ mode, editMode = false }: { mode: 'ad
               <button onClick={removePeriodColumn} className="px-4 py-2 rounded-lg border border-error text-error font-bold">Delete Period</button>
             </div>
           ) : (
-            <Link href={editHref} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-bold">
+            <Link href={editHref} title="Edit timetable" aria-label="Edit timetable" className="group relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container">
               <span className="material-symbols-outlined text-[18px]">edit</span>
-              Edit
+              <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Edit timetable</span>
             </Link>
           )}
         </div>

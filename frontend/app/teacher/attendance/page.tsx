@@ -282,7 +282,7 @@ export default function TeacherAttendancePage() {
         <div className="bg-primary/5 border border-primary/20 rounded-lg md:rounded-xl p-2 md:p-4 text-center"><p className="font-bold text-lg md:font-headline-lg md:text-headline-lg text-primary">{counts.reachedHome}</p><p className="text-[10px] md:text-label-md leading-tight text-primary">SafeReach<br className="md:hidden" /> Home</p></div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 md:mb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-stack-lg">
         <label className="relative w-full md:max-w-md">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
           <input
@@ -292,19 +292,7 @@ export default function TeacherAttendancePage() {
             placeholder="Search attendance students..."
           />
         </label>
-        <span className="hidden md:inline text-label-sm text-on-surface-variant">{filteredAttendanceStudents.length} visible students</span>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-3 mb-stack-lg">
-        <select className="bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary focus:outline-none flex-1">
-          <option>Class 4-B - Morning Travel Attendance</option>
-          <option>Class 4-B - Dismissal Travel Attendance</option>
-        </select>
-        <input type="date" defaultValue="2026-06-10" className="bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary focus:outline-none" />
-        <select className="bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary focus:outline-none">
-          <option>Morning Arrival</option>
-          <option>Go Out Attendance</option>
-        </select>
+        <input type="date" defaultValue="2026-06-10" aria-label="Attendance date" className="w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary focus:outline-none md:w-auto" />
       </div>
 
       <section className="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden mb-stack-lg">
@@ -313,6 +301,10 @@ export default function TeacherAttendancePage() {
             <h2 className="font-headline-md text-headline-md text-primary">Morning Attendance and Travel Status</h2>
             <p className="text-label-md text-on-surface-variant">Primary and assistant incharge can submit attendance. Present/Absent lock until the next 8:00 AM reset; Late can still become Present or Absent.</p>
           </div>
+          <button type="button" onClick={() => markAll('present')} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-2 text-label-sm font-bold text-on-secondary hover:opacity-90">
+            <span className="material-symbols-outlined text-[18px]">done_all</span>
+            Mark All Present
+          </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] md:min-w-[900px] text-left">

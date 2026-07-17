@@ -93,6 +93,15 @@ function formFromStudent(student: TeacherStudent): StudentFormState {
   };
 }
 
+function ToolbarIconButton({ icon, label, onClick, accent = false }: { icon: string; label: string; onClick: () => void; accent?: boolean }) {
+  return (
+    <button type="button" onClick={onClick} title={label} aria-label={label} className={`group relative inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${accent ? 'bg-secondary text-on-secondary hover:opacity-90' : 'border border-outline text-on-surface hover:bg-surface-container-high'}`}>
+      <span className="material-symbols-outlined text-[20px]">{icon}</span>
+      <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{label}</span>
+    </button>
+  );
+}
+
 type TeacherStudentsPageProps = {
   mode?: 'full' | 'dashboard' | 'add';
 };
@@ -204,14 +213,8 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
         </div>
         {!addMode && (
         <div className="flex items-center justify-end gap-2 sm:gap-3">
-          <button onClick={downloadTemplate} title="Download Template" aria-label="Download Template" className="h-10 w-10 sm:h-auto sm:w-auto sm:px-5 sm:py-3 border border-outline text-on-surface font-label-md rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all">
-            <span className="material-symbols-outlined">download</span>
-            <span className="hidden sm:inline">Download Template</span>
-          </button>
-          <button onClick={simulateUpload} title="Upload Excel" aria-label="Upload Excel" className="h-10 w-10 sm:h-auto sm:w-auto sm:px-5 sm:py-3 bg-secondary text-on-secondary font-label-md rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md">
-            <span className="material-symbols-outlined">upload_file</span>
-            <span className="hidden sm:inline">Upload Excel</span>
-          </button>
+          <ToolbarIconButton icon="download" label="Export template" onClick={downloadTemplate} />
+          <ToolbarIconButton icon="upload_file" label="Import students" onClick={simulateUpload} accent />
         </div>
         )}
       </div>}
@@ -301,8 +304,8 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
               </select>
             </div>
             {dashboardMode && <div className="flex items-center gap-1 justify-self-end">
-              <button type="button" onClick={downloadTemplate} title="Export template" aria-label="Export template" className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-outline text-on-surface hover:bg-surface-container-high"><span className="material-symbols-outlined text-[20px]">download</span></button>
-              <button type="button" onClick={simulateUpload} title="Import students" aria-label="Import students" className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-on-secondary hover:opacity-90"><span className="material-symbols-outlined text-[20px]">upload_file</span></button>
+              <ToolbarIconButton icon="download" label="Export template" onClick={downloadTemplate} />
+              <ToolbarIconButton icon="upload_file" label="Import students" onClick={simulateUpload} accent />
             </div>}
             <div className="relative min-w-0">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">location_on</span>
@@ -317,8 +320,6 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
                 <span className="material-symbols-outlined text-[18px]">person_add</span>
                 Add
               </Link>
-              <button type="button" title="Choose visible columns" aria-label="Choose visible columns" className="inline-flex h-10 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-high"><span className="material-symbols-outlined">view_column</span></button>
-              <button type="button" title="Print students" aria-label="Print students" className="inline-flex h-10 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-high"><span className="material-symbols-outlined">print</span></button>
             </div>
           </div>
           <div className="hidden md:flex md:items-center md:justify-between md:gap-stack-md">
@@ -344,8 +345,8 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
               <span className="material-symbols-outlined text-[18px]">person_add</span>
               Add
             </Link>
-              <button type="button" title="Choose visible columns" aria-label="Choose visible columns" className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">view_column</span></button>
-              <button type="button" title="Print students" aria-label="Print students" className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">print</span></button>
+              {dashboardMode && <ToolbarIconButton icon="download" label="Export template" onClick={downloadTemplate} />}
+              {dashboardMode && <ToolbarIconButton icon="upload_file" label="Import students" onClick={simulateUpload} accent />}
             </div>
           </div>
         </div>
@@ -398,7 +399,6 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
         </div>
         <div className="p-stack-md flex flex-col gap-3 border-t border-outline-variant bg-surface md:flex-row md:items-center md:justify-between">
           <p className="text-label-md text-on-surface-variant">{dashboardMode ? `All assigned ${assignedClass} students are displayed.` : `Showing assigned ${assignedClass} students only`}</p>
-          {dashboardMode && <div className="hidden w-full flex-col gap-2 sm:w-auto sm:flex-row md:flex"><button onClick={downloadTemplate} className="inline-flex items-center justify-center gap-2 rounded-lg border border-outline px-3 py-2 text-label-sm font-bold text-on-surface hover:bg-surface-container-high"><span className="material-symbols-outlined text-[18px]">download</span>Export Template</button><button onClick={simulateUpload} className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-3 py-2 text-label-sm font-bold text-on-secondary hover:opacity-90"><span className="material-symbols-outlined text-[18px]">upload_file</span>Import Students</button></div>}
           {!dashboardMode && <div className="flex items-center gap-1">
             <button className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg opacity-30" disabled><span className="material-symbols-outlined">chevron_left</span></button>
             <button className="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-lg font-bold text-sm">1</button>

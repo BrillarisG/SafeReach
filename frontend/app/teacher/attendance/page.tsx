@@ -53,7 +53,6 @@ function updatedAtTime(value: string) {
 }
 
 function morningRisk(student: ReturnType<typeof useStudentTravelState>['classStudents'][number]) {
-  if (student.status === 'absent') return 'overdue';
   if (student.status === 'to_school') {
     const updatedTime = updatedAtTime(student.updatedAt);
     return updatedTime && Date.now() - updatedTime > TWO_HOURS_MS ? 'overdue' : 'traveling';
@@ -73,6 +72,9 @@ function morningRiskRank(student: ReturnType<typeof useStudentTravelState>['clas
 }
 
 function morningRowClass(student: ReturnType<typeof useStudentTravelState>['classStudents'][number]) {
+  // Absence stays red for visibility but is not an overdue travel event, so it
+  // remains in the normal alphabetical section instead of moving to the top.
+  if (student.status === 'absent') return 'bg-red-50 border-l-4 border-error';
   const risk = morningRisk(student);
   if (risk === 'overdue') return 'bg-red-50 border-l-4 border-error';
   if (risk === 'traveling') return 'bg-yellow-50 border-l-4 border-yellow-400';
@@ -99,6 +101,7 @@ function goOutRiskRank(student: ReturnType<typeof useStudentTravelState>['classS
 }
 
 function goOutRowClass(student: ReturnType<typeof useStudentTravelState>['classStudents'][number]) {
+  if (student.status === 'absent') return 'bg-red-50 border-l-4 border-error';
   const risk = goOutRisk(student);
   if (risk === 'overdue') return 'bg-red-50 border-l-4 border-error';
   if (risk === 'traveling') return 'bg-yellow-50 border-l-4 border-yellow-400';
@@ -159,7 +162,7 @@ export default function TeacherAttendancePage() {
       return riskDiff !== 0 ? riskDiff : a.name.localeCompare(b.name);
     });
   const filteredLeaveStudents = classStudents
-    .filter(student => student.status !== 'absent' && student.attendance !== 'absent' && matchesSearch(student, leaveSearch))
+    .filter(student => matchesSearch(student, leaveSearch))
     .slice()
     .sort((a, b) => {
       const riskDiff = goOutRiskRank(a) - goOutRiskRank(b);
@@ -423,7 +426,7 @@ export default function TeacherAttendancePage() {
                       <input
                         type="checkbox"
                         checked={leaveIds.includes(student.id)}
-                        disabled={leaveSubmittedIds.includes(student.id) || student.status === 'going_home' || student.status === 'reached_home'}
+                        disabled={leaveSubmittedIds.includes(student.id) || student.status === 'absent' || student.attendance === 'absent' || student.status === 'going_home' || student.status === 'reached_home'}
                         onChange={event => toggleLeave(student.id, event.target.checked)}
                         className="w-5 h-5 rounded text-primary disabled:opacity-40"
                         aria-label={`Select ${student.name} for out of school attendance`}

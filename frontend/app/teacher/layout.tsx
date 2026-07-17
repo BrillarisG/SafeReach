@@ -63,13 +63,6 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
               <span className="material-symbols-outlined text-outline text-[18px]">search</span>
               <input className="bg-transparent focus:ring-0 border-none text-body-md w-36 outline-none" placeholder="Search..." />
             </div>
-            <Link href="/teacher/notifications" className="relative h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors" title="Notifications">
-              <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-            </Link>
-            <Link href="/teacher/support" className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors" title="Support">
-              <span className="material-symbols-outlined text-on-surface-variant">help</span>
-            </Link>
             <Link href="/teacher/profile" className="w-9 h-9 rounded-full overflow-hidden border-2 border-primary-container shrink-0" title="Teacher profile">
               <img alt="Teacher" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDd1RNbZ24b_iQ3_FL57yS395rgZ_iD9C2SdErGHp_gkjLnLAitVvWoTTn6T3VJL-VlQYIlp7EEZId9MF4tahLWSeqot2YhPM_REtQz5zVSjnG0qQ5_T6CW86GKtb-7sFlfw1uRDn0m6W41RVZI8TjHEQyoayt7xLSkamLgDULlnUKeitN2QoVlwfyn4No3nHQty7g70eWPuMQCNWFboad27ZSPcqOoXncwKU1ZzcVMRJDtdfMx8hEJL4D55qi7gO2ak1rsos2pm_CA" />
             </Link>

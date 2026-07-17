@@ -149,17 +149,16 @@ export default function TeacherMessagesPage() {
   }
 
   return (
-    <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
+    <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full overflow-hidden">
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
-        <div className="p-3 border-b border-outline-variant/20">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="border-b border-outline-variant/20 p-3 overflow-x-auto no-scrollbar">
+          <div className="flex min-w-max items-center gap-1.5">
             {groups.map(group => (
               <button
                 key={group.id}
                 onClick={() => changeGroup(group.id)}
-                className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-label-sm font-bold ${selectedGroup === group.id ? 'bg-primary text-on-primary' : 'bg-white text-on-surface-variant hover:bg-surface-container'}`}
+                className={`rounded-full border px-3 py-1.5 text-label-sm font-bold whitespace-nowrap ${selectedGroup === group.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant/70 bg-white text-on-surface-variant hover:bg-surface-container'}`}
               >
-                <span className="material-symbols-outlined text-[17px]">{group.icon}</span>
                 {group.label}
               </button>
             ))}
@@ -193,7 +192,7 @@ export default function TeacherMessagesPage() {
           ))}
         </div>
       </aside>
-      <div className={`${mobileChatOpen ? 'hidden' : 'flex'} md:hidden flex-1 flex-col bg-background`}>
+      <div className={`${mobileChatOpen ? 'hidden' : 'flex'} md:hidden w-full min-w-0 flex-1 flex-col bg-background`}>
         <div className="px-2 py-2 bg-surface border-b border-outline-variant/30 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5 min-w-max">
             {groups.map(group => (
@@ -241,7 +240,7 @@ export default function TeacherMessagesPage() {
           )}
         </div>
       </div>
-      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-background min-w-0`}>
+      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex w-full min-w-0 flex-1 flex-col bg-background`}>
         <div className="px-4 py-3 bg-surface border-b border-outline-variant/30 flex items-center gap-3 shrink-0">
           <button type="button" onClick={() => setMobileChatOpen(false)} className="md:hidden -ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages">
             <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>

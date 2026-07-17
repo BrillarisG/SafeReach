@@ -126,14 +126,14 @@ function AdminMessagesContent() {
   }
 
   return (
-    <div className="p-container-padding-mobile md:p-container-padding-desktop">
+    <div className="p-container-padding-mobile md:p-container-padding-desktop min-w-0 max-w-full overflow-x-hidden">
       <div className="mb-stack-lg">
         <h1 className="font-headline-lg text-headline-lg text-primary">Admin Messages</h1>
         <p className="text-body-md text-on-surface-variant">Common teacher announcements and direct teacher or parent chat access.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-5">
-        <aside className="bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden">
+      <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
+        <aside className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden">
           <div className="p-3 border-b border-outline-variant/30 grid gap-2">
             {groupTabs.map(tab => (
               <button
@@ -183,7 +183,7 @@ function AdminMessagesContent() {
           </div>
         </aside>
 
-        <section className="bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden min-h-[620px] flex flex-col">
+        <section className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden min-h-[620px] flex flex-col">
           <header className="p-4 border-b border-outline-variant/30 flex items-center gap-3">
             <span className="w-11 h-11 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">{activeConversation.avatar}</span>
             <div>

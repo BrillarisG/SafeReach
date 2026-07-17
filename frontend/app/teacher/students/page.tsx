@@ -95,9 +95,9 @@ function formFromStudent(student: TeacherStudent): StudentFormState {
 
 function ToolbarIconButton({ icon, label, onClick, accent = false }: { icon: string; label: string; onClick: () => void; accent?: boolean }) {
   return (
-    <button type="button" onClick={onClick} title={label} aria-label={label} className={`group relative inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${accent ? 'bg-secondary text-on-secondary hover:opacity-90' : 'border border-outline text-on-surface hover:bg-surface-container-high'}`}>
+    <button type="button" onClick={onClick} title={label} aria-label={label} className={`group relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:z-50 focus-visible:z-50 ${accent ? 'bg-secondary text-on-secondary hover:opacity-90' : 'border border-outline text-on-surface hover:bg-surface-container-high'}`}>
       <span className="material-symbols-outlined text-[20px]">{icon}</span>
-      <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{label}</span>
+      <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-[60] mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{label}</span>
     </button>
   );
 }
@@ -293,8 +293,8 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
       )}
 
       {!addMode && (
-      <div className="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
-        <div className="p-stack-md border-b border-outline-variant">
+      <div className="bg-surface rounded-xl border border-outline-variant shadow-sm overflow-visible flex flex-col">
+        <div className="relative z-20 p-stack-md border-b border-outline-variant">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:hidden">
             <div className={`relative min-w-0 ${dashboardMode ? '' : 'col-span-2'}`}>
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">filter_list</span>

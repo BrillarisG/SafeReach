@@ -186,9 +186,9 @@ export default function TimetableManager({ mode, editMode = false }: { mode: 'ad
               <button onClick={removePeriodColumn} className="px-4 py-2 rounded-lg border border-error text-error font-bold">Delete Period</button>
             </div>
           ) : (
-            <Link href={editHref} title="Edit timetable" aria-label="Edit timetable" className="group relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container">
+            <Link href={editHref} title="Edit timetable" aria-label="Edit timetable" className="group relative z-10 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary hover:z-50 hover:bg-primary-container focus-visible:z-50">
               <span className="material-symbols-outlined text-[18px]">edit</span>
-              <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Edit timetable</span>
+              <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-[60] mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Edit timetable</span>
             </Link>
           )}
         </div>

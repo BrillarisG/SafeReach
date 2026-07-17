@@ -62,13 +62,6 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
               <span className="material-symbols-outlined text-outline text-[18px]">search</span>
               <input className="bg-transparent focus:ring-0 border-none text-body-md w-40 outline-none" placeholder="Search updates..." />
             </div>
-            <Link href="/parent/notifications" className="relative h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors" title="Notifications">
-              <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-            </Link>
-            <Link href="/parent/support" className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors" title="Support">
-              <span className="material-symbols-outlined text-on-surface-variant">help</span>
-            </Link>
             <Link href="/parent/profile" className="w-9 h-9 rounded-full overflow-hidden border-2 border-primary shrink-0" title="Parent profile">
               <img alt="Parent" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2ppRkv8ioDNnC1LAQ3CMXViVbD7L_xdUSj5P1JrfKTBa2QUri_iFVaVxsHOLQ06J787USHm3r9uiWHpstHfc16stUolCM_yLpS6FGIOtCS3_Hl01R13M_jfvcq4s2fHqGt0mL3txlucv-b-PeTYwNsYpLN9QWceIGqxYs05HEXdmM-2h5Pm-Duh_B2aMQuNGjyyxH36Uiw5cBX1J7V5jX6gOynV_TaHBl7yvDzkguksOBRpFdg0SRNJGsmzRH0xlrK91Ae6Au8ngz" />
             </Link>

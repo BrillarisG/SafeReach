@@ -103,7 +103,7 @@ export default function ParentMessagesPage() {
   }
 
   return (
-    <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
+    <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full overflow-hidden">
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
         <div className="p-3 border-b border-outline-variant/20">
           <div className="relative"><span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search conversations..." /></div>
@@ -118,7 +118,7 @@ export default function ParentMessagesPage() {
           ))}
         </div>
       </aside>
-      <div className={`${mobileChatOpen ? 'hidden' : 'flex'} md:hidden flex-1 flex-col bg-background`}>
+      <div className={`${mobileChatOpen ? 'hidden' : 'flex'} md:hidden w-full min-w-0 flex-1 flex-col bg-background`}>
         <div className="px-3 py-2 bg-surface border-b border-outline-variant/30 overflow-x-auto">
           <div className="flex items-center gap-2 min-w-max">
             {[
@@ -165,7 +165,7 @@ export default function ParentMessagesPage() {
           ))}
         </div>
       </div>
-      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-background min-w-0`}>
+      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:flex w-full min-w-0 flex-1 flex-col bg-background`}>
         <div className="px-4 py-3 bg-surface border-b border-outline-variant/30 flex items-center gap-3 shrink-0">
           <button type="button" onClick={() => setMobileChatOpen(false)} className="md:hidden -ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages">
             <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>

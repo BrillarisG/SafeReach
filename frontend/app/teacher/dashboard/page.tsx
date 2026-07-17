@@ -80,8 +80,6 @@ export default function TeacherDashboardPage() {
     <div className="p-container-padding-mobile md:p-container-padding-desktop pb-6">
       <section className="grid grid-cols-1 gap-gutter items-start">
         <div className="min-w-0 flex flex-col gap-gutter">
-          <TeacherStudentsPage mode="dashboard" />
-
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(320px,520px)] gap-3 md:gap-4 items-start">
             <div className="bg-surface rounded-xl border border-outline-variant shadow-sm p-stack-md">
               <div className="flex items-center justify-between gap-3 mb-4">
@@ -97,18 +95,18 @@ export default function TeacherDashboardPage() {
                 </button>
               </div>
               <div className="overflow-x-auto rounded-xl border border-outline-variant">
-                <table className="w-full min-w-[420px] border-collapse text-center">
+                <table className="w-auto min-w-[260px] border-collapse text-center">
                   <thead className="bg-primary text-on-primary">
                     <tr>
-                      <th className="w-24 px-4 py-3 font-bold border-r border-white/20">Hour</th>
-                      <th className="px-4 py-3 font-bold">Class</th>
+                      <th className="w-16 px-3 py-3 font-bold border-r border-white/20">Hour</th>
+                      <th className="w-28 px-3 py-3 font-bold">Class</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeDay.classes.map((className, index) => (
                       <tr key={`${activeDay.label}-${index}`} className={index % 2 === 0 ? 'bg-primary/5' : 'bg-surface'}>
                         <td className="px-4 py-3 font-bold text-primary border-r border-outline-variant">{index + 1}</td>
-                        <td className={`px-4 py-3 font-label-md ${className === '-' ? 'text-on-surface-variant' : 'text-on-surface font-bold'}`}>{className}</td>
+                        <td className={`px-3 py-3 font-label-md truncate ${className === '-' ? 'text-on-surface-variant' : 'text-on-surface font-bold'}`}>{className}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -154,6 +152,7 @@ export default function TeacherDashboardPage() {
               </div>
             </div>
           </div>
+          <TeacherStudentsPage mode="dashboard" />
         </div>
       </section>
     </div>

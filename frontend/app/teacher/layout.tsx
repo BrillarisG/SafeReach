@@ -18,7 +18,7 @@ const itemMap: Record<string, ActiveItem> = {
 };
 
 const titleMap: Record<string, { title: string; sub: string }> = {
-  '/teacher/dashboard': { title: 'Welcome, Sarah Jenkins', sub: 'Class 4-B Supervisor Â· Academic Year 2024â€“25' },
+  '/teacher/dashboard': { title: 'Sarah Jenkins', sub: 'Class 4-B Supervisor Â· Academic Year 2024â€“25' },
   '/teacher/students': { title: 'My Students', sub: 'Student records and live tracking status' },
   '/teacher/students/add': { title: 'Add Student', sub: 'Create a new assigned class student record' },
   '/teacher/attendance': { title: 'Attendance', sub: 'Mark and track daily attendance' },

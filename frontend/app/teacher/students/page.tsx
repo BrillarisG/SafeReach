@@ -336,14 +336,14 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
           </table>
         </div>
         <div className="p-stack-md flex flex-col md:flex-row md:items-center justify-between gap-3 border-t border-outline-variant bg-surface">
-          <p className="text-label-md text-on-surface-variant">Showing assigned {assignedClass} students only</p>
-          <div className="flex items-center gap-1">
+          <p className="text-label-md text-on-surface-variant">{dashboardMode ? `All assigned ${assignedClass} students are displayed.` : `Showing assigned ${assignedClass} students only`}</p>
+          {!dashboardMode && <div className="flex items-center gap-1">
             <button className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg opacity-30" disabled><span className="material-symbols-outlined">chevron_left</span></button>
             <button className="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-lg font-bold text-sm">1</button>
             <button className="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded-lg font-bold text-sm">2</button>
             <button className="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded-lg font-bold text-sm">3</button>
             <button className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg"><span className="material-symbols-outlined">chevron_right</span></button>
-          </div>
+          </div>}
         </div>
       </div>
       )}

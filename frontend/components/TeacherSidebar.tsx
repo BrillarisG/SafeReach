@@ -23,7 +23,6 @@ export default function TeacherSidebar({ activeItem, className = 'hidden md:flex
           <LogoMark className="h-8 w-8 rounded-md" />
           <h1 className="font-headline-md text-headline-md font-extrabold text-on-surface">SafeReach</h1>
         </div>
-        <p className="pl-10 font-label-sm text-label-sm text-on-surface-variant">Teacher Portal</p>
       </div>
       <nav className="flex flex-1 flex-col gap-1">
         <Link href="/teacher/dashboard" onClick={onNavigate} className={activeItem === 'dashboard' ? activeClass : inactiveClass}>

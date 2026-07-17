@@ -38,7 +38,6 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
             <LogoMark className="h-8 w-8 rounded-lg" />
             <h2 className="text-label-md font-bold text-primary">SafeReach</h2>
           </div>
-          <p className="text-label-sm text-on-surface-variant pl-10">Super Admin</p>
         </div>
         <nav className="flex-1 space-y-1">
             <Link href="/admin/dashboard" onClick={onNavigate} className={activeItem === 'analytics' ? activeClass : inactiveClass}>
@@ -87,7 +86,6 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
     <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)]'} flex-col w-64 bg-surface border-r border-outline-variant/60 p-3 overflow-y-auto z-50`}>
       <div className="mb-6">
         <h2 className="text-label-md font-bold text-primary px-2 mb-1">Admin Panel</h2>
-        <p className="text-label-sm text-on-surface-variant px-2">Super Admin Access</p>
       </div>
       <nav className="flex-1 space-y-1">
         <Link href="/admin/dashboard" onClick={onNavigate} className={activeItem === 'analytics' ? activeClass : inactiveClass}>

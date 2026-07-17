@@ -23,7 +23,6 @@ export default function ParentSidebar({ activeItem, className = 'hidden md:flex'
           <LogoMark className="h-8 w-8 rounded-md" />
           <h1 className="font-headline-md text-headline-md font-extrabold text-on-surface leading-tight">SafeReach</h1>
         </div>
-        <p className="pl-10 font-label-sm text-label-sm text-on-surface-variant">Parent Portal</p>
       </div>
       <nav className="flex-1 space-y-1">
         <Link href="/parent/dashboard" onClick={onNavigate} className={activeItem === 'dashboard' ? activeClass : inactiveClass}>

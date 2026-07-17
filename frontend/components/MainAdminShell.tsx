@@ -31,7 +31,6 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
           <p className="font-headline-md font-extrabold text-on-surface leading-tight">SafeReach</p>
         </div>
         </div>
-        <p className="pl-10 text-label-sm text-on-surface-variant">Main Admin</p>
       </div>
       <nav className="space-y-1">
         {navItems.map(item => (

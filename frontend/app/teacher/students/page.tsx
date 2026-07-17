@@ -355,7 +355,7 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
             <thead className="bg-surface-container-low sticky top-0">
               <tr>
                 {['Student Name', 'Student ID', 'Actions'].map(header => (
-                  <th key={header} className="p-4 font-label-md text-label-sm text-on-surface-variant uppercase tracking-wider">{header}</th>
+                  <th key={header} className={`p-4 font-label-md text-label-sm text-on-surface-variant uppercase tracking-wider ${header === 'Actions' ? 'text-right' : ''}`}>{header}</th>
                 ))}
               </tr>
             </thead>
@@ -372,8 +372,8 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
                     </div>
                   </td>
                   <td className="p-4 text-on-surface-variant font-label-md">{student.id}</td>
-                  <td className="p-4">
-                    <div className="flex justify-start md:justify-end gap-2">
+                  <td className="p-4 text-right">
+                    <div className="flex justify-end gap-2">
                       <Link href={`/teacher/students/edit?id=${encodeURIComponent(student.id)}`} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/15">
                         <span className="material-symbols-outlined text-[18px]">edit</span>
                         Edit

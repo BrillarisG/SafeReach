@@ -4,12 +4,16 @@ from datetime import date
 import json
 
 from psycopg.rows import dict_row
+from flask import current_app
 
 from ..db import db1_conn
 from ..security import create_token, verify_password
 from .audit_service import write_audit
+from .cache_service import delete as cache_delete, get_json as cache_get_json, set_json as cache_set_json
 from .db3_service import write_event
 from .sms_service import send_parent_sms
+
+BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v1"
 
 
 def login(email: str, password: str) -> dict:
@@ -171,6 +175,20 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
     }
 
 
+def bootstrap_cached(role: str | None = None, school_id: str | None = None) -> tuple[dict, str]:
+    # The current bootstrap response is school-wide. When role filtering is added,
+    # role and school ID must become part of the cache key.
+    if role is None and school_id is None:
+        cached = cache_get_json(BOOTSTRAP_CACHE_KEY)
+        if isinstance(cached, dict):
+            return cached, "HIT"
+
+    payload = bootstrap(role, school_id)
+    if role is None and school_id is None:
+        cache_set_json(BOOTSTRAP_CACHE_KEY, payload, current_app.config["BOOTSTRAP_CACHE_SECONDS"])
+    return payload, "MISS"
+
+
 def mark_ready_to_school(student_id: str, actor_user_id: str | None) -> dict:
     return _update_travel_status(student_id, "to_school", "ready_to_school", actor_user_id, sms=False)
 
@@ -197,6 +215,7 @@ def submit_attendance(student_id: str, status: str, actor_user_id: str | None) -
                 (date.today(), status, actor_user_id, status in {"present", "absent"}, student_id),
             )
         conn.commit()
+    _invalidate_bootstrap_cache()
     return payload
 
 
@@ -215,6 +234,7 @@ def submit_go_out(student_id: str, actor_user_id: str | None) -> dict:
                 (date.today(), actor_user_id, student_id),
             )
         conn.commit()
+    _invalidate_bootstrap_cache()
     return payload
 
 
@@ -237,6 +257,7 @@ def move_timetable_break(section_id: str, break_key: str, after_period: int, act
     payload = _serialize(dict(row))
     write_event("timetable_events", payload)
     write_audit("timetable.break_moved", "timetable_break", break_key, payload, actor_user_id, payload.get("school_id"))
+    _invalidate_bootstrap_cache()
     return payload
 
 
@@ -265,6 +286,8 @@ def _update_travel_status(student_id: str, status: str, event: str, actor_user_i
             )
             student = cur.fetchone()
         conn.commit()
+
+    _invalidate_bootstrap_cache()
 
     payload = _serialize({**dict(row), **dict(student), "event": event})
     write_event("student_status", payload)
@@ -298,6 +321,10 @@ def _record_sms(payload: dict, body: str, sms_result: dict) -> None:
             )
         conn.commit()
     write_event("sms_events", {**payload, "body": body, "sms": sms_result})
+
+
+def _invalidate_bootstrap_cache() -> None:
+    cache_delete(BOOTSTRAP_CACHE_KEY)
 
 
 def _build_timetable(periods: list[dict], breaks: list[dict]) -> dict:

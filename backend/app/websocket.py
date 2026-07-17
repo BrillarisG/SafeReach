@@ -34,7 +34,8 @@ def register_socket_handlers(socketio):
     @socketio.on("data.bootstrap")
     def on_bootstrap(payload=None):
         try:
-            emit("data.bootstrap.success", safereach_service.bootstrap())
+            result, _ = safereach_service.bootstrap_cached()
+            emit("data.bootstrap.success", result)
         except Exception as exc:
             emit("data.bootstrap.error", {"message": str(exc)})
 

@@ -46,6 +46,7 @@ class Config:
     REDIS_URL = os.getenv("REDIS_URL", "")
     UPSTASH_REDIS_REST_URL = os.getenv("UPSTASH_REDIS_REST_URL", "")
     UPSTASH_REDIS_REST_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
+    BOOTSTRAP_CACHE_SECONDS = max(15, int(os.getenv("BOOTSTRAP_CACHE_SECONDS", "60")))
 
     GOOGLE_SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE", "")
     GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID", "")

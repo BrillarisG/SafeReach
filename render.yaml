@@ -38,6 +38,8 @@ services:
         sync: false
       - key: UPSTASH_REDIS_REST_TOKEN
         sync: false
+      - key: BOOTSTRAP_CACHE_SECONDS
+        value: "60"
       - key: GOOGLE_SERVICE_ACCOUNT_FILE
         sync: false
       - key: GOOGLE_SHEET_ID

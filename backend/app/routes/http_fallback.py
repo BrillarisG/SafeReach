@@ -8,7 +8,13 @@ api_bp = Blueprint("api", __name__)
 @api_bp.get("/bootstrap")
 def bootstrap():
     try:
-        return jsonify(safereach_service.bootstrap())
+        payload, cache_state = safereach_service.bootstrap_cached()
+        response = jsonify(payload)
+        # The response contains student data, so cache only in the server-side
+        # Redis layer and never in a shared browser or CDN cache.
+        response.headers["Cache-Control"] = "private, no-store"
+        response.headers["X-SafeReach-Cache"] = cache_state
+        return response
     except Exception as exc:
         return _api_error("bootstrap_failed", exc, 503)
 

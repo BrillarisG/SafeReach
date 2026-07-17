@@ -52,6 +52,34 @@ function updatedAtTime(value: string) {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
+function morningRisk(student: ReturnType<typeof useStudentTravelState>['classStudents'][number]) {
+  if (student.status === 'absent') return 'overdue';
+  if (student.status === 'to_school') {
+    const updatedTime = updatedAtTime(student.updatedAt);
+    return updatedTime && Date.now() - updatedTime > TWO_HOURS_MS ? 'overdue' : 'traveling';
+  }
+  if (student.status === 'reached_school' || student.status === 'present') return 'reached';
+  if (student.status === 'going_home' || student.status === 'reached_home') return 'leave';
+  return 'normal';
+}
+
+function morningRiskRank(student: ReturnType<typeof useStudentTravelState>['classStudents'][number]) {
+  const risk = morningRisk(student);
+  if (risk === 'overdue') return 0;
+  if (risk === 'traveling') return 1;
+  if (risk === 'reached') return 2;
+  if (risk === 'leave') return 3;
+  return 4;
+}
+
+function morningRowClass(student: ReturnType<typeof useStudentTravelState>['classStudents'][number]) {
+  const risk = morningRisk(student);
+  if (risk === 'overdue') return 'bg-red-50 border-l-4 border-error';
+  if (risk === 'traveling') return 'bg-yellow-50 border-l-4 border-yellow-400';
+  if (risk === 'reached') return 'bg-green-50 border-l-4 border-green-500';
+  return 'bg-white';
+}
+
 function goOutRisk(student: ReturnType<typeof useStudentTravelState>['classStudents'][number]) {
   if (student.status === 'reached_home') return 'reached';
   if (student.status === 'going_home') {
@@ -123,14 +151,19 @@ export default function TeacherAttendancePage() {
     ].some(item => item.toLowerCase().includes(value));
   };
 
-  const filteredAttendanceStudents = classStudents.filter(student => matchesSearch(student, attendanceSearch));
+  const filteredAttendanceStudents = classStudents
+    .filter(student => matchesSearch(student, attendanceSearch))
+    .slice()
+    .sort((a, b) => {
+      const riskDiff = morningRiskRank(a) - morningRiskRank(b);
+      return riskDiff !== 0 ? riskDiff : a.name.localeCompare(b.name);
+    });
   const filteredLeaveStudents = classStudents
-    .filter(student => matchesSearch(student, leaveSearch))
+    .filter(student => student.status !== 'absent' && student.attendance !== 'absent' && matchesSearch(student, leaveSearch))
     .slice()
     .sort((a, b) => {
       const riskDiff = goOutRiskRank(a) - goOutRiskRank(b);
-      if (riskDiff !== 0) return riskDiff;
-      return updatedAtTime(b.updatedAt) - updatedAtTime(a.updatedAt);
+      return riskDiff !== 0 ? riskDiff : a.name.localeCompare(b.name);
     });
   const filteredSmsLogs = smsLogs.filter(log => {
     const value = smsSearch.trim().toLowerCase();
@@ -214,14 +247,6 @@ export default function TeacherAttendancePage() {
     setSaved(true);
   }
 
-  function rowStatusClass(student: typeof classStudents[number], index: number) {
-    if (student.status === 'going_home') return 'bg-yellow-50 border-l-4 border-yellow-400';
-    if (student.status === 'to_school') return 'bg-blue-50 border-l-4 border-blue-400';
-    if (student.status === 'absent') return 'bg-red-50 border-l-4 border-error';
-    if (student.status === 'reached_home' || student.status === 'present' || student.status === 'reached_school') return index % 2 !== 0 ? 'bg-surface-container/10' : '';
-    return index % 2 !== 0 ? 'bg-surface-container/10' : '';
-  }
-
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop">
       <div className="grid grid-cols-2 gap-3 mb-stack-lg">
@@ -284,13 +309,6 @@ export default function TeacherAttendancePage() {
             <h2 className="font-headline-md text-headline-md text-primary">Morning Attendance and Travel Status</h2>
             <p className="text-label-md text-on-surface-variant">Primary and assistant incharge can submit attendance. Present/Absent lock until the next 8:00 AM reset; Late can still become Present or Absent.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            {saved && <span className="flex items-center gap-1 text-green-600 text-label-md"><span className="material-symbols-outlined text-[18px]">check_circle</span>Attendance submitted.</span>}
-            <button onClick={submitAttendance} className="flex items-center gap-1.5 bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md hover:bg-primary-container transition-colors shadow-sm">
-              <span className="material-symbols-outlined text-[18px]">save</span>
-              Submit
-            </button>
-          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] md:min-w-[900px] text-left">
@@ -298,8 +316,8 @@ export default function TeacherAttendancePage() {
               <tr>{['Roll', 'Student', 'Attendance', 'Travel Status'].map(head => <th key={head} className="px-4 py-3 font-bold">{head}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/30">
-              {filteredAttendanceStudents.map((student, idx) => (
-                <tr key={student.id} className={rowStatusClass(student, idx)}>
+              {filteredAttendanceStudents.map(student => (
+                <tr key={student.id} className={morningRowClass(student)}>
                   <td className="px-4 py-3 text-label-sm text-on-surface-variant">{student.roll}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -351,6 +369,10 @@ export default function TeacherAttendancePage() {
             </tbody>
           </table>
         </div>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-outline-variant/30 p-stack-md">
+          {saved && <span className="flex items-center gap-1 text-green-600 text-label-md"><span className="material-symbols-outlined text-[18px]">check_circle</span>Attendance submitted.</span>}
+          <button onClick={submitAttendance} className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 font-label-md text-on-primary shadow-sm transition-colors hover:bg-primary-container"><span className="material-symbols-outlined text-[18px]">save</span>Submit</button>
+        </div>
       </section>
       </>
       )}
@@ -401,7 +423,7 @@ export default function TeacherAttendancePage() {
                       <input
                         type="checkbox"
                         checked={leaveIds.includes(student.id)}
-                        disabled={leaveSubmittedIds.includes(student.id)}
+                        disabled={leaveSubmittedIds.includes(student.id) || student.status === 'going_home' || student.status === 'reached_home'}
                         onChange={event => toggleLeave(student.id, event.target.checked)}
                         className="w-5 h-5 rounded text-primary disabled:opacity-40"
                         aria-label={`Select ${student.name} for out of school attendance`}

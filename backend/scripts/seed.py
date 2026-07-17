@@ -1,6 +1,7 @@
-from pathlib import Path
+from __future__ import annotations
+
 import os
-import sys
+from pathlib import Path
 
 import psycopg
 from dotenv import load_dotenv
@@ -21,13 +22,13 @@ PERMISSIONS = [
     ("app.teacher.student.edit_assigned", "Edit assigned class students"),
     ("app.teacher.attendance.submit", "Submit attendance"),
     ("app.teacher.go_out.submit", "Submit go-out attendance"),
-    ("app.parent.child.ready_to_school", "Mark child ready/tracking to school"),
+    ("app.parent.child.ready_to_school", "Mark child ready for school"),
     ("app.parent.child.reached_home", "Confirm child reached home"),
     ("app.timetable.edit", "Edit timetable subjects and break timing"),
     ("app.notification.read", "Read allowed notifications"),
 ]
 
-ROLE_PERMISSION_KEYS = {
+ROLE_KEYS = {
     "main_admin": [key for key, _ in PERMISSIONS],
     "school_admin": [key for key, _ in PERMISSIONS if key.startswith("app.admin") or key.startswith("app.timetable") or key == "app.notification.read"],
     "teacher": ["app.teacher.student.edit_assigned", "app.teacher.attendance.submit", "app.teacher.go_out.submit", "app.timetable.edit", "app.notification.read"],
@@ -35,253 +36,212 @@ ROLE_PERMISSION_KEYS = {
     "parent": ["app.parent.child.ready_to_school", "app.parent.child.reached_home", "app.notification.read"],
 }
 
+CLASS_DATA = [
+    (4, "A", "Sarah Jenkins", "James Anderson"),
+    (5, "A", "Elena Roy", "David Kumar"),
+    (6, "A", "Priya Nair", "Ravi Menon"),
+    (7, "A", "Anika Sharma", "Kiran Patel"),
+    (8, "A", "Meera Iyer", "Arjun Singh"),
+]
+SUBJECTS = ["English", "Mathematics", "Science", "Social Studies", "Computer"]
+DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+PARENT_NAMES = [
+    "Sarah Thompson", "Nisha Sharma", "Ravi Patel", "Meena Gupta", "Arun Kumar", "Kavya Iyer",
+    "Sanjay Rao", "Lakshmi Nair", "Vikram Singh", "Divya Menon", "Rahul Verma", "Pooja Das",
+    "Manoj Shah", "Anita Joshi", "Deepak Kapoor", "Renu Bhat", "Suresh Reddy", "Asha Pillai",
+    "Naveen George", "Swathi Krishnan", "Harish Mehta", "Neha Malhotra", "Girish Jain", "Rekha Sethi",
+    "Sunil Shetty", "Maya Chandra", "Rajesh Prasad", "Shilpa Bose", "Karthik Rao", "Anjali Thomas",
+]
+FIRST_NAMES = [
+    "Leo", "Maya", "Aarav", "Ananya", "Vihaan", "Diya", "Arjun", "Isha", "Kabir", "Riya",
+    "Aditya", "Meera", "Rohan", "Kavya", "Ishaan", "Nila", "Arnav", "Saanvi", "Vivaan", "Tara",
+]
+LAST_NAMES = ["Thompson", "Sharma", "Patel", "Gupta", "Kumar", "Iyer", "Rao", "Nair", "Singh", "Menon"]
 
-def db_url(name: str) -> str:
+
+def database_url(name: str) -> str:
     value = os.getenv(name, "")
     if not value:
         raise SystemExit(f"{name} is not configured")
-    if "sslmode=" not in value:
-        value += ("&" if "?" in value else "?") + "sslmode=require"
-    return value
+    return value if "sslmode=" in value else value + ("&" if "?" in value else "?") + "sslmode=require"
 
 
-def scalar(cur, sql: str, params: tuple):
+def one(cur, sql: str, params: tuple):
     cur.execute(sql, params)
     return cur.fetchone()[0]
 
 
+def ensure_user(cur, school_id, role_id, full_name: str, email: str, password: str, phone: str):
+    return one(cur, """
+        insert into users(school_id, role_id, full_name, email, phone, password_hash, terms_accepted_at)
+        values(%s,%s,%s,%s,%s,%s,now())
+        on conflict(email) do update set school_id=excluded.school_id, role_id=excluded.role_id,
+          full_name=excluded.full_name, phone=excluded.phone, password_hash=excluded.password_hash, updated_at=now()
+        returning id
+    """, (school_id, role_id, full_name, email, phone, generate_password_hash(password, method="scrypt")))
+
+
+def ensure_teacher(cur, school_id, user_id, employee_code: str, subject: str):
+    cur.execute("select id from teachers where user_id=%s", (user_id,))
+    row = cur.fetchone()
+    if row:
+        cur.execute("update teachers set employee_code=%s, subject=%s, qualification=%s, status='available', updated_at=now() where id=%s", (employee_code, subject, "B.Ed / SafeReach Faculty", row[0]))
+        return row[0]
+    return one(cur, """
+        insert into teachers(school_id, user_id, employee_code, subject, qualification, status)
+        values(%s,%s,%s,%s,%s,'available') returning id
+    """, (school_id, user_id, employee_code, subject, "B.Ed / SafeReach Faculty"))
+
+
+def ensure_assignment(cur, school_id, teacher_id, class_id, section_id, assignment_type: str, subject: str | None):
+    cur.execute("""
+        select id from teacher_assignments
+        where school_id=%s and teacher_id=%s and class_id=%s and section_id=%s and assignment_type=%s
+          and coalesce(subject, '')=coalesce(%s, '')
+        limit 1
+    """, (school_id, teacher_id, class_id, section_id, assignment_type, subject))
+    if cur.fetchone() is None:
+        cur.execute("""
+            insert into teacher_assignments(school_id, teacher_id, class_id, section_id, assignment_type, subject)
+            values(%s,%s,%s,%s,%s,%s)
+        """, (school_id, teacher_id, class_id, section_id, assignment_type, subject))
+
+
 def main() -> None:
-    admin_password = os.getenv("SEED_ADMIN_PASSWORD", "SafeReach@2026")
-    teacher_password = os.getenv("SEED_TEACHER_PASSWORD", "Teacher@2026")
-    parent_password = os.getenv("SEED_PARENT_PASSWORD", "Parent@2026")
-    test_phone = os.getenv("TWILIO_TEST_TO_PHONE", "+910000000000")
+    main_password = os.getenv("SEED_MAIN_ADMIN_PASSWORD")
+    admin_password = os.getenv("SEED_ADMIN_PASSWORD")
+    teacher_password = os.getenv("SEED_TEACHER_PASSWORD")
+    parent_password = os.getenv("SEED_PARENT_PASSWORD")
+    if not all([main_password, admin_password, teacher_password, parent_password]):
+        raise SystemExit("Set SEED_MAIN_ADMIN_PASSWORD, SEED_ADMIN_PASSWORD, SEED_TEACHER_PASSWORD, and SEED_PARENT_PASSWORD before seeding")
+    phone = os.getenv("TWILIO_TEST_TO_PHONE", "+910000000000")
 
-    with psycopg.connect(db_url("DB1_URL")) as conn:
+    with psycopg.connect(database_url("DB1_URL")) as conn:
         with conn.cursor() as cur:
-            for role_key, name in [
-                ("main_admin", "Main Admin"),
-                ("school_admin", "School Admin"),
-                ("teacher", "Teacher"),
-                ("assistant_incharge", "Assistant Incharge"),
-                ("parent", "Parent"),
-            ]:
-                cur.execute(
-                    "insert into roles(role_key, name, description) values(%s,%s,%s) on conflict(role_key) do update set name=excluded.name returning id",
-                    (role_key, name, f"SafeReach {name} role"),
-                )
-
+            role_ids = {}
+            for key, name in [("main_admin", "Main Admin"), ("school_admin", "School Administrator"), ("teacher", "Class Incharge"), ("assistant_incharge", "Assistant Incharge"), ("parent", "Parent / Guardian")]:
+                role_ids[key] = one(cur, """
+                    insert into roles(role_key, name, description) values(%s,%s,%s)
+                    on conflict(role_key) do update set name=excluded.name, description=excluded.description returning id
+                """, (key, name, f"SafeReach {name} access"))
             for key, description in PERMISSIONS:
-                cur.execute(
-                    "insert into permissions(permission_key, description) values(%s,%s) on conflict(permission_key) do update set description=excluded.description",
-                    (key, description),
-                )
+                cur.execute("insert into permissions(permission_key, description) values(%s,%s) on conflict(permission_key) do update set description=excluded.description", (key, description))
+            for role_key, permission_keys in ROLE_KEYS.items():
+                for permission_key in permission_keys:
+                    permission_id = one(cur, "select id from permissions where permission_key=%s", (permission_key,))
+                    cur.execute("insert into role_permissions(role_id, permission_id) values(%s,%s) on conflict do nothing", (role_ids[role_key], permission_id))
 
-            for role_key, keys in ROLE_PERMISSION_KEYS.items():
-                role_id = scalar(cur, "select id from roles where role_key=%s", (role_key,))
-                for key in keys:
-                    permission_id = scalar(cur, "select id from permissions where permission_key=%s", (key,))
-                    cur.execute(
-                        "insert into role_permissions(role_id, permission_id) values(%s,%s) on conflict do nothing",
-                        (role_id, permission_id),
-                    )
-
-            school_id = scalar(
-                cur,
-                """
+            school_id = one(cur, """
                 insert into schools(name, code, address, city, state, phone, email)
                 values(%s,%s,%s,%s,%s,%s,%s)
-                on conflict(code) do update set name=excluded.name, updated_at=now()
-                returning id
-                """,
-                ("SafeReach Demo Matric School", "SAFE-DEMO", "Demo Campus Road", "Chennai", "Tamil Nadu", test_phone, "admin@safereach.school"),
-            )
+                on conflict(code) do update set name=excluded.name, address=excluded.address, city=excluded.city,
+                  state=excluded.state, phone=excluded.phone, email=excluded.email, updated_at=now() returning id
+            """, ("SafeReach Academy", "SAFE-ACADEMY-01", "12 Knowledge Park", "Chennai", "Tamil Nadu", phone, "admin@safereach.school"))
 
-            def role_id(role_key: str):
-                return scalar(cur, "select id from roles where role_key=%s", (role_key,))
+            ensure_user(cur, None, role_ids["main_admin"], "SafeReach Platform Owner", "main@safereach.local", main_password, phone)
+            school_admin_id = ensure_user(cur, school_id, role_ids["school_admin"], "Priya Raman", "admin@safereach.school", admin_password, phone)
 
-            users = [
-                ("main@safereach.local", "SafeReach Main Admin", "main_admin", admin_password, None),
-                ("admin@safereach.school", "School Admin Priya", "school_admin", admin_password, school_id),
-                ("teacher@safereach.school", "Mr. James Anderson", "teacher", teacher_password, school_id),
-                ("assistant@safereach.school", "Ms. Elena Roy", "assistant_incharge", teacher_password, school_id),
-                ("parent@safereach.school", "Sarah Thompson", "parent", parent_password, school_id),
-            ]
-            user_ids = {}
-            for email, full_name, role_key, password, user_school_id in users:
-                user_ids[email] = scalar(
-                    cur,
-                    """
-                    insert into users(school_id, role_id, full_name, email, phone, password_hash, terms_accepted_at)
-                    values(%s,%s,%s,%s,%s,%s,now())
-                    on conflict(email) do update set full_name=excluded.full_name, role_id=excluded.role_id, updated_at=now()
-                    returning id
-                    """,
-                    (user_school_id, role_id(role_key), full_name, email, test_phone, generate_password_hash(password, method="scrypt")),
-                )
+            teacher_ids = {}
+            for index, (_, _, primary_name, assistant_name) in enumerate(CLASS_DATA, start=1):
+                for is_assistant, name in [(False, primary_name), (True, assistant_name)]:
+                    email = f"{name.lower().replace(' ', '.')}@safereach.school"
+                    role_key = "assistant_incharge" if is_assistant else "teacher"
+                    user_id = ensure_user(cur, school_id, role_ids[role_key], name, email, teacher_password, phone)
+                    teacher_ids[name] = ensure_teacher(cur, school_id, user_id, f"T-{index:02d}{'A' if is_assistant else 'P'}", SUBJECTS[(index + (1 if is_assistant else 0)) % len(SUBJECTS)])
 
-            class_id = scalar(
-                cur,
-                "insert into classes(school_id, name, sort_order) values(%s,%s,%s) on conflict(school_id,name) do update set sort_order=excluded.sort_order returning id",
-                (school_id, "Class 4", 4),
-            )
-            section_id = scalar(
-                cur,
-                "insert into sections(school_id, class_id, name, room) values(%s,%s,%s,%s) on conflict(class_id,name) do update set room=excluded.room returning id",
-                (school_id, class_id, "B", "Room 4B"),
-            )
-
-            def upsert_teacher(email: str, employee_code: str, subject: str, qualification: str):
-                cur.execute("select id from teachers where user_id=%s", (user_ids[email],))
+            parent_ids = {}
+            for index, name in enumerate(PARENT_NAMES, start=1):
+                email = f"parent{index:02d}@safereach.school"
+                user_id = ensure_user(cur, school_id, role_ids["parent"], name, email, parent_password, phone)
+                cur.execute("select id from parents where user_id=%s", (user_id,))
                 row = cur.fetchone()
                 if row:
-                    cur.execute(
-                        "update teachers set employee_code=%s, subject=%s, qualification=%s, status='available', updated_at=now() where id=%s returning id",
-                        (employee_code, subject, qualification, row[0]),
-                    )
-                    return cur.fetchone()[0]
-                return scalar(
-                    cur,
-                    "insert into teachers(school_id, user_id, employee_code, subject, qualification, status) values(%s,%s,%s,%s,%s,%s) returning id",
-                    (school_id, user_ids[email], employee_code, subject, qualification, "available"),
-                )
+                    parent_ids[index] = row[0]
+                    cur.execute("update parents set guardian_name=%s, phone=%s, sms_enabled=true, updated_at=now() where id=%s", (name, phone, row[0]))
+                else:
+                    parent_ids[index] = one(cur, "insert into parents(school_id, user_id, guardian_name, phone, sms_enabled) values(%s,%s,%s,%s,true) returning id", (school_id, user_id, name, phone))
 
-            teacher_id = upsert_teacher("teacher@safereach.school", "EMP-10024", "Mathematics", "M.Sc Mathematics")
-            assistant_id = upsert_teacher("assistant@safereach.school", "EMP-10025", "Science", "B.Ed Science")
-            cur.execute("insert into teacher_assignments(school_id, teacher_id, class_id, section_id, assignment_type, subject) values(%s,%s,%s,%s,%s,%s) on conflict do nothing", (school_id, teacher_id, class_id, section_id, "primary_incharge", "Mathematics"))
-            cur.execute("insert into teacher_assignments(school_id, teacher_id, class_id, section_id, assignment_type, subject) values(%s,%s,%s,%s,%s,%s) on conflict do nothing", (school_id, assistant_id, class_id, section_id, "assistant_incharge", "Science"))
+            student_number = 1
+            for grade, section_name, primary_name, assistant_name in CLASS_DATA:
+                class_id = one(cur, """
+                    insert into classes(school_id, name, sort_order) values(%s,%s,%s)
+                    on conflict(school_id,name) do update set sort_order=excluded.sort_order returning id
+                """, (school_id, f"Class {grade}", grade))
+                section_id = one(cur, """
+                    insert into sections(school_id, class_id, name, room) values(%s,%s,%s,%s)
+                    on conflict(class_id,name) do update set room=excluded.room returning id
+                """, (school_id, class_id, section_name, f"Room {grade}{section_name}"))
+                primary_id, assistant_id = teacher_ids[primary_name], teacher_ids[assistant_name]
+                ensure_assignment(cur, school_id, primary_id, class_id, section_id, "primary_incharge", SUBJECTS[0])
+                ensure_assignment(cur, school_id, assistant_id, class_id, section_id, "assistant_incharge", SUBJECTS[1])
+                for subject_index, subject in enumerate(SUBJECTS):
+                    ensure_assignment(cur, school_id, primary_id if subject_index % 2 == 0 else assistant_id, class_id, section_id, "subject_teacher", subject)
 
-            cur.execute("select id from parents where user_id=%s", (user_ids["parent@safereach.school"],))
-            parent_row = cur.fetchone()
-            if parent_row:
-                parent_id = parent_row[0]
-                cur.execute("update parents set guardian_name=%s, phone=%s, sms_enabled=true, updated_at=now() where id=%s", ("Sarah Thompson", test_phone, parent_id))
-            else:
-                parent_id = scalar(
-                    cur,
-                    "insert into parents(school_id, user_id, guardian_name, phone, sms_enabled) values(%s,%s,%s,%s,true) returning id",
-                    (school_id, user_ids["parent@safereach.school"], "Sarah Thompson", test_phone),
-                )
+                for day_index, day in enumerate(DAYS):
+                    for period_no in range(1, 9):
+                        subject = SUBJECTS[(day_index + period_no - 1) % len(SUBJECTS)]
+                        cur.execute("""
+                            insert into timetable_periods(school_id, class_id, section_id, day_name, period_no, subject)
+                            values(%s,%s,%s,%s,%s,%s)
+                            on conflict(section_id, day_name, period_no) do update set subject=excluded.subject, updated_at=now()
+                        """, (school_id, class_id, section_id, day, period_no, subject))
+                for break_key, label, after_period, tone in [("interval1", "Interval-1", 2, "interval"), ("lunch", "Lunch", 4, "lunch"), ("interval2", "Interval-2", 6, "interval")]:
+                    cur.execute("""
+                        insert into timetable_breaks(school_id, class_id, section_id, break_key, label, after_period, tone)
+                        values(%s,%s,%s,%s,%s,%s,%s)
+                        on conflict(section_id, break_key) do update set label=excluded.label, after_period=excluded.after_period, tone=excluded.tone, updated_at=now()
+                    """, (school_id, class_id, section_id, break_key, label, after_period, tone))
 
-            students = [
-                ("STU-2026-001", "Leo Thompson", "01"),
-                ("STU-2026-002", "Maya Thompson", "02"),
-                ("STU-2026-003", "Aarav Sharma", "03"),
-                ("STU-2026-004", "Ananya Patel", "04"),
-                ("STU-2026-005", "Priya Nair", "05"),
-                ("STU-2026-006", "Rohan Gupta", "06"),
-            ]
-            for code, name, roll in students:
-                student_id = scalar(
-                    cur,
-                    """
-                    insert into students(school_id, class_id, section_id, parent_id, student_code, full_name, roll_no, emergency_notes)
-                    values(%s,%s,%s,%s,%s,%s,%s,%s)
-                    on conflict(student_code) do update set full_name=excluded.full_name, updated_at=now()
-                    returning id
-                    """,
-                    (school_id, class_id, section_id, parent_id, code, name, roll, "No critical notes"),
-                )
-                cur.execute(
-                    """
-                    insert into student_travel_status(student_id, school_id, status, attendance_status, last_event)
-                    values(%s,%s,'at_home','pending','seeded')
-                    on conflict(student_id) do update set status=excluded.status, attendance_status=excluded.attendance_status, last_event_at=now()
-                    """,
-                    (student_id, school_id),
-                )
-                cur.execute(
-                    """
-                    insert into attendance_records(school_id, student_id, class_id, section_id, attendance_date, session, status, marked_by, locked)
-                    values(%s,%s,%s,%s,current_date,'morning','present',%s,true)
-                    on conflict(student_id, attendance_date, session)
-                    do update set status=excluded.status, marked_by=excluded.marked_by, locked=true, updated_at=now()
-                    """,
-                    (school_id, student_id, class_id, section_id, user_ids["teacher@safereach.school"]),
-                )
+                for roll_no in range(1, 21):
+                    if student_number == 1:
+                        full_name, parent_index = "Leo Thompson", 1
+                    elif student_number == 2:
+                        full_name, parent_index = "Maya Thompson", 1
+                    else:
+                        full_name = f"{FIRST_NAMES[(student_number - 1) % len(FIRST_NAMES)]} {LAST_NAMES[(student_number - 1) % len(LAST_NAMES)]}"
+                        parent_index = ((student_number - 3) % 29) + 2
+                    student_code = f"SAFE-{grade}{section_name}-{roll_no:02d}"
+                    student_id = one(cur, """
+                        insert into students(school_id, class_id, section_id, parent_id, student_code, full_name, roll_no, emergency_notes)
+                        values(%s,%s,%s,%s,%s,%s,%s,%s)
+                        on conflict(student_code) do update set class_id=excluded.class_id, section_id=excluded.section_id,
+                          parent_id=excluded.parent_id, full_name=excluded.full_name, roll_no=excluded.roll_no, updated_at=now()
+                        returning id
+                    """, (school_id, class_id, section_id, parent_ids[parent_index], student_code, full_name, str(roll_no), "No critical notes"))
+                    cur.execute("""
+                        insert into student_travel_status(student_id, school_id, status, attendance_status, last_event)
+                        values(%s,%s,'at_home','pending','seeded_school_dataset')
+                        on conflict(student_id) do update set status='at_home', attendance_status='pending', last_event='seeded_school_dataset', last_event_at=now()
+                    """, (student_id, school_id))
+                    attendance_status = "absent" if roll_no == 20 else "late" if roll_no == 19 else "present"
+                    cur.execute("""
+                        insert into attendance_records(school_id, student_id, class_id, section_id, attendance_date, session, status, reason, marked_by, locked)
+                        values(%s,%s,%s,%s,current_date - 1,'morning',%s,%s,%s,true)
+                        on conflict(student_id, attendance_date, session) do update set status=excluded.status,
+                          reason=excluded.reason, marked_by=excluded.marked_by, locked=true, updated_at=now()
+                    """, (
+                        school_id, student_id, class_id, section_id, attendance_status,
+                        "Seeded attendance history" if attendance_status != "present" else None, school_admin_id,
+                    ))
+                    student_number += 1
 
-            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-            subjects = [
-                ["English", "Maths", "Science", "Social", "Computer", "Tamil", "Activity", "Library"],
-                ["Maths", "Science", "English", "Tamil", "Social", "Computer", "Sports", "Art"],
-                ["Science", "English", "Maths", "Computer", "Tamil", "Social", "Library", "Activity"],
-                ["Tamil", "Maths", "Science", "English", "Computer", "Social", "Art", "Sports"],
-                ["Social", "English", "Computer", "Maths", "Science", "Tamil", "Activity", "Library"],
-                ["Revision", "Maths Lab", "Science Lab", "English", "Club", "Sports", "Art", "Library"],
-            ]
-            for day, row in zip(days, subjects):
-                for period_no, subject in enumerate(row, start=1):
-                    cur.execute(
-                        """
-                        insert into timetable_periods(school_id, class_id, section_id, day_name, period_no, subject)
-                        values(%s,%s,%s,%s,%s,%s)
-                        on conflict(section_id, day_name, period_no) do update set subject=excluded.subject, updated_at=now()
-                        """,
-                        (school_id, class_id, section_id, day, period_no, subject),
-                    )
-
-            for break_key, label, after_period, tone in [
-                ("interval1", "Interval-1", 2, "interval"),
-                ("lunch", "Lunch", 4, "lunch"),
-                ("interval2", "Interval-2", 6, "interval"),
-            ]:
-                cur.execute(
-                    """
-                    insert into timetable_breaks(school_id, class_id, section_id, break_key, label, after_period, tone)
-                    values(%s,%s,%s,%s,%s,%s,%s)
-                    on conflict(section_id, break_key) do update set label=excluded.label, after_period=excluded.after_period, updated_at=now()
-                    """,
-                    (school_id, class_id, section_id, break_key, label, after_period, tone),
-                )
-
-            # Store visible dashboard/report/incident data in DB-1 so frontend pages can avoid unstored demo rows.
-            report_rows = [
-                ("Overall School Safety", None, None, 96, 0, 100, "Stored school-wide safety report generated from seeded SafeReach data."),
-                ("Class 4 Section B Safety", class_id, section_id, 94, 0, 100, "Class 4-B has all seeded students in a safe default state."),
-            ]
-            for title, report_class_id, report_section_id, score, alerts, attendance, text in report_rows:
-                cur.execute(
-                    """
+                cur.execute("""
                     insert into safety_reports(school_id, class_id, section_id, report_title, safety_score, alert_count, attendance_percent, report_text)
-                    values(%s,%s,%s,%s,%s,%s,%s,%s)
-                    on conflict do nothing
-                    """,
-                    (school_id, report_class_id, report_section_id, title, score, alerts, attendance, text),
-                )
+                    select %s,%s,%s,%s,96,0,100,%s
+                    where not exists (select 1 from safety_reports where school_id=%s and report_title=%s)
+                """, (school_id, class_id, section_id, f"Class {grade}{section_name} Safety", f"Stored safety report for Class {grade}-{section_name}.", school_id, f"Class {grade}{section_name} Safety"))
 
-            cur.execute("select id from students where student_code=%s", ("STU-2026-001",))
+            cur.execute("select id from students where student_code='SAFE-4A-01'")
             first_student_id = cur.fetchone()[0]
-            cur.execute(
-                """
+            cur.execute("""
                 insert into incident_logs(school_id, student_id, incident_code, incident_type, level, priority, status, handler_name, detail)
-                values(%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                values(%s,%s,'INC-SAFE-001','Medical Check','Low','Normal','accepted','School Nurse','Seeded low-priority health check.')
                 on conflict(incident_code) do update set status=excluded.status, updated_at=now()
-                """,
-                (school_id, first_student_id, "INC-2026-001", "Medical Check", "Low", "Normal", "accepted", "Nurse Desk", "Stored sample low-level medical check for backend validation."),
-            )
-
-            for test_name, service_name, status, detail in [
-                ("db1_seed", "Supabase DB-1", "passed", "Seeded school, users, students, attendance status, timetable, reports, and incident data."),
-                ("db2_seed_audit", "Supabase DB-2", "passed", "Append-only audit event inserted by seed script when audit flag is used."),
-            ]:
-                cur.execute(
-                    "insert into api_test_results(test_name, service_name, status, detail) values(%s,%s,%s,%s)",
-                    (test_name, service_name, status, detail),
-                )
-
+            """, (school_id, first_student_id))
+            cur.execute("insert into api_test_results(test_name, service_name, status, detail) values(%s,%s,%s,%s)", ("school_dataset_seed", "Supabase DB-1", "passed", "Seeded one school, 42 users, 5 classes, 100 students, permissions, and timetables."))
         conn.commit()
 
-    if "audit" in sys.argv:
-        with psycopg.connect(db_url("DB2_URL")) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    insert into immutable_events(source_db, school_id, event_type, entity_type, entity_id, after_data, metadata)
-                    values('db1', null, 'seed.completed', 'system', 'seed-script', %s::jsonb, %s::jsonb)
-                    """,
-                    ('{"status":"completed"}', '{"script":"backend/scripts/seed.py"}'),
-                )
-            conn.commit()
-    print("Seed data inserted")
+    print("SafeReach school dataset seeded in DB-1")
 
 
 if __name__ == "__main__":

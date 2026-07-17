@@ -148,7 +148,7 @@ def test_flask_api() -> list[tuple[str, bool, str]]:
 
         login = client.post(
             "/api/v1/auth/login",
-            json={"email": "admin@safereach.school", "password": "SafeReach@2026"},
+            json={"email": "admin@safereach.school", "password": os.getenv("SEED_ADMIN_PASSWORD", "")},
         )
         checks.append(result("HTTP /api/v1/auth/login", login.status_code == 200, f"HTTP {login.status_code}"))
     return checks

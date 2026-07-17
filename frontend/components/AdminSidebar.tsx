@@ -15,8 +15,8 @@ interface AdminSidebarProps {
   onNavigate?: () => void;
 }
 
-const activeClass = 'flex items-center gap-3 px-3 py-2 bg-primary-container text-on-primary-container font-bold rounded-lg transition-all';
-const inactiveClass = 'flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all';
+const activeClass = 'flex items-center gap-3 rounded-md bg-surface-container px-3 py-2.5 font-bold text-on-surface transition-colors';
+const inactiveClass = 'flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low';
 
 export default function AdminSidebar({ activeItem, variant = 'analytics', className, onNavigate }: AdminSidebarProps) {
   function exportGlobalData() {
@@ -32,8 +32,8 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
 
   if (variant === 'hub') {
     return (
-      <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen p-stack-md bg-surface-container-low border-r border-outline-variant w-64 z-50">
-        <div className="mb-8 px-2">
+      <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen bg-surface border-r border-outline-variant/60 w-64 z-50 p-3">
+        <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
           <div className="flex items-center gap-2 mb-1">
             <LogoMark className="h-8 w-8 rounded-lg" />
             <h2 className="text-label-md font-bold text-primary">SafeReach</h2>
@@ -72,11 +72,11 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
             Emergency Alert
           </button>
           <div className="pt-4 border-t border-outline-variant space-y-1">
-            <Link href="/admin/account" onClick={onNavigate} className={activeItem === 'audit' ? activeClass : 'flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all'}>
+            <Link href="/admin/account" onClick={onNavigate} className={activeItem === 'audit' ? activeClass : inactiveClass}>
               <span className="material-symbols-outlined text-[20px]">manage_accounts</span>
               <span className="font-label-md text-label-md">Account Settings</span>
             </Link>
-            <LogoutConfirmButton label="Sign Out" className="w-full flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all" />
+            <LogoutConfirmButton label="Sign Out" className="w-full flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low" />
           </div>
         </div>
       </aside>
@@ -84,7 +84,7 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
   }
 
   return (
-    <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)]'} flex-col w-64 bg-surface-container-low border-r border-outline-variant p-stack-md overflow-y-auto z-50`}>
+    <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)]'} flex-col w-64 bg-surface border-r border-outline-variant/60 p-3 overflow-y-auto z-50`}>
       <div className="mb-6">
         <h2 className="text-label-md font-bold text-primary px-2 mb-1">Admin Panel</h2>
         <p className="text-label-sm text-on-surface-variant px-2">Super Admin Access</p>
@@ -128,11 +128,11 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
         Export Global Data
       </button>
       <div className="border-t border-outline-variant pt-4 space-y-1">
-        <Link href="/admin/support" onClick={onNavigate} className="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all">
+        <Link href="/admin/support" onClick={onNavigate} className="flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low">
           <span className="material-symbols-outlined text-[20px]">help</span>
           <span className="text-label-md">Support</span>
         </Link>
-        <LogoutConfirmButton className="w-full flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all" />
+        <LogoutConfirmButton className="w-full flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low" />
       </div>
     </aside>
   );

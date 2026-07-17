@@ -351,11 +351,10 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
           </div>
         </div>
         <div className="student-table-container overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left border-collapse">
+          <table className="w-full min-w-[620px] text-left border-collapse">
             <thead className="bg-surface-container-low sticky top-0">
               <tr>
-                <th className="p-4 w-12"><input className="rounded text-primary focus:ring-primary" type="checkbox" /></th>
-                {['Student Name', 'Student ID', 'Tracking Status', 'Actions'].map(header => (
+                {['Student Name', 'Student ID', 'Actions'].map(header => (
                   <th key={header} className="p-4 font-label-md text-label-sm text-on-surface-variant uppercase tracking-wider">{header}</th>
                 ))}
               </tr>
@@ -363,7 +362,6 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
             <tbody className="divide-y divide-outline-variant">
               {teacherStudents.map(student => (
                 <tr key={student.id} className={`hover:bg-surface-container-lowest transition-colors group ${student.alert ? 'border-l-4 border-l-error' : ''}`}>
-                  <td className="p-4"><input className="rounded text-primary focus:ring-primary" type="checkbox" /></td>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <img alt={student.name} className="w-10 h-10 rounded-full bg-surface-container" src={student.img} />
@@ -374,12 +372,6 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
                     </div>
                   </td>
                   <td className="p-4 text-on-surface-variant font-label-md">{student.id}</td>
-                  <td className="p-4">
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${student.stCls}`}>
-                      <span className="w-2 h-2 rounded-full bg-current"></span>
-                      <span className="text-xs font-bold uppercase tracking-tighter">{student.status}</span>
-                    </div>
-                  </td>
                   <td className="p-4">
                     <div className="flex justify-start md:justify-end gap-2">
                       <Link href={`/teacher/students/edit?id=${encodeURIComponent(student.id)}`} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/15">

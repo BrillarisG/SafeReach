@@ -198,11 +198,11 @@ export default function TimetableManager({ mode, editMode = false }: { mode: 'ad
       {editable && (
         <section className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md">
           <h2 className="font-headline-md text-headline-md text-primary mb-4">Break Labels and Timing</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="max-w-2xl space-y-3">
             {data.breaks.map(item => (
-              <label key={item.id} className="space-y-2">
-                <span className="block text-label-md font-bold text-on-surface-variant">{item.id === 'interval1' ? 'Interval 1' : item.id === 'interval2' ? 'Interval 2' : 'Lunch'}</span>
-                <input value={item.label} onChange={event => updateBreakLabel(item.id, event.target.value)} className="w-full px-4 py-3 rounded-lg bg-surface-container border border-outline-variant" />
+              <label key={item.id} className="flex items-center gap-3">
+                <span className="w-24 shrink-0 text-label-md font-bold text-on-surface-variant">{item.id === 'interval1' ? 'Interval 1' : item.id === 'interval2' ? 'Interval 2' : 'Lunch'}</span>
+                <input value={item.label} onChange={event => updateBreakLabel(item.id, event.target.value)} className="min-w-0 flex-1 max-w-sm rounded-lg border border-outline-variant bg-surface-container px-3 py-2" />
               </label>
             ))}
           </div>
@@ -305,33 +305,30 @@ export default function TimetableManager({ mode, editMode = false }: { mode: 'ad
 
       {editable && (
         <section className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
-            <div>
-              <h2 className="font-headline-md text-headline-md text-primary">Subject Teacher Assignment</h2>
-              <p className="text-label-md text-on-surface-variant">Subjects are generated automatically from the timetable without duplicates. Assigning a teacher updates the teacher timetable allocation flow.</p>
-            </div>
-            <button onClick={saveSubjectTeachers} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-on-primary font-bold">
+          <div className="mb-4 flex items-center justify-start gap-3">
+            <h2 className="font-headline-md text-headline-md text-primary">Subject Teacher Assignment</h2>
+            <button onClick={saveSubjectTeachers} title="Save subject teachers" aria-label="Save subject teachers" className="inline-flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary text-on-primary font-bold sm:w-auto sm:px-4">
               <span className="material-symbols-outlined text-[18px]">save</span>
-              Save
+              <span className="hidden sm:inline">Save</span>
             </button>
           </div>
           <div className="overflow-x-auto rounded-xl border border-outline-variant">
-            <table className="w-full min-w-[640px] text-left">
+            <table className="w-full min-w-[320px] table-fixed text-left md:min-w-[640px]">
               <thead className="bg-primary text-on-primary">
                 <tr>
-                  <th className="px-4 py-3">Subject Name</th>
-                  <th className="px-4 py-3">Teacher Name</th>
+                  <th className="w-[38%] px-3 py-3 md:px-4">Subject Name</th>
+                  <th className="px-3 py-3 md:px-4">Teacher Name</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/30">
                 {uniqueSubjects.map(subject => (
                   <tr key={subject}>
-                    <td className="px-4 py-3 font-bold text-on-surface">{subject}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 font-bold text-on-surface md:px-4">{subject}</td>
+                    <td className="px-3 py-3 md:px-4">
                       <select
                         value={subjectTeachers[subject] ?? ''}
                         onChange={event => updateSubjectTeacher(subject, event.target.value)}
-                        className="w-full rounded-lg border border-outline-variant bg-surface-container px-4 py-2.5 text-label-md"
+                        className="w-full rounded-lg border border-outline-variant bg-surface-container px-2 py-2 text-label-md md:px-4 md:py-2.5"
                       >
                         <option value="">Select teacher</option>
                         {teacherOptions.map(teacher => <option key={teacher} value={teacher}>{teacher}</option>)}

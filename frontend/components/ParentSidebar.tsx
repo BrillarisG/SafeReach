@@ -12,18 +12,18 @@ interface ParentSidebarProps {
   onNavigate?: () => void;
 }
 
-const activeClass = 'flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-bold rounded-lg transition-all';
-const inactiveClass = 'flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg';
+const activeClass = 'flex items-center gap-3 rounded-md bg-surface-container px-3 py-2.5 font-bold text-on-surface transition-colors';
+const inactiveClass = 'flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low';
 
 export default function ParentSidebar({ activeItem, className = 'hidden md:flex', onNavigate }: ParentSidebarProps) {
   return (
-    <aside className={`${className} flex-col h-full py-stack-lg px-stack-md bg-surface-container-low w-64 fixed left-0 top-0 z-50 border-r border-outline-variant overflow-y-auto`}>
-      <div className="flex items-center gap-3 mb-8 px-2">
-        <LogoMark className="h-9 w-9 rounded-lg" />
-        <div>
-          <h1 className="font-label-md font-extrabold text-primary leading-tight">SafeReach</h1>
-          <p className="font-label-sm text-label-sm text-on-surface-variant">Parent Portal</p>
+    <aside className={`${className} flex-col h-full w-64 fixed left-0 top-0 z-50 border-r border-outline-variant/60 bg-surface px-3 py-4 overflow-y-auto`}>
+      <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
+        <div className="mb-1 flex items-center gap-2">
+          <LogoMark className="h-8 w-8 rounded-md" />
+          <h1 className="font-headline-md text-headline-md font-extrabold text-on-surface leading-tight">SafeReach</h1>
         </div>
+        <p className="pl-10 font-label-sm text-label-sm text-on-surface-variant">Parent Portal</p>
       </div>
       <nav className="flex-1 space-y-1">
         <Link href="/parent/dashboard" onClick={onNavigate} className={activeItem === 'dashboard' ? activeClass : inactiveClass}>
@@ -52,16 +52,16 @@ export default function ParentSidebar({ activeItem, className = 'hidden md:flex'
           <span className="font-label-md text-label-md">Results</span>
         </Link>
       </nav>
-      <div className="mt-auto pt-6 border-t border-outline-variant space-y-2">
-        <button className="w-full mb-2 py-3 bg-error text-white font-bold rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform hover:opacity-90">
+      <div className="mt-auto border-t border-outline-variant/60 pt-4 space-y-1">
+        <button className="mb-2 flex w-full items-center justify-center gap-2 rounded-md bg-error px-3 py-2.5 font-bold text-on-error transition-transform hover:opacity-90 active:scale-95">
           <span className="material-symbols-outlined text-[18px]">emergency</span>
           Emergency Alert
         </button>
-        <Link href="/parent/support" onClick={onNavigate} className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg">
+        <Link href="/parent/support" onClick={onNavigate} className="flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low">
           <span className="material-symbols-outlined text-[20px]">help</span>
           <span className="font-label-md text-label-md">Help Center</span>
         </Link>
-        <LogoutConfirmButton label="Sign Out" className="w-full flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg" />
+        <LogoutConfirmButton label="Sign Out" className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low" />
       </div>
     </aside>
   );

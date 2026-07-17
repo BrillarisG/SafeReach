@@ -81,7 +81,7 @@ export default function TeacherDashboardPage() {
       <section className="grid grid-cols-1 gap-gutter items-start">
         <div className="min-w-0 flex flex-col gap-gutter">
           <TeacherStudentDashboardSummary />
-          <div className="mt-4 grid grid-cols-1 items-start gap-3 md:mt-6 md:gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,520px)]">
+          <div className="mt-4 grid grid-cols-1 items-start gap-3 md:mt-6 md:gap-4 lg:grid-cols-[minmax(300px,360px)_minmax(360px,520px)] lg:justify-center">
             <div className="mx-auto w-full max-w-[360px] overflow-hidden rounded-xl border border-outline-variant bg-surface p-stack-md shadow-sm xl:mx-0">
               <div className="flex items-center justify-between gap-3 mb-4">
                 <button type="button" onClick={previousDay} className="h-10 w-10 rounded-full bg-surface-container text-primary flex items-center justify-center hover:bg-primary/10" aria-label="Previous day">

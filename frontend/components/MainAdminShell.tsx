@@ -23,33 +23,35 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
   const [menuOpen, setMenuOpen] = useState(false);
 
   const sidebar = (
-    <aside className="w-64 h-screen bg-white border-r border-outline-variant/50 flex flex-col p-4 shadow-sm">
-      <div className="flex items-center gap-3 mb-8">
-        <LogoMark className="h-10 w-10 rounded-xl" />
+    <aside className="w-64 h-screen bg-surface border-r border-outline-variant/60 flex flex-col p-3 shadow-sm">
+      <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
+        <div className="flex items-center gap-2 mb-1">
+          <LogoMark className="h-8 w-8 rounded-md" />
         <div>
-          <p className="font-bold text-primary leading-tight">SafeReach</p>
-          <p className="text-label-sm text-on-surface-variant">Main Admin</p>
+          <p className="font-headline-md font-extrabold text-on-surface leading-tight">SafeReach</p>
         </div>
+        </div>
+        <p className="pl-10 text-label-sm text-on-surface-variant">Main Admin</p>
       </div>
-      <nav className="space-y-2">
+      <nav className="space-y-1">
         {navItems.map(item => (
           <Link
             key={item.id}
             href={item.href}
             onClick={() => setMenuOpen(false)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-label-md transition-colors ${active === item.id ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'}`}
+            className={`flex items-center gap-3 rounded-md px-3 py-2.5 font-label-md transition-colors ${active === item.id ? 'bg-surface-container text-on-surface font-bold' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
           >
             <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
             {item.label}
           </Link>
         ))}
       </nav>
-      <div className="mt-auto space-y-3 border-t border-outline-variant pt-4">
-        <Link href="/school-registration" className="flex items-center gap-3 px-4 py-3 rounded-lg text-primary hover:bg-primary/5 font-label-md">
+      <div className="mt-auto space-y-1 border-t border-outline-variant/60 pt-4">
+        <Link href="/school-registration" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-primary hover:bg-surface-container-low font-label-md">
           <span className="material-symbols-outlined text-[20px]">domain_add</span>
           School Registration URL
         </Link>
-        <LogoutConfirmButton className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-error-container font-label-md" />
+        <LogoutConfirmButton className="w-full flex items-center gap-3 rounded-md px-3 py-2.5 text-error hover:bg-error-container font-label-md" />
       </div>
     </aside>
   );

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from threading import Lock
+from time import monotonic
 from typing import Any
 
 import requests
@@ -8,24 +10,45 @@ from flask import current_app
 
 _redis_client = None
 _redis_url = ""
+_memory_cache: dict[str, tuple[float, Any]] = {}
+_memory_lock = Lock()
 
 
 def get_json(key: str) -> Any | None:
+    with _memory_lock:
+        cached = _memory_cache.get(key)
+        if cached and cached[0] > monotonic():
+            return cached[1]
+        if cached:
+            _memory_cache.pop(key, None)
+
     value = _command("GET", key)
     if value is None:
         return None
     try:
-        return json.loads(value)
+        decoded = json.loads(value)
+        # Keep a small L1 copy in the Render worker. This avoids an external
+        # Upstash round trip for repeated dashboard refreshes.
+        with _memory_lock:
+            _memory_cache[key] = (monotonic() + 15, decoded)
+        return decoded
     except (TypeError, ValueError):
         return None
 
 
 def set_json(key: str, value: Any, ttl_seconds: int) -> bool:
     encoded = json.dumps(value, default=str, separators=(",", ":"))
-    return _command("SET", key, encoded, "EX", str(ttl_seconds)) == "OK"
+    with _memory_lock:
+        _memory_cache[key] = (monotonic() + ttl_seconds, value)
+    # An L1 hit still improves the active worker if the shared cache is
+    # temporarily unavailable, so cache writes intentionally fail open.
+    _command("SET", key, encoded, "EX", str(ttl_seconds))
+    return True
 
 
 def delete(key: str) -> None:
+    with _memory_lock:
+        _memory_cache.pop(key, None)
     _command("DEL", key)
 
 

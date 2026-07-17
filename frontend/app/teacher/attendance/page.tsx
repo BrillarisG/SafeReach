@@ -162,6 +162,7 @@ export default function TeacherAttendancePage() {
       return riskDiff !== 0 ? riskDiff : a.name.localeCompare(b.name);
     });
   const filteredLeaveStudents = classStudents
+    .filter(student => !leaveSubmittedIds.includes(student.id) && student.status !== 'going_home' && student.status !== 'reached_home')
     .filter(student => matchesSearch(student, leaveSearch))
     .slice()
     .sort((a, b) => {
@@ -336,7 +337,6 @@ export default function TeacherAttendancePage() {
                         ['present', 'P', 'Mark present and send parent SMS'],
                         ['absent', 'A', 'Mark absent and send parent SMS'],
                         ['late', 'L', 'Mark late and send parent SMS'],
-                        ['reached_school', 'R', 'Mark reached school and send parent SMS'],
                       ] as const).map(([status, label, title]) => {
                         const disabled = isAttendanceButtonDisabled(student.id, status);
                         return (
@@ -352,11 +352,6 @@ export default function TeacherAttendancePage() {
                         );
                       })}
                     </div>
-                    {submittedSet.has(student.id) && (
-                      <p className="mt-2 text-[11px] font-bold text-green-700">
-                        {currentAttendance(student.id) === 'late' ? 'Submitted late - can update to P/A' : 'Submitted and locked'}
-                      </p>
-                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`${travelStatusClass(student.status)} px-3 py-1 rounded-full text-label-sm font-bold inline-flex items-center gap-1`}>
@@ -419,7 +414,6 @@ export default function TeacherAttendancePage() {
             </thead>
             <tbody className="divide-y divide-outline-variant/20">
               {filteredLeaveStudents.map(student => {
-                const risk = goOutRisk(student);
                 return (
                   <tr key={student.id} className={`hover:bg-surface-container-low ${goOutRowClass(student)}`}>
                     <td className="px-4 py-3">
@@ -436,11 +430,7 @@ export default function TeacherAttendancePage() {
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className={`${travelStatusClass(student.status)} px-2 md:px-3 py-1 rounded-full text-[11px] md:text-label-sm font-bold shrink-0`}>{travelStatusLabel(student.status, 'teacher')}</span>
-                        {risk === 'overdue' && <span className="hidden md:inline text-xs font-bold text-error">Not reached 2+ hr</span>}
-                        {risk === 'traveling' && <span className="hidden md:inline text-xs font-bold text-yellow-700">On travel</span>}
-                        {risk === 'reached' && <span className="hidden md:inline text-xs font-bold text-green-700">Reached home</span>}
-                        {leaveSubmittedIds.includes(student.id) && <span className="text-xs font-bold text-green-700">Submitted today</span>}
-                      </div>
+                    </div>
                     </td>
                   </tr>
                 );

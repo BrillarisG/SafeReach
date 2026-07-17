@@ -118,7 +118,9 @@ export default function ParentDashboardPage() {
       {notice && <div className="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-lg font-label-md">{notice}</div>}
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-12">
         <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {dashboardChildren.map((child, i) => (
+          {dashboardChildren.map((child, i) => {
+            const canConfirmHome = child.status === 'going_home' && !reachedHomeIds.includes(child.id);
+            return (
             <div key={child.id} className={`glass-card rounded-xl p-stack-md flex flex-col gap-4 relative overflow-hidden group ${child.status === 'at_home' ? 'ring-2 ring-yellow-200 bg-yellow-50/30' : ''}`}>
               <div className={`absolute top-0 left-0 w-1 h-full ${i % 2 === 0 ? 'bg-secondary' : 'bg-primary'}`}></div>
               <div className="flex items-center justify-between gap-3">
@@ -135,7 +137,7 @@ export default function ParentDashboardPage() {
                   Absent SMS sent. Reply with reason in Messages.
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid gap-2 ${canConfirmHome ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 <button
                   type="button"
                   disabled={readySentIds.includes(child.id) || !canSendToSchool(child.status)}
@@ -149,22 +151,22 @@ export default function ParentDashboardPage() {
                   <span className="material-symbols-outlined text-[16px] sm:text-[18px]">directions_walk</span>
                   Ready to Send
                 </button>
-                <button
+                {canConfirmHome && <button
                   type="button"
-                  disabled={reachedHomeIds.includes(child.id) || child.status !== 'going_home'}
                   onClick={() => {
                     actions.markReachedHome(child.id);
                     setReachedHomeIds(current => Array.from(new Set([...current, child.id])));
                     showNotice(`${child.name} marked SafeReach at home.`);
                   }}
-                  className={`px-2 py-2 font-bold text-label-sm sm:text-label-md rounded-lg transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap ${child.status === 'going_home' && !reachedHomeIds.includes(child.id) ? 'bg-primary text-on-primary hover:opacity-90' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'}`}
+                  className="px-2 py-2 font-bold text-label-sm sm:text-label-md rounded-lg transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap bg-primary text-on-primary hover:opacity-90"
                 >
                   <span className="material-symbols-outlined text-[16px] sm:text-[18px]">home_pin</span>
                   Reached Home
-                </button>
+                </button>}
               </div>
             </div>
-          ))}
+          );
+          })}
           {dashboardChildren.length === 0 && (
             <div className="md:col-span-2 glass-card rounded-xl p-stack-md text-on-surface-variant">
               No child records are assigned to this parent account.

@@ -8,6 +8,8 @@ export default function StudentProfilePage() {
   const [notice, setNotice] = useState('');
   const [studentName, setStudentName] = useState('Liam Henderson');
   const [studentStatus, setStudentStatus] = useState('At School');
+  const [studentClass, setStudentClass] = useState('Class 4');
+  const [studentSection, setStudentSection] = useState('B');
 
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop max-w-7xl mx-auto w-full">
@@ -29,7 +31,7 @@ export default function StudentProfilePage() {
             <h1 className="font-headline-lg text-headline-lg text-primary">{studentName}</h1>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-label-md font-bold bg-secondary/10 text-secondary"><span className="w-2 h-2 rounded-full bg-secondary mr-2"></span>{studentStatus}</span>
           </div>
-          <p className="text-body-md text-on-surface-variant mb-4">Student ID: GT-99021 • Grade 4-B • Room 204</p>
+          <p className="text-body-md text-on-surface-variant mb-4">Student ID: GT-99021 • {studentClass}-{studentSection} • Room 204</p>
           <div className="flex flex-wrap gap-2 justify-center md:justify-start">
             <div className="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-lg border border-outline-variant"><span className="material-symbols-outlined text-primary text-[20px]">directions_bus</span><span className="text-label-md">Bus Route 42</span></div>
             <div className="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-lg border border-outline-variant"><span className="material-symbols-outlined text-tertiary text-[20px]">medical_services</span><span className="text-label-md">Asthma (Inhaler in Office)</span></div>
@@ -56,6 +58,18 @@ export default function StudentProfilePage() {
                 <option>In Class</option>
                 <option>Absent</option>
                 <option>Going Home</option>
+              </select>
+            </label>
+            <label className="space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-bold">Class</span>
+              <select value={studentClass} onChange={event => setStudentClass(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container">
+                {['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6'].map(item => <option key={item}>{item}</option>)}
+              </select>
+            </label>
+            <label className="space-y-1.5">
+              <span className="text-label-md text-on-surface-variant font-bold">Section</span>
+              <select value={studentSection} onChange={event => setStudentSection(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container">
+                {['A', 'B', 'C'].map(item => <option key={item}>{item}</option>)}
               </select>
             </label>
             <div className="flex items-end gap-2">

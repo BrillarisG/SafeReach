@@ -158,7 +158,7 @@ export default function ParentMessagesPage() {
                 <div className="mt-1 flex items-center gap-2">
                   <p className="text-label-md text-on-surface-variant truncate flex-1">{conversation.preview}</p>
                   <span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span>
-                  {conversation.unread > 0 && <span className="w-5 h-5 rounded-full bg-secondary text-on-secondary text-label-sm font-bold flex items-center justify-center shrink-0">{conversation.unread}</span>}
+                  {conversation.unread > 0 && <span className="w-5 h-5 rounded-full border border-primary/40 text-primary text-label-sm font-bold flex items-center justify-center shrink-0">{conversation.unread}</span>}
                 </div>
               </div>
             </button>
@@ -181,8 +181,8 @@ export default function ParentMessagesPage() {
         <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
           {thread.map((m, i) => (
             <div key={`${m.time}-${i}`} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'bg-primary text-on-primary rounded-bl-sm'}`}>
-                <p>{m.text}</p><p className={`text-label-sm mt-1 ${m.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{m.time}</p>
+              <div className={`chat-bubble max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'chat-bubble-sent bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'chat-bubble-received bg-primary text-on-primary rounded-bl-sm border border-primary'}`}>
+                <p>{m.text}</p><p className={`mt-2 text-[11px] font-bold ${m.me ? 'text-on-surface-variant' : 'text-on-primary/80'}`}>{m.from}</p><p className={`text-[11px] ${m.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{m.time}</p>
               </div>
             </div>
           ))}

@@ -36,6 +36,10 @@ export default function AdminStudentsPage() {
           <h2 className="font-headline-lg text-headline-lg text-primary">Class Records</h2>
         </div>
         <div className="flex flex-wrap gap-3">
+          <Link href="/admin/students/edit-class?mode=new" title="Add class" aria-label="Add class" className="group relative z-20 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-on-primary shadow-md transition-all hover:opacity-90 focus-visible:z-50">
+            <span className="material-symbols-outlined text-[20px]">add</span>
+            <span role="tooltip" className="safe-tooltip pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Add Class</span>
+          </Link>
           <button onClick={downloadTemplate} className="flex items-center gap-2 px-4 py-2 border border-outline text-primary font-label-md rounded-lg hover:bg-surface-container-high transition-all">
             <span className="material-symbols-outlined text-[20px]">download</span>Download Template
           </button>
@@ -54,16 +58,21 @@ export default function AdminStudentsPage() {
           const present = classStudents.filter(student => student.attendance_status === 'present').length;
           const attendance = classStudents.length ? `${Math.round((present / classStudents.length) * 100)}%` : '0%';
           return (
-            <Link
+            <div
               key={item.id}
-              href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(item.sections[0]?.name ?? '')}`}
-              className="class-record-card class-record-font w-full max-w-[260px] min-h-[238px] text-left bg-surface-container-low rounded-[30px] border border-outline-variant/40 px-6 py-5 shadow-[3px_4px_0_rgba(25,28,30,0.18)] hover:shadow-md hover:border-primary"
+              className="class-record-card class-record-font relative w-full max-w-[260px] min-h-[238px] text-left bg-surface-container-low rounded-[30px] border border-outline-variant/40 px-6 py-5 shadow-[3px_4px_0_rgba(25,28,30,0.18)] hover:shadow-md hover:border-primary"
             >
-              <p className="font-headline-lg text-[32px] leading-none text-on-surface">{item.class_name}</p>
-              <p className="mt-1 text-[24px] leading-none font-bold text-outline">Section {item.sections[0]?.name ?? '-'}</p>
-              <p className="mt-8 text-[22px] leading-none font-bold text-primary-container">Students: {String(classStudents.length).padStart(2, '0')}</p>
-              <p className="mt-2 text-[22px] leading-none font-bold text-green-700">SafeReach: {attendance}</p>
-            </Link>
+              <Link href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(item.sections[0]?.name ?? '')}`} className="block pr-8" aria-label={`Open ${item.class_name} section ${item.sections[0]?.name ?? ''}`}>
+                <p className="font-headline-lg text-[32px] leading-none text-on-surface">{item.class_name}</p>
+                <p className="mt-1 text-[24px] leading-none font-bold text-outline">Section {item.sections[0]?.name ?? '-'}</p>
+                <p className="mt-8 text-[22px] leading-none font-bold text-primary-container">Students: {String(classStudents.length).padStart(2, '0')}</p>
+                <p className="mt-2 text-[22px] leading-none font-bold text-green-700">SafeReach: {attendance}</p>
+              </Link>
+              <Link href={`/admin/students/edit-class?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(item.sections[0]?.name ?? '')}&mode=edit`} title="Edit class" aria-label={`Edit ${item.class_name} section ${item.sections[0]?.name ?? ''}`} className="group absolute right-4 top-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-primary shadow-sm ring-1 ring-outline-variant/50 transition hover:bg-primary hover:text-on-primary focus-visible:z-50">
+                <span className="material-symbols-outlined text-[18px]">edit</span>
+                <span role="tooltip" className="safe-tooltip pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Edit Class</span>
+              </Link>
+            </div>
           );
         })}
       </section>

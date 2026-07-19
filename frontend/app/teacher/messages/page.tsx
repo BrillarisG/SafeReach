@@ -165,7 +165,7 @@ export default function TeacherMessagesPage() {
                   className={`rounded-full border px-3 py-1.5 text-label-sm font-bold whitespace-nowrap ${selectedGroup === group.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant/70 bg-white text-on-surface-variant hover:bg-surface-container'}`}
                 >
                   <span>{group.label}</span>
-                  {unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${selectedGroup === group.id ? 'bg-white/20 text-on-primary' : 'bg-primary-container text-primary'}`}>{unread}</span>}
+                  {unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full border px-1 text-[10px] font-bold ${selectedGroup === group.id ? 'border-white/70 text-on-primary' : 'border-primary/40 text-primary'}`}>{unread}</span>}
                 </button>
               );
             })}
@@ -194,7 +194,7 @@ export default function TeacherMessagesPage() {
             <button key={c.id} onClick={() => setActive(c.id)} className={`w-full flex items-center gap-3 px-4 py-3 border-b border-outline-variant/20 text-left transition-colors ${active === c.id ? 'bg-primary-container/30' : 'hover:bg-surface-container'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-label-sm font-bold shrink-0 ${active === c.id ? 'bg-primary text-white' : 'bg-primary-container text-primary'}`}>{c.avatar}</div>
               <div className="flex-1 min-w-0"><div className="flex items-center justify-between"><p className={`text-label-md truncate ${c.unread > 0 ? 'font-bold text-on-surface' : 'text-on-surface-variant'}`}>{c.name}</p><p className="text-label-sm text-on-surface-variant shrink-0 ml-2">{c.time}</p></div><p className="text-label-sm text-on-surface-variant truncate">{c.sub}</p></div>
-              {c.unread > 0 && <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-label-sm font-bold flex items-center justify-center shrink-0">{c.unread}</span>}
+              {c.unread > 0 && <span className="w-5 h-5 rounded-full border border-primary/40 text-primary text-label-sm font-bold flex items-center justify-center shrink-0">{c.unread}</span>}
             </button>
           ))}
         </div>
@@ -213,7 +213,7 @@ export default function TeacherMessagesPage() {
                   title={group.label}
                 >
                   <span>{group.label}</span>
-                  {unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${selectedGroup === group.id ? 'bg-white/20 text-on-primary' : 'bg-primary-container text-primary'}`}>{unread}</span>}
+                  {unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full border px-1 text-[10px] font-bold ${selectedGroup === group.id ? 'border-white/70 text-on-primary' : 'border-primary/40 text-primary'}`}>{unread}</span>}
                 </button>
               );
             })}
@@ -241,7 +241,7 @@ export default function TeacherMessagesPage() {
                 <div className="mt-1 flex items-center gap-2">
                   <p className="text-[13px] leading-5 text-on-surface-variant truncate flex-1">{conversation.sub}</p>
                   <span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span>
-                  {conversation.unread > 0 && <span className="w-5 h-5 rounded-full bg-secondary text-on-secondary text-label-sm font-bold flex items-center justify-center shrink-0">{conversation.unread}</span>}
+                  {conversation.unread > 0 && <span className="w-5 h-5 rounded-full border border-primary/40 text-primary text-label-sm font-bold flex items-center justify-center shrink-0">{conversation.unread}</span>}
                 </div>
               </div>
             </button>
@@ -267,8 +267,8 @@ export default function TeacherMessagesPage() {
         <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
           {thread.map((m, i) => (
             <div key={`${m.time}-${i}`} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'bg-primary text-on-primary rounded-bl-sm'}`}>
-                <p>{m.text}</p><p className={`text-label-sm mt-1 ${m.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{m.time}</p>
+              <div className={`chat-bubble max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'chat-bubble-sent bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'chat-bubble-received bg-primary text-on-primary rounded-bl-sm border border-primary'}`}>
+                <p>{m.text}</p><p className={`mt-2 text-[11px] font-bold ${m.me ? 'text-on-surface-variant' : 'text-on-primary/80'}`}>{m.from}</p><p className={`text-[11px] ${m.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{m.time}</p>
               </div>
             </div>
           ))}

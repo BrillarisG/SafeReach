@@ -32,6 +32,7 @@ import AdminSecurityPage from "@/app/admin/security/page";
 import AdminStudentsPage from "@/app/admin/students/page";
 import AdminStudentsAddPage from "@/app/admin/students/add/page";
 import AdminStudentsClassViewPage from "@/app/admin/students/class-view/page";
+import AdminEditClassPage from "@/app/admin/students/edit-class/page";
 import AdminStudentsProfilePage from "@/app/admin/students/profile/page";
 import AdminSupportPage from "@/app/admin/support/page";
 import AdminTeachersPage from "@/app/admin/teachers/page";
@@ -97,6 +98,7 @@ const adminRoutes: Record<string, React.ComponentType> = {
   "/admin/students": AdminStudentsPage,
   "/admin/students/add": AdminStudentsAddPage,
   "/admin/students/class-view": AdminStudentsClassViewPage,
+  "/admin/students/edit-class": AdminEditClassPage,
   "/admin/students/profile": AdminStudentsProfilePage,
   "/admin/support": AdminSupportPage,
   "/admin/teachers": AdminTeachersPage,

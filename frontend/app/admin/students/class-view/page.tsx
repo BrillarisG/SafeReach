@@ -56,14 +56,14 @@ function ClassViewContent() {
         </div>
       </div>
 
-      <div className="mb-5 grid w-full grid-cols-2 gap-3">
-        <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`flex h-32 min-w-0 flex-col items-center justify-center rounded-xl border bg-white p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <span className="material-symbols-outlined text-[48px] text-primary md:text-[52px]">co_present</span>
-          <span className="mt-2 block text-[17px] font-bold text-on-surface">Teacher</span>
+      <div className="mx-auto mb-5 grid w-full max-w-[420px] grid-cols-2 gap-3 sm:max-w-[520px] md:gap-4">
+        <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`safe-surface-enter flex aspect-square min-w-0 flex-col items-center justify-center rounded-xl border bg-white p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[54px] text-primary md:text-[64px]">co_present</span>
+          <span className="mt-2 block text-[18px] font-bold text-on-surface md:text-[20px]">Teacher</span>
         </button>
-        <button type="button" onClick={() => setPanel('students')} aria-label="Open class students" className={`flex h-32 min-w-0 flex-col items-center justify-center rounded-xl border bg-white p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <span className="material-symbols-outlined text-[48px] text-primary md:text-[52px]">groups</span>
-          <span className="mt-2 block text-[17px] font-bold text-on-surface">Students</span>
+        <button type="button" onClick={() => setPanel('students')} aria-label="Open class students" className={`safe-surface-enter flex aspect-square min-w-0 flex-col items-center justify-center rounded-xl border bg-white p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[54px] text-primary md:text-[64px]">groups</span>
+          <span className="mt-2 block text-[18px] font-bold text-on-surface md:text-[20px]">Students</span>
         </button>
       </div>
 
@@ -71,7 +71,10 @@ function ClassViewContent() {
         <section className="glass-card w-full min-w-0 max-w-full rounded-xl overflow-hidden">
           <div className="p-stack-md border-b border-outline-variant flex items-center justify-between gap-3">
             <h2 className="font-headline-md text-headline-md text-primary">Class Teachers</h2>
-            <Link href={`/admin/teachers/new?class=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}`} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-on-primary font-bold"><span className="material-symbols-outlined text-[18px]">person_add</span>Add Teacher</Link>
+            <Link href={`/admin/teachers/new?class=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}`} title="Add subject teacher" aria-label="Add subject teacher" className="group relative inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-on-primary font-bold focus-visible:z-50">
+              <span className="material-symbols-outlined text-[18px]">person_add</span>
+              <span role="tooltip" className="safe-tooltip pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Add Teacher</span>
+            </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-stack-md">
             {teacherSeed.map(teacher => (

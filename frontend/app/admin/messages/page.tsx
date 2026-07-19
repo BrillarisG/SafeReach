@@ -161,7 +161,7 @@ function AdminMessagesContent() {
                   title={tab.label}
                   className={`max-w-[104px] truncate rounded-full border px-3 py-1.5 text-[12px] leading-none whitespace-nowrap ${activeGroup === tab.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant/70 bg-white text-on-surface-variant'}`}
                 >
-                  {tab.label}{unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${activeGroup === tab.id ? 'bg-white/20 text-on-primary' : 'bg-primary-container text-primary'}`}>{unread}</span>}
+                  {tab.label}{unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full border px-1 text-[10px] font-bold ${activeGroup === tab.id ? 'border-white/70 text-on-primary' : 'border-primary/40 text-primary'}`}>{unread}</span>}
                 </button>
               );
             })}
@@ -178,7 +178,7 @@ function AdminMessagesContent() {
               <span className="w-12 h-12 shrink-0 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-md">{conversation.avatar}</span>
               <span className="min-w-0 flex-1 border-b border-outline-variant/20 pb-3">
                 <span className="flex items-start justify-between gap-2"><span className="font-medium text-on-surface truncate">{conversation.name}</span><span className="shrink-0 text-label-sm text-primary">{conversation.time}</span></span>
-                <span className="mt-1 flex items-center gap-2"><span className="flex-1 text-[13px] leading-5 text-on-surface-variant truncate">{conversation.sub}</span><span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span>{conversation.unread > 0 && <span className="w-5 h-5 shrink-0 rounded-full bg-secondary text-on-secondary text-label-sm font-bold flex items-center justify-center">{conversation.unread}</span>}</span>
+                <span className="mt-1 flex items-center gap-2"><span className="flex-1 text-[13px] leading-5 text-on-surface-variant truncate">{conversation.sub}</span><span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span>{conversation.unread > 0 && <span className="w-5 h-5 shrink-0 rounded-full border border-primary/40 text-primary text-label-sm font-bold flex items-center justify-center">{conversation.unread}</span>}</span>
               </span>
             </button>
           ))}
@@ -192,7 +192,7 @@ function AdminMessagesContent() {
           <span className="block font-bold text-on-surface">{activeConversation.name}</span>
         </header>
         <div className="no-scrollbar flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
-          {activeThread.map((message, index) => <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}><div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${message.me ? 'bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'bg-primary text-on-primary rounded-bl-sm'}`}><p>{message.text}</p><p className={`mt-1 text-label-sm ${message.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{message.from} | {message.time}</p></div></div>)}
+          {activeThread.map((message, index) => <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}><div className={`chat-bubble max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${message.me ? 'chat-bubble-sent bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'chat-bubble-received bg-primary text-on-primary rounded-bl-sm border border-primary'}`}><p>{message.text}</p><p className={`mt-2 text-[11px] font-bold ${message.me ? 'text-on-surface-variant' : 'text-on-primary/80'}`}>{message.from}</p><p className={`text-[11px] ${message.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{message.time}</p></div></div>)}
         </div>
         <footer className="p-3 bg-surface border-t border-outline-variant/30 shrink-0"><div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant"><input value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') sendMessage(); }} className="flex-1 bg-transparent outline-none text-body-md" placeholder="Type a message..." /><button type="button" onClick={sendMessage} className={`p-1.5 rounded-full ${draft.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button></div></footer>
       </div>
@@ -241,7 +241,7 @@ function AdminMessagesContent() {
                   </span>
                   <span className="block text-label-sm text-on-surface-variant truncate">{conversation.sub}</span>
                 </span>
-                {conversation.unread > 0 && <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-label-sm font-bold flex items-center justify-center">{conversation.unread}</span>}
+                {conversation.unread > 0 && <span className="w-5 h-5 rounded-full border border-primary/40 text-primary text-label-sm font-bold flex items-center justify-center">{conversation.unread}</span>}
               </button>
             ))}
           </div>
@@ -258,9 +258,10 @@ function AdminMessagesContent() {
           <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-background">
             {activeThread.map((message, index) => (
               <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-md px-4 py-2.5 rounded-2xl ${message.me ? 'bg-white border border-outline-variant/30 text-on-surface rounded-br-sm shadow-sm' : 'bg-primary text-on-primary rounded-bl-sm'}`}>
+                <div className={`chat-bubble max-w-md px-4 py-2.5 rounded-2xl ${message.me ? 'chat-bubble-sent bg-white border border-outline-variant/30 text-on-surface rounded-br-sm shadow-sm' : 'chat-bubble-received bg-primary border border-primary text-on-primary rounded-bl-sm'}`}>
                   <p>{message.text}</p>
-                  <p className={`text-label-sm mt-1 ${message.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{message.from} | {message.time}</p>
+                  <p className={`mt-2 text-[11px] font-bold ${message.me ? 'text-on-surface-variant' : 'text-on-primary/80'}`}>{message.from}</p>
+                  <p className={`text-[11px] ${message.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{message.time}</p>
                 </div>
               </div>
             ))}

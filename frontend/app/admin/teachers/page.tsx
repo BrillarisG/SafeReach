@@ -125,28 +125,30 @@ export default function AdminTeachersPage() {
         </div>
       </section>
 
-      <div className="safe-surface-enter bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] overflow-hidden">
-        <div className="relative p-stack-md border-b border-surface-container flex flex-col gap-3">
-          <div className="admin-message-category-scroll flex min-w-max gap-2 overflow-x-auto pb-2 pr-14">
+      <div className="safe-surface-enter w-full min-w-0 max-w-full bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] overflow-hidden">
+        <div className="p-stack-md border-b border-surface-container flex flex-col gap-3">
+          <div className="admin-message-category-scroll no-scrollbar flex w-full min-w-0 gap-2 overflow-x-auto pb-2 md:no-scrollbar">
             {['All Staff', 'active', 'In Transit', 'On Leave'].map(filter => (
               <button
                 key={filter}
                 type="button"
                 onClick={() => setStatusFilter(filter)}
-                className={`px-4 py-1.5 rounded-full text-label-md font-bold ${statusFilter === filter ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'}`}
+                className={`shrink-0 px-4 py-1.5 rounded-full text-label-md font-bold ${statusFilter === filter ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-variant'}`}
               >
                 {filter === 'active' ? 'Active Duty' : filter}
               </button>
             ))}
           </div>
-          <label className="relative w-full md:max-w-sm">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
-            <input value={staffSearch} onChange={event => setStaffSearch(event.target.value)} className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search stored staff..." />
-          </label>
-          <Link href="/admin/teachers/profile?mode=new" title="Add new teacher" aria-label="Add new teacher" className="group absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-on-primary shadow-sm transition hover:bg-primary-container focus-visible:z-50">
-            <span className="material-symbols-outlined text-[20px]">person_add</span>
-            <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-[60] mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Add New Teacher</span>
-          </Link>
+          <div className="flex w-full min-w-0 items-center gap-2 md:max-w-md">
+            <label className="relative min-w-0 flex-1">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+              <input value={staffSearch} onChange={event => setStaffSearch(event.target.value)} className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search stored staff..." />
+            </label>
+            <Link href="/admin/teachers/profile?mode=new" title="Add new teacher" aria-label="Add new teacher" className="group relative z-20 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary shadow-sm transition hover:bg-primary-container focus-visible:z-50">
+              <span className="material-symbols-outlined text-[20px]">person_add</span>
+              <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-[999] mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Add New Teacher</span>
+            </Link>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left border-collapse md:min-w-[960px]">

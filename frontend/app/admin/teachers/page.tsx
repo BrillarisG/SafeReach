@@ -80,7 +80,7 @@ export default function AdminTeachersPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-stack-lg">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 mb-stack-lg">
         {[
           { label: 'Total Staff', value: String(teachers.length), sub: 'Stored records', border: 'border-primary', icon: 'groups', iconCls: 'text-primary-container bg-primary/10' },
           { label: 'Active Duty', value: String(teachers.filter(t => (t.status || 'active') === 'active').length), sub: 'Available', border: 'border-secondary', icon: 'check_circle', iconCls: 'text-secondary bg-secondary/10' },
@@ -156,27 +156,27 @@ export default function AdminTeachersPage() {
           </label>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[960px] text-left border-collapse">
+          <table className="w-full min-w-[720px] text-left border-collapse md:min-w-[960px]">
             <thead className="bg-surface-container-low">
-              <tr>{['Staff Member', 'Primary Assignment', 'Subjects', 'Current Status', 'Actions'].map(header => <th key={header} className="p-stack-md font-label-md text-on-surface-variant">{header}</th>)}</tr>
+              <tr>{['Staff Member', 'Primary Assignment', 'Subjects', 'Current Status', 'Actions'].map(header => <th key={header} className="px-3 py-3 text-[12px] font-label-md text-on-surface-variant md:p-stack-md">{header}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-surface-container">
               {filteredTeachers.map(teacher => (
                 <tr key={teacher.id} className="hover:bg-surface-bright transition-colors group">
-                  <td className="p-stack-md">
-                    <div className="flex items-center gap-stack-md">
-                      <div className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">{teacher.full_name.split(' ').map(part => part[0]).join('').slice(0, 2)}</div>
+                  <td className="px-3 py-3 md:p-stack-md">
+                    <div className="flex items-center gap-2 md:gap-stack-md">
+                      <div className="h-8 w-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-[12px] font-bold md:h-10 md:w-10">{teacher.full_name.split(' ').map(part => part[0]).join('').slice(0, 2)}</div>
                       <div>
-                        <p className="font-bold text-on-surface">{teacher.full_name}</p>
-                        <p className="text-label-sm text-on-surface-variant">ID: {teacher.employee_code}</p>
-                        <p className="text-label-sm text-on-surface-variant">{teacher.email}</p>
+                        <p className="text-[13px] font-bold text-on-surface md:text-base">{teacher.full_name}</p>
+                        <p className="text-[11px] text-on-surface-variant md:text-label-sm">ID: {teacher.employee_code}</p>
+                        <p className="text-[11px] text-on-surface-variant md:text-label-sm">{teacher.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-stack-md"><span className="px-2 py-1 bg-primary/5 text-primary border border-primary/20 rounded text-label-sm font-bold">{assignmentLabel(teacher)}</span></td>
-                  <td className="p-stack-md text-body-sm text-on-surface-variant">{assignmentSubject(teacher)}</td>
-                  <td className="p-stack-md"><span className={`px-3 py-1 ${statusClass(teacher.status || 'active')} rounded-full text-label-sm font-bold flex items-center w-fit gap-1`}>{teacher.status || 'active'}</span></td>
-                  <td className="p-stack-md text-right">
+                  <td className="px-3 py-3 md:p-stack-md"><span className="px-2 py-1 bg-primary/5 text-primary border border-primary/20 rounded text-[11px] font-bold md:text-label-sm">{assignmentLabel(teacher)}</span></td>
+                  <td className="px-3 py-3 text-[12px] text-on-surface-variant md:p-stack-md md:text-body-sm">{assignmentSubject(teacher)}</td>
+                  <td className="px-3 py-3 md:p-stack-md"><span className={`px-2 py-1 ${statusClass(teacher.status || 'active')} rounded-full text-[11px] font-bold flex items-center w-fit gap-1 md:px-3 md:text-label-sm`}>{teacher.status || 'active'}</span></td>
+                  <td className="px-3 py-3 text-right md:p-stack-md">
                     <div className="flex justify-end gap-2">
                       <Link href={`/admin/teachers/profile?id=${teacher.id}&mode=edit`} className="text-primary hover:bg-primary-container p-1.5 rounded-lg transition-colors inline-flex" title="Edit teacher">
                         <span className="material-symbols-outlined text-[18px]">edit</span>

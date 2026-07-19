@@ -167,7 +167,7 @@ function AdminMessagesContent() {
             })}
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="no-scrollbar flex-1 overflow-y-auto">
           {visibleConversations.map(conversation => (
             <button
               key={conversation.id}
@@ -191,7 +191,7 @@ function AdminMessagesContent() {
           <span className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-sm">{activeConversation.avatar}</span>
           <span><span className="block font-bold text-on-surface">{activeConversation.name}</span><span className="block text-label-sm text-secondary">{activeConversation.sub}</span></span>
         </header>
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+        <div className="no-scrollbar flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
           {activeThread.map((message, index) => <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}><div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${message.me ? 'bg-primary text-on-primary rounded-br-sm' : 'bg-white text-on-surface rounded-bl-sm shadow-sm border border-outline-variant/20'}`}><p>{message.text}</p><p className={`mt-1 text-label-sm ${message.me ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>{message.from} | {message.time}</p></div></div>)}
         </div>
         <footer className="p-3 bg-surface border-t border-outline-variant/30 shrink-0"><div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant"><input value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') sendMessage(); }} className="flex-1 bg-transparent outline-none text-body-md" placeholder="Type a message..." /><button type="button" onClick={sendMessage} className={`p-1.5 rounded-full ${draft.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button></div></footer>

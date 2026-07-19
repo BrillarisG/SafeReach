@@ -50,14 +50,10 @@ function ClassViewContent() {
         <span className="truncate text-primary font-bold">{className} - Section {section}</span>
       </nav>
 
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-5">
         <div className="min-w-0">
           <h1 className="text-[28px] font-bold leading-tight text-primary md:text-headline-lg">{className} <span className="text-on-surface-variant">- Section {section}</span></h1>
         </div>
-        <Link href="/admin/dashboard" className="inline-flex w-full max-w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 py-2 text-primary font-bold hover:bg-primary/5 sm:w-auto">
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Back to Classes
-        </Link>
       </div>
 
       <div className="mb-5 grid w-full grid-cols-2 gap-3">

@@ -480,31 +480,31 @@ body { font-family: 'Inter', sans-serif; }
   .text-display-lg,
   .text-display-md,
   .text-headline-lg {
-    font-size: 1.75rem;
-    line-height: 2.15rem;
+    font-size: 1.65rem;
+    line-height: 2rem;
   }
 
   .text-headline-md,
   .text-title-lg {
-    font-size: 1.35rem;
-    line-height: 1.75rem;
+    font-size: 1.2rem;
+    line-height: 1.55rem;
   }
 
   .text-title-md,
   .text-body-lg {
-    font-size: 0.98rem;
-    line-height: 1.45rem;
+    font-size: 0.9rem;
+    line-height: 1.35rem;
   }
 
   .text-body-md,
   .text-label-md {
-    font-size: 0.9rem;
-    line-height: 1.3rem;
+    font-size: 0.82rem;
+    line-height: 1.2rem;
   }
 
   .text-label-sm {
-    font-size: 0.75rem;
-    line-height: 1rem;
+    font-size: 0.7rem;
+    line-height: 0.9rem;
   }
 
   .rounded-2xl {

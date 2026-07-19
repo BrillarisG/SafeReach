@@ -247,15 +247,15 @@ export default function TimetableManager({ mode, editMode = false, requestedClas
 
       <section className="bg-white rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1260px] text-left">
+          <table className="w-full min-w-[940px] text-left text-[12px] md:min-w-[1260px] md:text-base">
             <thead className="bg-primary text-on-primary">
               <tr>
-                <th className="px-4 py-3">Day</th>
+                <th className="px-3 py-2 md:px-4 md:py-3">Day</th>
                 {data.days[0]?.periods.map((_, index) => (
                   <Fragment key={`period-group-${index}`}>
-                    <th key={`period-${index}`} className="px-4 py-3 text-center">P{index + 1}</th>
+                    <th key={`period-${index}`} className="px-3 py-2 text-center md:px-4 md:py-3">P{index + 1}</th>
                     {breaksAfter(index + 1).map(item => (
-                      <th key={`break-head-${item.id}`} className="w-20 px-2 py-3 text-center text-[11px] uppercase tracking-wide">
+                      <th key={`break-head-${item.id}`} className="w-16 px-1 py-2 text-center text-[10px] uppercase tracking-wide md:w-20 md:px-2 md:py-3 md:text-[11px]">
                         {item.label}
                       </th>
                     ))}

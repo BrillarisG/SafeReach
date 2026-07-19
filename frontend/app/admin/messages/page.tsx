@@ -107,6 +107,7 @@ function AdminMessagesContent() {
   const [activeId, setActiveId] = useState(requestedConversation?.id ?? 'common-admin-teachers');
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState('');
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [notice, setNotice] = useState('Admin messaging is a frontend demo. Backend delivery will be added later.');
 
   useEffect(() => {
@@ -134,6 +135,7 @@ function AdminMessagesContent() {
     setActiveGroup(group);
     setActiveId(first?.id ?? '');
     setSearch('');
+    setMobileChatOpen(false);
     setNotice(groupTabs.find(tab => tab.id === group)?.helper ?? '');
   }
 
@@ -147,16 +149,65 @@ function AdminMessagesContent() {
     <div className="p-container-padding-mobile md:p-container-padding-desktop min-w-0 max-w-full overflow-x-hidden">
       <div className="mb-stack-lg"><h1 className="font-headline-lg text-headline-lg text-primary">Admin Message</h1></div>
 
-      <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div className={`${mobileChatOpen ? 'hidden' : 'flex'} md:hidden min-h-[calc(100dvh-8rem)] flex-col bg-background -mx-4 -mb-4`}>
+        <div className="px-2 py-2 bg-surface border-y border-outline-variant/30 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 min-w-max">
+            {groupTabs.map(tab => {
+              const unread = availableConversations.filter(conversation => (tab.id === 'all' || conversation.group === tab.id) && conversation.unread > 0).reduce((total, conversation) => total + conversation.unread, 0);
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => changeGroup(tab.id)}
+                  title={tab.label}
+                  className={`max-w-[104px] truncate rounded-full border px-3 py-1.5 text-[12px] leading-none whitespace-nowrap ${activeGroup === tab.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant/70 bg-white text-on-surface-variant'}`}
+                >
+                  {tab.label}{unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] ${activeGroup === tab.id ? 'bg-white/20 text-on-primary' : 'bg-primary-container text-primary'}`}>{unread}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {visibleConversations.map(conversation => (
+            <button
+              key={conversation.id}
+              type="button"
+              onClick={() => { setActiveId(conversation.id); setMobileChatOpen(true); }}
+              className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-surface-container"
+            >
+              <span className="w-12 h-12 shrink-0 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-md">{conversation.avatar}</span>
+              <span className="min-w-0 flex-1 border-b border-outline-variant/20 pb-3">
+                <span className="flex items-start justify-between gap-2"><span className="font-medium text-on-surface truncate">{conversation.name}</span><span className="shrink-0 text-label-sm text-primary">{conversation.time}</span></span>
+                <span className="mt-1 flex items-center gap-2"><span className="flex-1 text-[13px] leading-5 text-on-surface-variant truncate">{conversation.sub}</span><span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span>{conversation.unread > 0 && <span className="w-5 h-5 shrink-0 rounded-full bg-secondary text-on-secondary text-label-sm font-bold flex items-center justify-center">{conversation.unread}</span>}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:hidden min-h-[calc(100dvh-8rem)] flex-col bg-background -mx-4 -mb-4`}>
+        <header className="px-4 py-3 bg-surface border-y border-outline-variant/30 flex items-center gap-3 shrink-0">
+          <button type="button" onClick={() => setMobileChatOpen(false)} className="-ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages"><span className="material-symbols-outlined">arrow_back</span></button>
+          <span className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-sm">{activeConversation.avatar}</span>
+          <span><span className="block font-bold text-on-surface">{activeConversation.name}</span><span className="block text-label-sm text-secondary">{activeConversation.sub}</span></span>
+        </header>
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+          {activeThread.map((message, index) => <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}><div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${message.me ? 'bg-primary text-on-primary rounded-br-sm' : 'bg-white text-on-surface rounded-bl-sm shadow-sm border border-outline-variant/20'}`}><p>{message.text}</p><p className={`mt-1 text-label-sm ${message.me ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>{message.from} | {message.time}</p></div></div>)}
+        </div>
+        <footer className="p-3 bg-surface border-t border-outline-variant/30 shrink-0"><div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant"><input value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') sendMessage(); }} className="flex-1 bg-transparent outline-none text-body-md" placeholder="Type a message..." /><button type="button" onClick={sendMessage} className={`p-1.5 rounded-full ${draft.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button></div></footer>
+      </div>
+
+      <div className="hidden min-w-0 grid-cols-1 gap-5 md:grid md:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden flex flex-col">
-          <div className="order-2 p-3 border-b border-outline-variant/30 overflow-x-hidden">
-            <div className="flex flex-col gap-2" role="tablist" aria-label="Message categories">
+          <div className="order-2 p-3 border-b border-outline-variant/30 overflow-x-auto no-scrollbar">
+            <div className="flex min-w-max gap-2" role="tablist" aria-label="Message categories">
             {groupTabs.map(tab => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => changeGroup(tab.id)}
-                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-label-sm font-bold transition-all ${activeGroup === tab.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant bg-white text-on-surface-variant hover:bg-surface-container'}`}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-left text-label-sm font-bold transition-all ${activeGroup === tab.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant bg-white text-on-surface-variant hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
                 <span>{tab.label}</span>

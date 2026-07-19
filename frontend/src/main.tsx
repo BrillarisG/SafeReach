@@ -37,6 +37,7 @@ import AdminSupportPage from "@/app/admin/support/page";
 import AdminTeachersPage from "@/app/admin/teachers/page";
 import AdminTeachersProfilePage from "@/app/admin/teachers/profile/page";
 import AdminTimetablePage from "@/app/admin/timetable/page";
+import AdminClassTimetablePage from "@/app/admin/timetable/class/page";
 import AdminTimetableEditPage from "@/app/admin/timetable/edit/page";
 import TeacherAttendancePage from "@/app/teacher/attendance/page";
 import TeacherDashboardPage from "@/app/teacher/dashboard/page";
@@ -100,6 +101,7 @@ const adminRoutes: Record<string, React.ComponentType> = {
   "/admin/teachers": AdminTeachersPage,
   "/admin/teachers/profile": AdminTeachersProfilePage,
   "/admin/timetable": AdminTimetablePage,
+  "/admin/timetable/class": AdminClassTimetablePage,
   "/admin/timetable/edit": AdminTimetableEditPage,
 };
 

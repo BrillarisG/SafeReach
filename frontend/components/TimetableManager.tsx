@@ -25,7 +25,7 @@ const teacherOptions = [
   'Dr. Meera Patel',
 ];
 
-export default function TimetableManager({ mode, editMode = false }: { mode: 'admin' | 'teacher' | 'parent'; editMode?: boolean }) {
+export default function TimetableManager({ mode, editMode = false, requestedClassName = '', requestedSection = '' }: { mode: 'admin' | 'teacher' | 'parent'; editMode?: boolean; requestedClassName?: string; requestedSection?: string }) {
   const canEdit = mode !== 'parent';
   const editable = canEdit && editMode;
   const editHref = mode === 'admin' ? '/admin/timetable/edit' : '/teacher/timetable/edit';
@@ -63,8 +63,8 @@ export default function TimetableManager({ mode, editMode = false }: { mode: 'ad
       tone: (item.tone === 'lunch' ? 'lunch' : 'interval') as TimetableBreak['tone'],
     }));
     setData({
-      className: bootstrap.timetable.className,
-      section: bootstrap.timetable.section,
+      className: requestedClassName || bootstrap.timetable.className,
+      section: requestedSection || bootstrap.timetable.section,
       breaks,
       days: bootstrap.timetable.days,
       breakAfterPeriod2: breaks.find(item => item.id === 'interval1')?.label || '',
@@ -75,7 +75,7 @@ export default function TimetableManager({ mode, editMode = false }: { mode: 'ad
       const firstStudent = bootstrap.students[0];
       setSelectedChild(`${firstStudent.full_name} - ${firstStudent.class_name}-${firstStudent.section_name}`);
     }
-  }, [bootstrap, selectedChild]);
+  }, [bootstrap, requestedClassName, requestedSection, selectedChild]);
 
   function save(next: TimetableData, message: string) {
     setData(next);
@@ -171,6 +171,7 @@ export default function TimetableManager({ mode, editMode = false }: { mode: 'ad
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="font-headline-lg text-headline-lg text-primary">Class Timetable</h1>
+            {data.className && <p className="mt-1 text-label-md text-on-surface-variant">{data.className}{data.section ? ` - Section ${data.section}` : ''}</p>}
           </div>
           {mode === 'parent' ? (
             <select value={selectedChild} onChange={event => setSelectedChild(event.target.value)} className="px-4 py-3 rounded-lg bg-surface-container border border-outline-variant">

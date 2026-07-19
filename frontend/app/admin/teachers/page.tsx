@@ -87,7 +87,7 @@ export default function AdminTeachersPage() {
           { label: 'On Leave', value: String(teachers.filter(t => (t.status || '').toLowerCase().includes('leave')).length), sub: 'Stored status', border: 'border-tertiary-fixed-dim', icon: 'event_busy', iconCls: 'text-tertiary bg-tertiary/10' },
           { label: 'Unassigned Classes', value: String(unassignedCount), sub: 'Action required', border: 'border-error', icon: 'warning', iconCls: 'text-error bg-error/10', alert: unassignedCount > 0 },
         ].map(card => (
-          <div key={card.label} className={`bg-surface-container-lowest p-3 rounded-xl shadow-sm border-l-4 ${card.border}`}>
+          <div key={card.label} className={`safe-surface-enter bg-surface-container-lowest p-3 rounded-xl shadow-sm border-l-4 ${card.border}`}>
             <div className="flex justify-between items-start">
               <span className={`material-symbols-outlined p-2 ${card.iconCls} rounded-lg`}>{card.icon}</span>
               <span className={`text-label-sm font-bold ${card.alert ? 'text-error' : 'text-on-surface-variant'}`}>{card.sub}</span>
@@ -136,7 +136,7 @@ export default function AdminTeachersPage() {
         </div>
       </section>
 
-      <div className="bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] overflow-hidden">
+      <div className="safe-surface-enter bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] overflow-hidden">
         <div className="p-stack-md border-b border-surface-container flex flex-wrap gap-stack-md justify-between items-center">
           <div className="flex gap-stack-sm overflow-x-auto pb-2 sm:pb-0">
             {['All Staff', 'active', 'In Transit', 'On Leave'].map(filter => (

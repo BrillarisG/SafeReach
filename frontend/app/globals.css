@@ -58,6 +58,32 @@ body { font-family: 'Inter', sans-serif; }
   animation: adminPageEnter 220ms ease-out both;
 }
 
+.safe-surface-enter {
+  animation: safeSurfaceEnter 300ms ease-out both;
+}
+
+.safe-surface-enter:nth-child(2) { animation-delay: 45ms; }
+.safe-surface-enter:nth-child(3) { animation-delay: 90ms; }
+.safe-surface-enter:nth-child(4) { animation-delay: 135ms; }
+
+.admin-message-category-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af transparent;
+}
+
+.admin-message-category-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.admin-message-category-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-message-category-scroll::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 9999px;
+}
+
 .class-record-card {
   animation: classRecordEnter 360ms ease-out both;
   transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
@@ -83,9 +109,15 @@ body { font-family: 'Inter', sans-serif; }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes safeSurfaceEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .admin-page-enter,
-  .class-record-card {
+  .class-record-card,
+  .safe-surface-enter {
     animation: none;
     transition: none;
   }
@@ -521,5 +553,14 @@ body { font-family: 'Inter', sans-serif; }
     aspect-ratio: auto;
     min-height: 210px;
     border-radius: 28px;
+  }
+
+  .admin-message-category-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .admin-message-category-scroll::-webkit-scrollbar {
+    display: none;
   }
 }

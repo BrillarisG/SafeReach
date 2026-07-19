@@ -45,7 +45,7 @@ function ClassViewContent() {
   return (
     <div className="w-full min-w-0 max-w-[100vw] overflow-x-hidden p-gutter md:max-w-none md:p-8">
       <nav className="mb-4 flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-[13px] text-on-surface-variant">
-        <Link href="/admin/students" className="hover:text-primary">Class Records</Link>
+        <Link href="/admin/dashboard" className="hover:text-primary">Class Records</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         <span className="truncate text-primary font-bold">{className} - Section {section}</span>
       </nav>
@@ -54,7 +54,7 @@ function ClassViewContent() {
         <div className="min-w-0">
           <h1 className="text-[28px] font-bold leading-tight text-primary md:text-headline-lg">{className} <span className="text-on-surface-variant">- Section {section}</span></h1>
         </div>
-        <Link href="/admin/students" className="inline-flex w-full max-w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 py-2 text-primary font-bold hover:bg-primary/5 sm:w-auto">
+        <Link href="/admin/dashboard" className="inline-flex w-full max-w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 py-2 text-primary font-bold hover:bg-primary/5 sm:w-auto">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Back to Classes
         </Link>

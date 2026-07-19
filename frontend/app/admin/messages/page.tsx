@@ -146,10 +146,9 @@ function AdminMessagesContent() {
   }
 
   return (
-    <div className="p-container-padding-mobile md:p-container-padding-desktop min-w-0 max-w-full overflow-x-hidden">
-      <div className="mb-stack-lg"><h1 className="font-headline-lg text-headline-lg text-primary">Admin Message</h1></div>
+    <div className="h-[calc(100dvh-4rem)] min-h-[540px] w-full min-w-0 max-w-full overflow-hidden">
 
-      <div className={`${mobileChatOpen ? 'hidden' : 'flex'} md:hidden min-h-[calc(100dvh-8rem)] flex-col bg-background -mx-4 -mb-4`}>
+      <div className={`${mobileChatOpen ? 'hidden' : 'flex'} h-full min-h-0 md:hidden flex-col bg-background`}>
         <div className="px-2 py-2 bg-surface border-y border-outline-variant/30 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5 min-w-max">
             {groupTabs.map(tab => {
@@ -186,7 +185,7 @@ function AdminMessagesContent() {
         </div>
       </div>
 
-      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} md:hidden min-h-[calc(100dvh-8rem)] flex-col bg-background -mx-4 -mb-4`}>
+      <div className={`${mobileChatOpen ? 'flex' : 'hidden'} h-full min-h-0 md:hidden flex-col bg-background`}>
         <header className="px-4 py-3 bg-surface border-y border-outline-variant/30 flex items-center gap-3 shrink-0">
           <button type="button" onClick={() => setMobileChatOpen(false)} className="-ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages"><span className="material-symbols-outlined">arrow_back</span></button>
           <span className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-sm">{activeConversation.avatar}</span>
@@ -198,9 +197,9 @@ function AdminMessagesContent() {
         <footer className="p-3 bg-surface border-t border-outline-variant/30 shrink-0"><div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant"><input value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') sendMessage(); }} className="flex-1 bg-transparent outline-none text-body-md" placeholder="Type a message..." /><button type="button" onClick={sendMessage} className={`p-1.5 rounded-full ${draft.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button></div></footer>
       </div>
 
-      <div className="hidden min-w-0 grid-cols-1 gap-5 md:grid md:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden flex flex-col">
-          <div className="order-2 p-3 border-b border-outline-variant/30 overflow-x-auto no-scrollbar">
+      <div className="hidden h-full min-h-0 min-w-0 grid-cols-1 md:grid md:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className="safe-surface-enter min-w-0 bg-surface-container-low border-r border-outline-variant/30 overflow-hidden flex flex-col">
+          <div className="order-2 p-3 border-y border-outline-variant/30 overflow-x-auto admin-message-category-scroll">
             <div className="flex min-w-max gap-2" role="tablist" aria-label="Message categories">
             {groupTabs.map(tab => (
               <button
@@ -226,7 +225,7 @@ function AdminMessagesContent() {
               />
             </label>
           </div>
-          <div className="order-3 max-h-[56vh] overflow-x-hidden overflow-y-auto no-scrollbar">
+          <div className="order-3 min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
             {visibleConversations.map(conversation => (
               <button
                 key={conversation.id}
@@ -248,7 +247,7 @@ function AdminMessagesContent() {
           </div>
         </aside>
 
-        <section className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden min-h-[620px] flex flex-col">
+        <section className="safe-surface-enter min-w-0 min-h-0 bg-background overflow-hidden flex flex-col">
           <header className="p-4 border-b border-outline-variant/30 flex items-center gap-3">
             <span className="w-11 h-11 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">{activeConversation.avatar}</span>
             <div>
@@ -256,7 +255,7 @@ function AdminMessagesContent() {
               <p className="text-label-md text-on-surface-variant">{activeConversation.sub}</p>
             </div>
           </header>
-          <div className="p-4 bg-primary/5 border-b border-primary/15 text-label-md text-primary font-bold">{notice}</div>
+          <p className="sr-only" aria-live="polite">{notice}</p>
           <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-background">
             {activeThread.map((message, index) => (
               <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}>

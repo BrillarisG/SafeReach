@@ -25,7 +25,7 @@ export default function AdminTopNav({ activePage, onMenuToggle }: AdminTopNavPro
       </div>
       <nav className="hidden md:flex items-center gap-6">
         <Link href="/admin/dashboard" className={activePage === 'dashboard' ? activeLink : inactiveLink}>Dashboard</Link>
-        <Link href="/admin/students" className={activePage === 'students' ? activeLink : inactiveLink}>Class Records</Link>
+        <Link href="/admin/dashboard" className={activePage === 'students' ? activeLink : inactiveLink}>Class Records</Link>
         <Link href="/admin/teachers" className={activePage === 'teachers' ? activeLink : inactiveLink}>Teachers</Link>
         <Link href="/admin/messages" className={activePage === 'messages' ? activeLink : inactiveLink}>Messages</Link>
         <Link href="/admin/timetable" className={activePage === 'timetable' ? activeLink : inactiveLink}>Timetable</Link>

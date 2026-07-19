@@ -11,7 +11,7 @@ export default function AddStudentPage() {
 
   function nextStep() { if (currentStep < totalSteps) setCurrentStep(s => s + 1); }
   function prevStep() { if (currentStep > 1) setCurrentStep(s => s - 1); }
-  function handleSubmit(e: React.FormEvent) { e.preventDefault(); router.push('/admin/students'); }
+  function handleSubmit(e: React.FormEvent) { e.preventDefault(); router.push('/admin/dashboard'); }
 
   const stepCls = (step: number) => {
     if (step < currentStep) return 'w-10 h-10 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-bold';
@@ -24,7 +24,7 @@ export default function AddStudentPage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-stack-lg">
           <nav className="flex items-center gap-2 text-label-sm text-on-surface-variant mb-2">
-            <Link href="/admin/students" className="hover:text-primary">Students</Link>
+            <Link href="/admin/dashboard" className="hover:text-primary">Class Records</Link>
             <span className="material-symbols-outlined text-[16px]">chevron_right</span>
             <span className="text-primary font-bold">Add New Student</span>
           </nav>

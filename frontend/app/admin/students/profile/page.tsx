@@ -12,7 +12,7 @@ export default function StudentProfilePage() {
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop max-w-7xl mx-auto w-full">
       <nav className="flex gap-2 text-label-md text-on-surface-variant mb-stack-lg items-center">
-        <Link className="hover:text-primary" href="/admin/students">Directory</Link>
+        <Link className="hover:text-primary" href="/admin/dashboard">Class Records</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         <Link className="hover:text-primary" href="/admin/students/class-view?class=Class%204&section=B">Grade 4-B</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>

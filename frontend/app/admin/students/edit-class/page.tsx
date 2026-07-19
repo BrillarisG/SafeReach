@@ -4,6 +4,7 @@ import Link from '@/src/next-link';
 import { Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from '@/src/next-navigation';
 import { useBackendBootstrap } from '@/lib/backendData';
+import LoadingRing from '@/components/LoadingRing';
 
 function nextClassName(className: string, direction: 1 | -1) {
   const match = className.match(/(\d+)/);
@@ -56,7 +57,7 @@ function EditClassContent() {
 
         {(loading || error || notice) && (
           <div className="mb-4 space-y-2">
-            {loading && <div className="rounded-xl border border-outline-variant bg-white px-4 py-3 font-bold text-primary">Loading stored students...</div>}
+            {loading && <LoadingRing size="md" />}
             {error && <div className="rounded-xl border border-error/20 bg-error-container px-4 py-3 font-bold text-error">Backend data unavailable: {error}</div>}
             {notice && <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 font-bold text-primary">{notice}</div>}
           </div>
@@ -149,7 +150,7 @@ function EditClassContent() {
 
 export default function AdminEditClassPage() {
   return (
-    <Suspense fallback={<div className="p-gutter text-primary font-bold">Loading class editor...</div>}>
+    <Suspense fallback={<LoadingRing size="lg" />}>
       <EditClassContent />
     </Suspense>
   );

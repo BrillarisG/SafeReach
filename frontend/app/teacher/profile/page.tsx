@@ -1,6 +1,7 @@
 'use client';
 
 import ProfileImageUploader from '@/components/ProfileImageUploader';
+import ThemeModeToggle from '@/components/ThemeModeToggle';
 
 export default function TeacherProfilePage() {
   return (
@@ -21,6 +22,7 @@ export default function TeacherProfilePage() {
         </div>
         <button type="button" className="mt-5 bg-primary text-on-primary px-5 py-3 rounded-lg font-bold">Save Profile</button>
       </section>
+      <ThemeModeToggle />
     </div>
   );
 }

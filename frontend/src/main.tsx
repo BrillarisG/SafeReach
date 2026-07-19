@@ -1,6 +1,8 @@
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import RootLayout from "@/app/layout";
+import LoadingRing from "@/components/LoadingRing";
+import { applyThemeMode, readThemeMode } from "@/lib/themeMode";
 import AdminLayout from "@/app/admin/layout";
 import ParentLayout from "@/app/parent/layout";
 import TeacherLayout from "@/app/teacher/layout";
@@ -64,6 +66,8 @@ import ParentSettingsPage from "@/app/parent/settings/page";
 import ParentStudentsPage from "@/app/parent/students/page";
 import ParentSupportPage from "@/app/parent/support/page";
 import ParentTimetablePage from "@/app/parent/timetable/page";
+
+applyThemeMode(readThemeMode());
 
 const plainRoutes: Record<string, React.ComponentType> = {
   "/": HomePage,
@@ -179,7 +183,7 @@ function AppRouter() {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <Suspense fallback={null}>
+    <Suspense fallback={<LoadingRing size="lg" />}>
       <AppRouter />
     </Suspense>
   </React.StrictMode>,

@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import Link from '@/src/next-link';
 import { type TimetableBreak, type TimetableData } from '@/lib/timetable';
 import { useBackendBootstrap } from '@/lib/backendData';
+import LoadingRing from '@/components/LoadingRing';
 
 const emptyTimetable: TimetableData = {
   className: '',
@@ -151,7 +152,7 @@ export default function TimetableManager({ mode, editMode = false, requestedClas
   }
 
   if (loading) {
-    return <div className="p-container-padding-mobile md:p-container-padding-desktop text-primary font-bold">Loading stored timetable data...</div>;
+    return <LoadingRing size="lg" />;
   }
 
   if (error || !data.days.length) {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import ProfileImageUploader from '@/components/ProfileImageUploader';
+import ThemeModeToggle from '@/components/ThemeModeToggle';
 
 export default function AdminProfilePage() {
   const [notice, setNotice] = useState('');
@@ -71,6 +72,8 @@ export default function AdminProfilePage() {
           <button type="submit" className="bg-primary text-on-primary px-5 py-3 rounded-lg font-bold">Save Profile</button>
         </form>
       </section>
+
+      <ThemeModeToggle />
 
       <section className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">

@@ -3,6 +3,7 @@
 import Link from '@/src/next-link';
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from '@/src/next-navigation';
+import LoadingRing from '@/components/LoadingRing';
 
 type TeacherStudent = {
   name: string;
@@ -219,7 +220,7 @@ function TeacherStudentEditContent() {
 
 export default function TeacherStudentEditPage() {
   return (
-    <Suspense fallback={<div className="p-container-padding-mobile md:p-container-padding-desktop text-primary font-bold">Loading student edit page...</div>}>
+    <Suspense fallback={<LoadingRing size="lg" />}>
       <TeacherStudentEditContent />
     </Suspense>
   );

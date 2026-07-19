@@ -2,6 +2,7 @@
 
 import Link from '@/src/next-link';
 import { useState } from 'react';
+import { useSearchParams } from '@/src/next-navigation';
 
 const classes = [
   {name:'Mathematics â€“ Grade 10A',students:34,room:'Room 201',time:'Mon/Wed/Fri 08:00â€“09:00',attendance:'94%'},
@@ -16,34 +17,38 @@ const activities = [
 ];
 
 export default function AdminTeacherProfilePage() {
+  const searchParams = useSearchParams();
+  const isNewTeacher = searchParams?.get('mode') === 'new';
   const [tab, setTab] = useState<'profile'|'classes'|'activity'>('profile');
-  const [editMode, setEditMode] = useState(false);
+  const [editMode, setEditMode] = useState(isNewTeacher);
   const [notice, setNotice] = useState('');
-  const [teacherName, setTeacherName] = useState('Mr. James Anderson');
-  const [teacherRole, setTeacherRole] = useState('Senior Mathematics Teacher');
+  const [teacherName, setTeacherName] = useState(isNewTeacher ? '' : 'Mr. James Anderson');
+  const [teacherRole, setTeacherRole] = useState(isNewTeacher ? '' : 'Senior Mathematics Teacher');
   const [teacherDetails, setTeacherDetails] = useState({
-    email: 'j.anderson@safereach.school',
-    phone: '+91 98765 43210',
-    address: '42, Sunrise Colony, Mumbai - 400001',
-    dateOfBirth: 'March 14, 1985',
-    joined: 'June 2017',
-    education: 'M.Sc Mathematics, Delhi University',
-    certifications: 'B.Ed, National Teaching Award 2022',
-    languages: 'English, Hindi, Marathi',
-    specialization: 'Algebra, Calculus, Statistics',
+    email: isNewTeacher ? '' : 'j.anderson@safereach.school',
+    phone: isNewTeacher ? '' : '+91 98765 43210',
+    address: isNewTeacher ? '' : '42, Sunrise Colony, Mumbai - 400001',
+    dateOfBirth: isNewTeacher ? '' : 'March 14, 1985',
+    joined: isNewTeacher ? '' : 'June 2017',
+    education: isNewTeacher ? '' : 'M.Sc Mathematics, Delhi University',
+    certifications: isNewTeacher ? '' : 'B.Ed, National Teaching Award 2022',
+    languages: isNewTeacher ? '' : 'English, Hindi, Marathi',
+    specialization: isNewTeacher ? '' : 'Algebra, Calculus, Statistics',
   });
 
   function updateTeacherDetail(field: keyof typeof teacherDetails, value: string) {
     setTeacherDetails(current => ({ ...current, [field]: value }));
   }
 
-  const teacherMessageHref = `/admin/messages?chat=teacher-james&name=${encodeURIComponent(teacherName)}&role=${encodeURIComponent(teacherRole)}`;
+  const displayTeacherName = teacherName || 'New Teacher';
+  const displayTeacherRole = teacherRole || 'Teacher profile setup';
+  const teacherMessageHref = `/admin/messages?chat=teacher-james&name=${encodeURIComponent(displayTeacherName)}&role=${encodeURIComponent(displayTeacherRole)}`;
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop">
       <div className="flex items-center gap-2 text-label-md text-on-surface-variant mb-stack-lg">
         <Link href="/admin/teachers" className="hover:text-primary transition-colors">Staff Management</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-        <span className="text-on-surface font-bold">{teacherName}</span>
+        <span className="text-on-surface font-bold">{displayTeacherName}</span>
       </div>
       {notice && <div className="mb-stack-lg rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-primary font-bold">{notice}</div>}
       <div className="bg-white rounded-xl shadow-sm border border-outline-variant/30 p-stack-lg mb-stack-lg">
@@ -54,8 +59,8 @@ export default function AdminTeacherProfilePage() {
           <div className="flex-1">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="font-headline-lg text-headline-lg text-on-surface">{teacherName}</h1>
-                <p className="text-body-md text-on-surface-variant">{teacherRole}</p>
+                <h1 className="font-headline-lg text-headline-lg text-on-surface">{displayTeacherName}</h1>
+                <p className="text-body-md text-on-surface-variant">{displayTeacherRole}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className="px-2.5 py-1 rounded-full text-label-sm bg-green-100 text-green-700 font-bold">Active</span>
                   <span className="px-2.5 py-1 rounded-full text-label-sm bg-primary/10 text-primary">EMP-10024</span>
@@ -63,7 +68,7 @@ export default function AdminTeacherProfilePage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Link href={teacherMessageHref} className="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-label-md hover:bg-surface-container transition-colors"><span className="material-symbols-outlined text-[18px]">chat</span>Message</Link>
+                {!isNewTeacher && <Link href={teacherMessageHref} className="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-label-md hover:bg-surface-container transition-colors"><span className="material-symbols-outlined text-[18px]">chat</span>Message</Link>}
                 <button onClick={() => setEditMode(open => !open)} className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg text-label-md hover:bg-primary-container transition-colors"><span className="material-symbols-outlined text-[18px]">edit</span>Edit Profile</button>
               </div>
             </div>
@@ -76,8 +81,8 @@ export default function AdminTeacherProfilePage() {
         </div>
       </div>
       {editMode && (
-        <form onSubmit={event => { event.preventDefault(); setEditMode(false); setNotice(`${teacherName} profile updated in frontend demo.`); }} className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md mb-stack-lg">
-          <h2 className="font-headline-md text-headline-md text-primary mb-4">Edit Teacher Profile</h2>
+        <form onSubmit={event => { event.preventDefault(); setEditMode(false); setNotice(`${displayTeacherName} profile ${isNewTeacher ? 'created' : 'updated'} in frontend demo.`); }} className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md mb-stack-lg">
+          <h2 className="font-headline-md text-headline-md text-primary mb-4">{isNewTeacher ? 'Add Teacher Profile' : 'Edit Teacher Profile'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="space-y-1.5">
               <span className="text-label-md text-on-surface-variant font-bold">Teacher Name</span>

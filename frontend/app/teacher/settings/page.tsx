@@ -1,8 +1,11 @@
 'use client';
 
+import ThemeModeToggle from '@/components/ThemeModeToggle';
+
 export default function TeacherSettingsPage() {
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop space-y-stack-lg">
+      <ThemeModeToggle />
       <section className="bg-white rounded-xl border border-outline-variant/30 p-stack-md shadow-sm">
         <h3 className="font-headline-md text-primary mb-4">Teacher Account Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

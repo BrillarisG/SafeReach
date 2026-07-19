@@ -3,6 +3,7 @@
 import Link from '@/src/next-link';
 import { useMemo, useState } from 'react';
 import { type BackendTeacher, useBackendBootstrap } from '@/lib/backendData';
+import LoadingRing from '@/components/LoadingRing';
 
 function assignmentLabel(teacher: BackendTeacher) {
   const primary = teacher.assignments?.[0];
@@ -59,7 +60,7 @@ export default function AdminTeachersPage() {
   }
 
   if (loading) {
-    return <div className="p-container-padding-mobile md:p-container-padding-desktop text-primary font-bold">Loading stored teacher data...</div>;
+    return <LoadingRing size="lg" />;
   }
 
   return (

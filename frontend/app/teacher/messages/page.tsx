@@ -113,6 +113,7 @@ export default function TeacherMessagesPage() {
   const [newMsg, setNewMsg] = useState('');
   const activeConv = filteredConversations.find(c => c.id === active) ?? filteredConversations[0] ?? conversations[0];
   const activeStudent = classStudents.find(student => student.id === activeConv?.studentId);
+  const showSenderName = Boolean(activeConv?.id?.startsWith('group-'));
 
   const thread = useMemo<Message[]>(() => {
     if (activeStudent) {
@@ -264,11 +265,11 @@ export default function TeacherMessagesPage() {
             <span className="font-bold text-primary">{activeStudent.name}</span> status: {activeStudent.absenceReason ? 'Reason received' : 'Waiting for parent reason'}
           </div>
         )}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 pb-28 md:pb-4 space-y-3">
           {thread.map((m, i) => (
             <div key={`${m.time}-${i}`} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
               <div className={`chat-bubble max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'chat-bubble-sent bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'chat-bubble-received bg-primary text-on-primary rounded-bl-sm border border-primary'}`}>
-                <p>{m.text}</p><p className={`mt-2 text-[11px] font-bold ${m.me ? 'text-on-surface-variant' : 'text-on-primary/80'}`}>{m.from}</p><p className={`text-[11px] ${m.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{m.time}</p>
+                <p>{m.text}</p><p className={`mt-2 text-[11px] ${m.me ? 'text-on-surface-variant' : 'text-on-primary/80'}`}>{showSenderName ? `${m.from} | ${m.time}` : m.time}</p>
               </div>
             </div>
           ))}
@@ -278,7 +279,7 @@ export default function TeacherMessagesPage() {
             </div>
           )}
         </div>
-        <div className="p-3 bg-surface border-t border-outline-variant/30 shrink-0">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))] md:static md:z-auto md:pb-3">
           {sentNotice && <p className="mb-2 text-label-md font-bold text-primary">{sentNotice}</p>}
           <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant">
             <input className="flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder:text-on-surface-variant outline-none" placeholder={activeStudent ? 'Reason review is read-only in this frontend demo.' : 'Type a message...'} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newMsg.trim()) setNewMsg(''); }} />

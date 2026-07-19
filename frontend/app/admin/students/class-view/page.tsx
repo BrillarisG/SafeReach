@@ -3,6 +3,7 @@
 import Link from '@/src/next-link';
 import { Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from '@/src/next-navigation';
+import LoadingRing from '@/components/LoadingRing';
 
 type Panel = 'overview' | 'teachers' | 'students';
 
@@ -146,7 +147,7 @@ function ClassViewContent() {
 
 export default function AdminStudentClassViewPage() {
   return (
-    <Suspense fallback={<div className="p-gutter text-on-surface-variant">Loading class records...</div>}>
+    <Suspense fallback={<LoadingRing size="lg" />}>
       <ClassViewContent />
     </Suspense>
   );

@@ -4,6 +4,7 @@ import Link from '@/src/next-link';
 import { useMemo, useState } from 'react';
 import { useBackendBootstrap } from '@/lib/backendData';
 import { downloadTextFile } from '@/lib/downloadFile';
+import LoadingRing from '@/components/LoadingRing';
 
 export default function AdminStudentsPage() {
   const { data, loading, error } = useBackendBootstrap();
@@ -49,7 +50,7 @@ export default function AdminStudentsPage() {
         </div>
       </div>
 
-      {loading && <div className="rounded-xl bg-white border border-outline-variant p-stack-md text-primary font-bold">Loading stored class data...</div>}
+      {loading && <LoadingRing size="lg" />}
       {error && <div className="rounded-xl bg-error-container border border-error/20 p-stack-md text-error font-bold">Backend data unavailable: {error}</div>}
 
       <section className="class-record-grid grid grid-cols-1 justify-items-start sm:grid-cols-2 xl:grid-cols-3 gap-gutter mb-stack-lg">

@@ -1,8 +1,11 @@
 'use client';
 
+import ThemeModeToggle from '@/components/ThemeModeToggle';
+
 export default function ParentSettingsPage() {
   return (
     <div className="px-container-padding-mobile md:px-container-padding-desktop py-stack-lg space-y-stack-lg">
+      <ThemeModeToggle />
       <section className="bg-white rounded-xl border border-outline-variant/30 p-stack-md shadow-sm">
         <h3 className="font-headline-md text-primary mb-4">Parent Account Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

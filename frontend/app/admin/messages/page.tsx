@@ -151,24 +151,23 @@ function AdminMessagesContent() {
       </div>
 
       <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
-        <aside className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden">
-          <div className="p-3 border-b border-outline-variant/30 grid gap-2">
+        <aside className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden flex flex-col">
+          <div className="order-2 p-3 border-b border-outline-variant/30 overflow-x-scroll">
+            <div className="flex min-w-max gap-2">
             {groupTabs.map(tab => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => changeGroup(tab.id)}
-                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all ${activeGroup === tab.id ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'}`}
+                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-left text-label-sm font-bold whitespace-nowrap transition-all ${activeGroup === tab.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant bg-white text-on-surface-variant hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
-                <span>
-                  <span className="block font-bold text-label-md">{tab.label}</span>
-                  <span className={`block text-label-sm ${activeGroup === tab.id ? 'text-on-primary/75' : 'text-on-surface-variant'}`}>{tab.helper}</span>
-                </span>
+                <span>{tab.label}</span>
               </button>
             ))}
+            </div>
           </div>
-          <div className="p-3 border-b border-outline-variant/30">
+          <div className="order-1 p-3 border-b border-outline-variant/30">
             <label className="relative block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
               <input
@@ -179,7 +178,7 @@ function AdminMessagesContent() {
               />
             </label>
           </div>
-          <div className="max-h-[56vh] overflow-y-auto">
+          <div className="order-3 max-h-[56vh] overflow-y-auto">
             {visibleConversations.map(conversation => (
               <button
                 key={conversation.id}

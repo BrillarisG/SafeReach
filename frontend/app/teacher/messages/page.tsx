@@ -154,7 +154,7 @@ export default function TeacherMessagesPage() {
   return (
     <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full min-h-0 overflow-hidden">
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
-        <div className="border-b border-outline-variant/20 p-3 overflow-x-auto no-scrollbar">
+        <div className="order-2 border-b border-outline-variant/20 p-3 overflow-x-scroll">
           <div className="flex min-w-max items-center gap-1.5">
             {groups.map(group => {
               const unread = conversations.filter(conversation => (group.id === 'all' || conversation.group === group.id) && conversation.unread > 0).reduce((total, conversation) => total + conversation.unread, 0);
@@ -171,7 +171,7 @@ export default function TeacherMessagesPage() {
             })}
           </div>
         </div>
-        <div className="p-3 border-b border-outline-variant/20">
+        <div className="order-1 p-3 border-b border-outline-variant/20">
           <div className="relative"><span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search messages..." /></div>
           {selectedGroup === 'direct' && (
             <select
@@ -189,7 +189,7 @@ export default function TeacherMessagesPage() {
             </select>
           )}
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="order-3 flex-1 overflow-y-auto">
           {filteredConversations.map(c => (
             <button key={c.id} onClick={() => setActive(c.id)} className={`w-full flex items-center gap-3 px-4 py-3 border-b border-outline-variant/20 text-left transition-colors ${active === c.id ? 'bg-primary-container/30' : 'hover:bg-surface-container'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-label-sm font-bold shrink-0 ${active === c.id ? 'bg-primary text-white' : 'bg-primary-container text-primary'}`}>{c.avatar}</div>

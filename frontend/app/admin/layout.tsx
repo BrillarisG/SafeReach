@@ -35,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <AdminSidebar activeItem={getSidebar(pathname)} />
         {mobileMenuOpen && <button type="button" aria-label="Close admin menu" onClick={() => setMobileMenuOpen(false)} className="fixed inset-0 z-40 bg-on-surface/20 lg:hidden" />}
         <AdminSidebar activeItem={getSidebar(pathname)} onNavigate={() => setMobileMenuOpen(false)} className={`fixed left-0 top-16 z-50 flex h-[calc(100vh-64px)] w-64 flex-col bg-surface border-r border-outline-variant/60 p-3 transition-transform duration-200 lg:hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`} />
-        <div className="flex-1 min-w-0 lg:ml-64">
+        <div key={pathname} className="admin-page-enter flex-1 min-w-0 lg:ml-64">
           {children}
         </div>
       </div>

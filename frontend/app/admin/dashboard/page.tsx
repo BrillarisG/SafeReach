@@ -41,7 +41,7 @@ export default function AdminDashboardPage() {
 
       <section className="mx-auto w-full max-w-5xl bg-white rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] p-stack-md">
           <h3 className="font-headline-md text-on-surface mb-4">Class Records</h3>
-          <div className="grid grid-cols-1 justify-items-center sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="class-record-grid grid grid-cols-1 justify-items-center sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {data.classes.map(item => {
               const classStudents = data.students.filter(student => student.class_name === item.class_name);
               const studentCount = classStudents.length;
@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
                 <Link
                   key={item.id}
                   href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(section)}`}
-                  className="class-record-font w-full max-w-[180px] rounded-[22px] border border-outline-variant/70 bg-surface-container-low px-5 py-4 shadow-[3px_4px_0_rgba(25,28,30,0.18)] transition-colors hover:border-primary hover:bg-primary/5"
+                  className="class-record-card class-record-font w-full max-w-[180px] rounded-[22px] border border-outline-variant/70 bg-surface-container-low px-5 py-4 shadow-[3px_4px_0_rgba(25,28,30,0.18)] hover:border-primary hover:bg-primary/5"
                 >
                   <p className="text-[24px] leading-none font-extrabold text-on-surface">{item.class_name}</p>
                   <p className="mt-1 text-[16px] leading-none font-bold text-outline">Section {section || '-'}</p>

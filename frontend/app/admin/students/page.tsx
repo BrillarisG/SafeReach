@@ -48,7 +48,7 @@ export default function AdminStudentsPage() {
       {loading && <div className="rounded-xl bg-white border border-outline-variant p-stack-md text-primary font-bold">Loading stored class data...</div>}
       {error && <div className="rounded-xl bg-error-container border border-error/20 p-stack-md text-error font-bold">Backend data unavailable: {error}</div>}
 
-      <section className="grid grid-cols-1 justify-items-start sm:grid-cols-2 xl:grid-cols-3 gap-gutter mb-stack-lg">
+      <section className="class-record-grid grid grid-cols-1 justify-items-start sm:grid-cols-2 xl:grid-cols-3 gap-gutter mb-stack-lg">
         {data.classes.map(item => {
           const classStudents = data.students.filter(student => student.class_name === item.class_name);
           const present = classStudents.filter(student => student.attendance_status === 'present').length;
@@ -57,7 +57,7 @@ export default function AdminStudentsPage() {
             <Link
               key={item.id}
               href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(item.sections[0]?.name ?? '')}`}
-              className="class-record-font w-full max-w-[260px] min-h-[238px] text-left bg-surface-container-low rounded-[30px] border border-outline-variant/40 px-6 py-5 shadow-[3px_4px_0_rgba(25,28,30,0.18)] hover:shadow-md hover:border-primary transition-all"
+              className="class-record-card class-record-font w-full max-w-[260px] min-h-[238px] text-left bg-surface-container-low rounded-[30px] border border-outline-variant/40 px-6 py-5 shadow-[3px_4px_0_rgba(25,28,30,0.18)] hover:shadow-md hover:border-primary"
             >
               <p className="font-headline-lg text-[32px] leading-none text-on-surface">{item.class_name}</p>
               <p className="mt-1 text-[24px] leading-none font-bold text-outline">Section {item.sections[0]?.name ?? '-'}</p>

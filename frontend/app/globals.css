@@ -35,6 +35,43 @@ body { font-family: 'Inter', sans-serif; }
   font-weight: 600;
 }
 
+.admin-page-enter {
+  animation: adminPageEnter 220ms ease-out both;
+}
+
+.class-record-card {
+  animation: classRecordEnter 360ms ease-out both;
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  will-change: transform;
+}
+
+.class-record-card:hover {
+  transform: translateY(-4px);
+}
+
+.class-record-grid > .class-record-card:nth-child(2) { animation-delay: 50ms; }
+.class-record-grid > .class-record-card:nth-child(3) { animation-delay: 100ms; }
+.class-record-grid > .class-record-card:nth-child(4) { animation-delay: 150ms; }
+.class-record-grid > .class-record-card:nth-child(5) { animation-delay: 200ms; }
+
+@keyframes adminPageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes classRecordEnter {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-page-enter,
+  .class-record-card {
+    animation: none;
+    transition: none;
+  }
+}
+
 @supports selector(:has(*)) {
   .overflow-x-auto:has(> table),
   .student-table-container {

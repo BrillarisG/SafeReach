@@ -60,7 +60,7 @@ function ClassViewContent() {
         </Link>
       </div>
 
-      <div className="mx-auto mb-5 grid w-[calc(100vw-32px)] max-w-[340px] grid-cols-2 gap-3 md:w-full">
+      <div className="mb-5 grid w-full grid-cols-2 gap-3">
         <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`flex h-32 min-w-0 flex-col items-center justify-center rounded-xl border bg-white p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
           <span className="material-symbols-outlined text-[48px] text-primary md:text-[52px]">co_present</span>
           <span className="mt-2 block text-[17px] font-bold text-on-surface">Teacher</span>

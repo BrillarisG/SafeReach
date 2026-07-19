@@ -32,7 +32,7 @@ function ClassViewContent() {
   const params = useSearchParams();
   const className = params?.get('class') || 'Class 4';
   const section = params?.get('section') || 'B';
-  const initialView = (params?.get('view') as Panel | null) || 'overview';
+  const initialView = (params?.get('view') as Panel | null) || 'students';
   const [panel, setPanel] = useState<Panel>(initialView);
   const [search, setSearch] = useState('');
 
@@ -43,31 +43,31 @@ function ClassViewContent() {
   }), [className, search, section]);
 
   return (
-    <div className="p-gutter">
-      <nav className="flex flex-wrap items-center gap-2 text-label-md text-on-surface-variant mb-stack-lg">
+    <div className="p-gutter md:p-8">
+      <nav className="mb-4 flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-[13px] text-on-surface-variant">
         <Link href="/admin/students" className="hover:text-primary">Class Records</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-        <span className="text-primary font-bold">{className} - Section {section}</span>
+        <span className="truncate text-primary font-bold">{className} - Section {section}</span>
       </nav>
 
-      <div className="mb-stack-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-headline-lg text-headline-lg text-primary">{className} - Section {section}</h1>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-[28px] font-bold leading-tight text-primary md:text-headline-lg">{className} <span className="text-on-surface-variant">- Section {section}</span></h1>
         </div>
-        <Link href="/admin/students" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-outline-variant text-primary font-bold hover:bg-primary/5">
+        <Link href="/admin/students" className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 py-2 text-primary font-bold hover:bg-primary/5 sm:w-auto">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Back to Classes
         </Link>
       </div>
 
-      <div className="mx-auto grid max-w-[380px] grid-cols-2 gap-3 mb-stack-lg">
-        <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`h-40 text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <span className="material-symbols-outlined text-[68px] text-primary">co_present</span>
-          <span className="mt-2 block font-headline-md text-headline-md text-on-surface">Teacher</span>
+      <div className="mx-auto mb-5 grid max-w-[340px] grid-cols-2 gap-3">
+        <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`h-32 text-center rounded-xl border bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[52px] text-primary">co_present</span>
+          <span className="mt-1 block text-lg font-bold text-on-surface">Teacher</span>
         </button>
-        <button type="button" onClick={() => setPanel('students')} aria-label="Open class students" className={`h-40 text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <span className="material-symbols-outlined text-[68px] text-primary">groups</span>
-          <span className="mt-2 block font-headline-md text-headline-md text-on-surface">Students</span>
+        <button type="button" onClick={() => setPanel('students')} aria-label="Open class students" className={`h-32 text-center rounded-xl border bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[52px] text-primary">groups</span>
+          <span className="mt-1 block text-lg font-bold text-on-surface">Students</span>
         </button>
       </div>
 

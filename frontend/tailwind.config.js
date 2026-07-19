@@ -38,6 +38,7 @@ module.exports = {
       spacing: {
         "container-padding-mobile": "16px",
         "container-padding-desktop": "32px",
+        gutter: "16px",
         "stack-sm": "8px",
         "stack-md": "16px",
         "stack-lg": "24px",

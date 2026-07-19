@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
                 <Link
                   key={item.id}
                   href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(section)}`}
-                  className="class-record-font w-full max-w-[180px] rounded-[22px] border border-outline-variant/70 bg-surface-container-low px-5 py-4 shadow-sm transition-colors hover:border-primary hover:bg-primary/5"
+                  className="class-record-font w-full max-w-[180px] rounded-[22px] border border-outline-variant/70 bg-surface-container-low px-5 py-4 shadow-[3px_4px_0_rgba(25,28,30,0.18)] transition-colors hover:border-primary hover:bg-primary/5"
                 >
                   <p className="text-[24px] leading-none font-extrabold text-on-surface">{item.class_name}</p>
                   <p className="mt-1 text-[16px] leading-none font-bold text-outline">Section {section || '-'}</p>

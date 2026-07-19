@@ -57,7 +57,7 @@ export default function AdminStudentsPage() {
             <Link
               key={item.id}
               href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(item.sections[0]?.name ?? '')}`}
-              className="class-record-font w-full max-w-[260px] min-h-[238px] text-left bg-surface-container-low rounded-[30px] border border-outline-variant/40 px-6 py-5 shadow-sm hover:shadow-md hover:border-primary transition-all"
+              className="class-record-font w-full max-w-[260px] min-h-[238px] text-left bg-surface-container-low rounded-[30px] border border-outline-variant/40 px-6 py-5 shadow-[3px_4px_0_rgba(25,28,30,0.18)] hover:shadow-md hover:border-primary transition-all"
             >
               <p className="font-headline-lg text-[32px] leading-none text-on-surface">{item.class_name}</p>
               <p className="mt-1 text-[24px] leading-none font-bold text-outline">Section {item.sections[0]?.name ?? '-'}</p>

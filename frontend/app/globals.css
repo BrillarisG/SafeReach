@@ -30,6 +30,11 @@ body { font-family: 'Inter', sans-serif; }
   display: none;
 }
 
+.class-record-font {
+  font-family: "Bahnschrift SemiBold", Bahnschrift, "Segoe UI", sans-serif;
+  font-weight: 600;
+}
+
 @supports selector(:has(*)) {
   .overflow-x-auto:has(> table),
   .student-table-container {

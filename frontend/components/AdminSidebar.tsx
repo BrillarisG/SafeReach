@@ -90,7 +90,7 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
       <nav className="flex-1 space-y-1">
         <Link href="/admin/dashboard" onClick={onNavigate} className={activeItem === 'analytics' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]" style={activeItem === 'analytics' ? {fontVariationSettings: "'FILL' 1"} : undefined}>dashboard</span>
-          <span className="text-label-md">Real-time Analytics</span>
+          <span className="text-label-md">Dashboard</span>
         </Link>
         <Link href="/admin/students" onClick={onNavigate} className={activeItem === 'students' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">school</span>

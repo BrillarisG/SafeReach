@@ -2,7 +2,7 @@
 
 import Link from '@/src/next-link';
 import { useMemo, useState } from 'react';
-import { useBackendBootstrap, statusLabel } from '@/lib/backendData';
+import { useBackendBootstrap } from '@/lib/backendData';
 import { downloadTextFile } from '@/lib/downloadFile';
 
 export default function AdminStudentsPage() {
@@ -57,25 +57,12 @@ export default function AdminStudentsPage() {
             <Link
               key={item.id}
               href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(item.sections[0]?.name ?? '')}`}
-              className="text-left bg-white rounded-xl border border-outline-variant/40 p-stack-md shadow-sm hover:shadow-md hover:border-primary transition-all"
+              className="text-left bg-surface-container-low rounded-[30px] border border-outline-variant/40 px-6 py-5 shadow-sm hover:shadow-md hover:border-primary transition-all"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-headline-md text-headline-md text-primary">{item.class_name}</p>
-                  <p className="text-label-md text-on-surface-variant">{item.sections.length} stored sections</p>
-                </div>
-                <span className="material-symbols-outlined text-primary">school</span>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="bg-surface-container/60 rounded-lg p-3">
-                  <p className="text-label-sm text-on-surface-variant">Students</p>
-                  <p className="font-bold text-primary text-headline-md">{classStudents.length}</p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-3">
-                  <p className="text-label-sm text-on-surface-variant">Attendance</p>
-                  <p className="font-bold text-green-700 text-headline-md">{attendance}</p>
-                </div>
-              </div>
+              <p className="font-headline-lg text-[32px] leading-none text-on-surface">{item.class_name}</p>
+              <p className="mt-1 text-[24px] leading-none font-bold text-outline">Section {item.sections[0]?.name ?? '-'}</p>
+              <p className="mt-8 text-[22px] leading-none font-bold text-primary-container">Students: {String(classStudents.length).padStart(2, '0')}</p>
+              <p className="mt-2 text-[22px] leading-none font-bold text-green-700">SafeReach: {attendance}</p>
             </Link>
           );
         })}

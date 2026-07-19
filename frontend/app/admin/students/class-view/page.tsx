@@ -35,46 +35,12 @@ function ClassViewContent() {
   const initialView = (params?.get('view') as Panel | null) || 'overview';
   const [panel, setPanel] = useState<Panel>(initialView);
   const [search, setSearch] = useState('');
-  const [teachers, setTeachers] = useState(teacherSeed);
-  const [teacherName, setTeacherName] = useState('');
-  const [teacherSubject, setTeacherSubject] = useState('');
-  const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
-  const [notice, setNotice] = useState('School admin can add and edit subjects for this class only in the frontend demo.');
 
   const visibleStudents = useMemo(() => students.filter(student => {
     const classMatch = student.className === className && student.section === section;
     const searchMatch = `${student.name} ${student.id} ${student.guardian} ${student.phone}`.toLowerCase().includes(search.toLowerCase());
     return classMatch && searchMatch;
   }), [className, search, section]);
-
-  function saveTeacher(event: React.FormEvent) {
-    event.preventDefault();
-    if (!teacherName.trim() || !teacherSubject.trim()) return;
-    if (editingTeacherId) {
-      setTeachers(current => current.map(teacher => teacher.id === editingTeacherId ? { ...teacher, name: teacherName.trim(), subject: teacherSubject.trim() } : teacher));
-      setNotice(`${teacherName.trim()} subject updated for ${className}-${section}.`);
-      setEditingTeacherId(null);
-    } else {
-      setTeachers(current => [{
-        id: `t-${Date.now()}`,
-        name: teacherName.trim(),
-        role: 'Subject Teacher',
-        subject: teacherSubject.trim(),
-        phone: '+91 90000 00000',
-        email: `${teacherName.trim().toLowerCase().replace(/\s+/g, '.')}@safereach.school`,
-      }, ...current]);
-      setNotice(`${teacherName.trim()} added as an additional subject teacher.`);
-    }
-    setTeacherName('');
-    setTeacherSubject('');
-  }
-
-  function startEditTeacher(teacher: typeof teacherSeed[number]) {
-    setEditingTeacherId(teacher.id);
-    setTeacherName(teacher.name);
-    setTeacherSubject(teacher.subject);
-    setPanel('teachers');
-  }
 
   return (
     <div className="p-gutter">
@@ -87,7 +53,6 @@ function ClassViewContent() {
       <div className="mb-stack-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="font-headline-lg text-headline-lg text-primary">{className} - Section {section}</h1>
-          <p className="text-label-md text-on-surface-variant">Open class teachers or class students as separate containers.</p>
         </div>
         <Link href="/admin/students" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-outline-variant text-primary font-bold hover:bg-primary/5">
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -95,52 +60,29 @@ function ClassViewContent() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-stack-lg">
-        <button onClick={() => setPanel('teachers')} className={`text-left rounded-xl border bg-white p-stack-md shadow-sm hover:shadow-md transition-all ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="font-headline-md text-headline-md text-primary">Class Teacher</h2>
-              <p className="text-label-md text-on-surface-variant">View incharge, assistant, and subject teachers.</p>
-            </div>
-            <span className="material-symbols-outlined text-primary">badge</span>
-          </div>
-          <p className="mt-4 text-headline-md font-bold text-primary">{teachers.length}</p>
-          <p className="text-label-sm text-on-surface-variant">teachers assigned</p>
+      <div className="grid max-w-xl grid-cols-2 gap-3 mb-stack-lg">
+        <button onClick={() => setPanel('teachers')} className={`aspect-square text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[58px] text-primary">co_present</span>
+          <span className="mt-4 block font-headline-md text-headline-md text-on-surface">Teacher</span>
         </button>
-
-        <button onClick={() => setPanel('students')} className={`text-left rounded-xl border bg-white p-stack-md shadow-sm hover:shadow-md transition-all ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="font-headline-md text-headline-md text-primary">Class Students</h2>
-              <p className="text-label-md text-on-surface-variant">Open the previous student record table for this class.</p>
-            </div>
-            <span className="material-symbols-outlined text-primary">groups</span>
-          </div>
-          <p className="mt-4 text-headline-md font-bold text-primary">{visibleStudents.length}</p>
-          <p className="text-label-sm text-on-surface-variant">students in selected section</p>
+        <button onClick={() => setPanel('students')} className={`aspect-square text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[58px] text-primary">groups</span>
+          <span className="mt-4 block font-headline-md text-headline-md text-on-surface">Students</span>
         </button>
       </div>
 
       {panel === 'overview' && (
         <div className="rounded-xl border border-outline-variant/40 bg-white p-stack-md text-on-surface-variant">
-          Select Class Teacher or Class Students above to open the details container.
+          Select Teacher or Students above.
         </div>
       )}
 
       {panel === 'teachers' && (
         <section className="glass-card rounded-xl overflow-hidden">
-          <div className="p-stack-md border-b border-outline-variant">
-            <h2 className="font-headline-md text-headline-md text-primary">Class Teacher Details</h2>
-            <p className="text-label-md text-on-surface-variant">{notice}</p>
+          <div className="p-stack-md border-b border-outline-variant flex items-center justify-between gap-3">
+            <h2 className="font-headline-md text-headline-md text-primary">Class Teachers</h2>
+            <Link href={`/admin/teachers/new?class=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}`} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-on-primary font-bold"><span className="material-symbols-outlined text-[18px]">person_add</span>Add Teacher</Link>
           </div>
-          <form onSubmit={saveTeacher} className="p-stack-md border-b border-outline-variant/40 grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3">
-            <input value={teacherName} onChange={event => setTeacherName(event.target.value)} className="px-4 py-3 rounded-lg border border-outline-variant bg-surface-container" placeholder="Teacher name" />
-            <input value={teacherSubject} onChange={event => setTeacherSubject(event.target.value)} className="px-4 py-3 rounded-lg border border-outline-variant bg-surface-container" placeholder="Subject" />
-            <button type="submit" className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-primary text-on-primary font-bold">
-              <span className="material-symbols-outlined text-[20px]">{editingTeacherId ? 'save' : 'person_add'}</span>
-              {editingTeacherId ? 'Save Teacher' : 'Add Teacher'}
-            </button>
-          </form>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-stack-md">
             {teachers.map(teacher => (
               <div key={teacher.id} className="rounded-xl border border-outline-variant/50 bg-white p-4">
@@ -153,10 +95,10 @@ function ClassViewContent() {
                 </div>
                 <p className="mt-3 text-label-md text-on-surface-variant">{teacher.email}</p>
                 <p className="text-label-md text-on-surface-variant">{teacher.phone}</p>
-                <button onClick={() => startEditTeacher(teacher)} className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold">
+                <Link href={`/admin/teachers/profile?id=${teacher.id}&mode=edit`} className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold">
                   <span className="material-symbols-outlined text-[18px]">edit</span>
                   Edit Subject
-                </button>
+                </Link>
               </div>
             ))}
           </div>

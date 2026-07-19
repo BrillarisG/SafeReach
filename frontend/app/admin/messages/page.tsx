@@ -149,8 +149,8 @@ function AdminMessagesContent() {
 
       <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden flex flex-col">
-          <div className="order-2 p-3 border-b border-outline-variant/30">
-            <div className="flex flex-col gap-2">
+          <div className="order-2 p-3 border-b border-outline-variant/30 overflow-x-hidden">
+            <div className="flex flex-col gap-2" role="tablist" aria-label="Message categories">
             {groupTabs.map(tab => (
               <button
                 key={tab.id}
@@ -175,7 +175,7 @@ function AdminMessagesContent() {
               />
             </label>
           </div>
-          <div className="order-3 max-h-[56vh] overflow-y-auto">
+          <div className="order-3 max-h-[56vh] overflow-x-hidden overflow-y-auto no-scrollbar">
             {visibleConversations.map(conversation => (
               <button
                 key={conversation.id}

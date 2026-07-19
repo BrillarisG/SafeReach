@@ -60,14 +60,14 @@ function ClassViewContent() {
         </Link>
       </div>
 
-      <div className="grid max-w-xl grid-cols-2 gap-3 mb-stack-lg">
-        <button onClick={() => setPanel('teachers')} className={`aspect-square text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <span className="material-symbols-outlined text-[58px] text-primary">co_present</span>
-          <span className="mt-4 block font-headline-md text-headline-md text-on-surface">Teacher</span>
+      <div className="grid max-w-[380px] grid-cols-2 gap-3 mb-stack-lg">
+        <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`h-40 text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[68px] text-primary">co_present</span>
+          <span className="mt-2 block font-headline-md text-headline-md text-on-surface">Teacher</span>
         </button>
-        <button onClick={() => setPanel('students')} className={`aspect-square text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <span className="material-symbols-outlined text-[58px] text-primary">groups</span>
-          <span className="mt-4 block font-headline-md text-headline-md text-on-surface">Students</span>
+        <button type="button" onClick={() => setPanel('students')} aria-label="Open class students" className={`h-40 text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[68px] text-primary">groups</span>
+          <span className="mt-2 block font-headline-md text-headline-md text-on-surface">Students</span>
         </button>
       </div>
 
@@ -84,7 +84,7 @@ function ClassViewContent() {
             <Link href={`/admin/teachers/new?class=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}`} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-on-primary font-bold"><span className="material-symbols-outlined text-[18px]">person_add</span>Add Teacher</Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-stack-md">
-            {teachers.map(teacher => (
+            {teacherSeed.map(teacher => (
               <div key={teacher.id} className="rounded-xl border border-outline-variant/50 bg-white p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>

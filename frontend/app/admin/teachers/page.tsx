@@ -69,10 +69,10 @@ export default function AdminTeachersPage() {
           <h1 className="text-headline-lg font-headline-lg text-primary">Staff Directory</h1>
           <p className="text-body-md text-on-surface-variant">Stored teacher assignments, availability, and school permissions from DB-1.</p>
         </div>
-        <button type="button" onClick={() => handlePlannedWrite('Add teacher')} className="bg-primary text-on-primary h-[48px] px-stack-lg rounded-lg font-bold flex items-center gap-stack-sm hover:shadow-lg transition-shadow">
+        <Link href="/admin/teachers/profile?mode=new" className="bg-primary text-on-primary h-[48px] px-stack-lg rounded-lg font-bold flex items-center gap-stack-sm hover:shadow-lg transition-shadow">
           <span className="material-symbols-outlined">person_add</span>
           Add New Teacher
-        </button>
+        </Link>
       </div>
 
       {error && (
@@ -81,14 +81,14 @@ export default function AdminTeachersPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-stack-lg">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-stack-lg">
         {[
           { label: 'Total Staff', value: String(teachers.length), sub: 'Stored records', border: 'border-primary', icon: 'groups', iconCls: 'text-primary-container bg-primary/10' },
           { label: 'Active Duty', value: String(teachers.filter(t => (t.status || 'active') === 'active').length), sub: 'Available', border: 'border-secondary', icon: 'check_circle', iconCls: 'text-secondary bg-secondary/10' },
           { label: 'On Leave', value: String(teachers.filter(t => (t.status || '').toLowerCase().includes('leave')).length), sub: 'Stored status', border: 'border-tertiary-fixed-dim', icon: 'event_busy', iconCls: 'text-tertiary bg-tertiary/10' },
           { label: 'Unassigned Classes', value: String(unassignedCount), sub: 'Action required', border: 'border-error', icon: 'warning', iconCls: 'text-error bg-error/10', alert: unassignedCount > 0 },
         ].map(card => (
-          <div key={card.label} className={`bg-surface-container-lowest p-stack-md rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] border-l-4 ${card.border}`}>
+          <div key={card.label} className={`bg-surface-container-lowest p-3 rounded-xl shadow-sm border-l-4 ${card.border}`}>
             <div className="flex justify-between items-start">
               <span className={`material-symbols-outlined p-2 ${card.iconCls} rounded-lg`}>{card.icon}</span>
               <span className={`text-label-sm font-bold ${card.alert ? 'text-error' : 'text-on-surface-variant'}`}>{card.sub}</span>
@@ -101,7 +101,7 @@ export default function AdminTeachersPage() {
         ))}
       </div>
 
-      <section className="grid grid-cols-1 xl:grid-cols-2 gap-gutter mb-stack-lg">
+      <section className="hidden grid grid-cols-1 xl:grid-cols-2 gap-gutter mb-stack-lg">
         <div className="bg-white rounded-xl border border-outline-variant/50 shadow-sm p-stack-md">
           <h2 className="font-headline-md text-headline-md text-primary mb-2">Teacher Login Records</h2>
           <p className="text-label-md text-on-surface-variant mb-4">Visible teachers are loaded from DB-1. Local unsaved teacher rows are not displayed.</p>
@@ -179,9 +179,9 @@ export default function AdminTeachersPage() {
                   <td className="p-stack-md"><span className={`px-3 py-1 ${statusClass(teacher.status || 'active')} rounded-full text-label-sm font-bold flex items-center w-fit gap-1`}>{teacher.status || 'active'}</span></td>
                   <td className="p-stack-md text-right">
                     <div className="flex justify-end gap-2">
-                      <button type="button" onClick={() => handlePlannedWrite(`Edit ${teacher.full_name}`)} className="text-primary hover:bg-primary-container p-1.5 rounded-lg transition-colors inline-flex" title="Edit teacher">
+                      <Link href={`/admin/teachers/profile?id=${teacher.id}&mode=edit`} className="text-primary hover:bg-primary-container p-1.5 rounded-lg transition-colors inline-flex" title="Edit teacher">
                         <span className="material-symbols-outlined text-[18px]">edit</span>
-                      </button>
+                      </Link>
                       <Link href={getTeacherChatHref(teacher)} className="text-primary hover:bg-primary-container p-1.5 rounded-lg transition-colors inline-flex" title={`Message ${teacher.full_name}`}>
                         <span className="material-symbols-outlined text-[18px]">chat</span>
                       </Link>

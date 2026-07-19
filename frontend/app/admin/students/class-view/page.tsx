@@ -176,9 +176,9 @@ function ClassViewContent() {
             </label>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-left border-collapse">
+            <table className="w-full min-w-[640px] text-left border-collapse">
               <thead className="bg-surface-container-high text-on-surface-variant font-label-md text-label-md">
-                <tr>{['Roll No', 'Student Name', 'Student ID', 'Status', 'Guardian Contact', 'Last Activity', 'Action'].map(h => <th key={h} className="px-6 py-4 font-bold">{h}</th>)}</tr>
+                <tr>{['S No', 'Student Name', 'Student ID', 'Action'].map(h => <th key={h} className={`px-6 py-4 font-bold ${h === 'Action' ? 'text-right' : ''}`}>{h}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-surface-container">
                 {visibleStudents.map(student => (
@@ -191,10 +191,7 @@ function ClassViewContent() {
                       </div>
                     </td>
                     <td className="px-6 py-4 font-label-md text-on-surface-variant">{student.id}</td>
-                    <td className="px-6 py-4"><span className={`status-chip ${statusStyle[student.status]}`}>{student.status}</span></td>
-                    <td className="px-6 py-4 text-on-surface-variant"><p className="text-label-md font-bold text-on-surface">{student.guardian}</p><p className="text-xs">{student.phone}</p></td>
-                    <td className="px-6 py-4 text-label-md text-on-surface-variant">{student.last}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-right">
                       <Link href="/admin/students/profile" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-bold hover:opacity-90">
                         <span className="material-symbols-outlined text-[18px]">open_in_new</span>
                         Open
@@ -202,7 +199,7 @@ function ClassViewContent() {
                     </td>
                   </tr>
                 ))}
-                {visibleStudents.length === 0 && <tr><td colSpan={7} className="px-6 py-10 text-center text-on-surface-variant">No student records found for this class-section.</td></tr>}
+                {visibleStudents.length === 0 && <tr><td colSpan={4} className="px-6 py-10 text-center text-on-surface-variant">No student records found for this class-section.</td></tr>}
               </tbody>
             </table>
           </div>

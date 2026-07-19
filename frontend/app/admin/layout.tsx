@@ -2,11 +2,9 @@
 
 import { usePathname } from '@/src/next-navigation';
 import { useState } from 'react';
-import AdminTopNav from '@/components/AdminTopNav';
 import AdminSidebar from '@/components/AdminSidebar';
 
 type SidebarItem = 'analytics' | 'students' | 'teachers' | 'messages' | 'incident' | 'reports' | 'audit' | 'timetable';
-type NavPage = 'dashboard' | 'students' | 'teachers' | 'messages' | 'reports' | 'timetable';
 
 function getSidebar(p: string): SidebarItem {
   if (p.includes('/incidents')) return 'incident';
@@ -19,22 +17,12 @@ function getSidebar(p: string): SidebarItem {
   return 'analytics';
 }
 
-function getNav(p: string): NavPage {
-  if (p.includes('/reports')) return 'reports';
-  if (p.includes('/timetable')) return 'timetable';
-  if (p.includes('/messages')) return 'messages';
-  if (p.includes('/teachers')) return 'teachers';
-  if (p.includes('/students')) return 'students';
-  return 'dashboard';
-}
-
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <div className="bg-background text-on-surface min-h-screen overflow-x-hidden pt-16">
-      <AdminTopNav activePage={getNav(pathname)} onMenuToggle={() => setMenuOpen(open => !open)} />
-      <div className="flex min-h-[calc(100vh-64px)]">
+    <div className="bg-background text-on-surface min-h-screen overflow-x-hidden">
+      <div className="flex min-h-screen">
         <AdminSidebar activeItem={getSidebar(pathname)} />
         {menuOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">

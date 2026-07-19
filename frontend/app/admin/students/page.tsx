@@ -55,14 +55,10 @@ export default function AdminStudentsPage() {
           const present = classStudents.filter(student => student.attendance_status === 'present').length;
           const attendance = classStudents.length ? `${Math.round((present / classStudents.length) * 100)}%` : '0%';
           return (
-            <button
+            <Link
               key={item.id}
-              type="button"
-              onClick={() => {
-                setSelectedClassId(item.id);
-                setSelectedSection(item.sections[0]?.name ?? '');
-              }}
-              className={`text-left bg-white rounded-xl border p-stack-md shadow-sm hover:shadow-md transition-all ${selectedClass?.id === item.id ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}
+              href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(item.sections[0]?.name ?? '')}`}
+              className="text-left bg-white rounded-xl border border-outline-variant/40 p-stack-md shadow-sm hover:shadow-md hover:border-primary transition-all"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -81,12 +77,12 @@ export default function AdminStudentsPage() {
                   <p className="font-bold text-green-700 text-headline-md">{attendance}</p>
                 </div>
               </div>
-            </button>
+            </Link>
           );
         })}
       </section>
 
-      <section className="bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md mb-stack-lg">
+      <section className="hidden bg-white rounded-xl border border-outline-variant/40 shadow-sm p-stack-md mb-stack-lg">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
             <h3 className="font-headline-md text-headline-md text-on-surface">{selectedClass?.class_name ?? 'Stored Class'} Sections</h3>
@@ -111,7 +107,7 @@ export default function AdminStudentsPage() {
         </div>
       </section>
 
-      <section className="bg-white rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden">
+      <section className="hidden bg-white rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden">
         <div className="p-stack-md border-b border-outline-variant/30">
           <h3 className="font-headline-md text-headline-md text-primary">{selectedClass?.class_name ?? 'Class'} - Section {activeSection}</h3>
           <p className="text-label-md text-on-surface-variant">{visibleStudents.length} stored students found.</p>

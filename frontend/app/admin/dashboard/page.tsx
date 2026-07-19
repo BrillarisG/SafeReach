@@ -39,10 +39,9 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] overflow-hidden p-stack-md">
+      <section className="mx-auto w-full max-w-5xl bg-white rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] p-stack-md">
           <h3 className="font-headline-md text-on-surface mb-4">Class Records</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 justify-items-center sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {data.classes.map(item => {
               const studentCount = data.students.filter(student => student.class_name === item.class_name).length;
               const section = item.sections[0]?.name ?? '';
@@ -50,7 +49,7 @@ export default function AdminDashboardPage() {
                 <Link
                   key={item.id}
                   href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(section)}`}
-                  className="rounded-xl border border-outline-variant bg-surface-container-low p-4 transition-colors hover:border-primary hover:bg-primary/5"
+                  className="w-full max-w-[180px] rounded-[22px] border border-outline-variant bg-surface-container-low p-4 transition-colors hover:border-primary hover:bg-primary/5"
                 >
                   <span className="material-symbols-outlined text-primary">school</span>
                   <p className="mt-2 font-bold text-primary">{item.class_name}</p>
@@ -61,24 +60,6 @@ export default function AdminDashboardPage() {
             })}
             {data.classes.length === 0 && <div className="rounded-xl border border-dashed border-outline-variant p-6 text-on-surface-variant">No class records found.</div>}
           </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] p-stack-md flex flex-col">
-          <h3 className="font-headline-md text-on-surface mb-stack-lg">Stored Attendance Status</h3>
-          <div className="flex-1 flex flex-col justify-center gap-5">
-            {['present', 'absent', 'late', 'pending'].map(status => {
-              const count = data.attendance.filter(item => item.status === status).length || data.students.filter(item => item.attendance_status === status).length;
-              const pct = data.students.length ? Math.round((count / data.students.length) * 100) : 0;
-              return (
-                <div key={status} className="space-y-2">
-                  <div className="flex justify-between text-label-md"><span className="text-on-surface-variant">{statusLabel(status)}</span><span className="font-bold text-primary">{count}</span></div>
-                  <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden"><div className="bg-primary h-full rounded-full" style={{ width: `${pct}%` }}></div></div>
-                </div>
-              );
-            })}
-          </div>
-          <Link href="/admin/reports" className="mt-stack-lg w-full py-3 bg-surface-container-high text-primary font-bold rounded-lg hover:bg-surface-container-highest transition-colors text-center">View Stored Report</Link>
-        </div>
       </section>
     </div>
   );

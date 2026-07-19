@@ -44,10 +44,6 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
             <span className="material-symbols-outlined text-[20px]">dashboard</span>
             <span className="font-label-md text-label-md">Dashboard</span>
           </Link>
-          <Link href="/admin/students" onClick={onNavigate} className={activeItem === 'students' ? activeClass : inactiveClass}>
-            <span className="material-symbols-outlined text-[20px]">school</span>
-          <span className="font-label-md text-label-md">Class Records</span>
-          </Link>
         <Link href="/admin/teachers" onClick={onNavigate} className={activeItem === 'teachers' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">badge</span>
           <span className="font-label-md text-label-md">Staff Management</span>
@@ -91,10 +87,6 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
         <Link href="/admin/dashboard" onClick={onNavigate} className={activeItem === 'analytics' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]" style={activeItem === 'analytics' ? {fontVariationSettings: "'FILL' 1"} : undefined}>dashboard</span>
           <span className="text-label-md">Dashboard</span>
-        </Link>
-        <Link href="/admin/students" onClick={onNavigate} className={activeItem === 'students' ? activeClass : inactiveClass}>
-          <span className="material-symbols-outlined text-[20px]">school</span>
-          <span className="text-label-md">Class Records</span>
         </Link>
         <Link href="/admin/teachers" onClick={onNavigate} className={activeItem === 'teachers' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">badge</span>

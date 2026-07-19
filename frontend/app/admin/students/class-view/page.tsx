@@ -60,7 +60,7 @@ function ClassViewContent() {
         </Link>
       </div>
 
-      <div className="grid max-w-[380px] grid-cols-2 gap-3 mb-stack-lg">
+      <div className="mx-auto grid max-w-[380px] grid-cols-2 gap-3 mb-stack-lg">
         <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`h-40 text-center rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-all ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
           <span className="material-symbols-outlined text-[68px] text-primary">co_present</span>
           <span className="mt-2 block font-headline-md text-headline-md text-on-surface">Teacher</span>
@@ -70,12 +70,6 @@ function ClassViewContent() {
           <span className="mt-2 block font-headline-md text-headline-md text-on-surface">Students</span>
         </button>
       </div>
-
-      {panel === 'overview' && (
-        <div className="rounded-xl border border-outline-variant/40 bg-white p-stack-md text-on-surface-variant">
-          Select Teacher or Students above.
-        </div>
-      )}
 
       {panel === 'teachers' && (
         <section className="glass-card rounded-xl overflow-hidden">

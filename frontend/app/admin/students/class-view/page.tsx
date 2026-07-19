@@ -43,7 +43,7 @@ function ClassViewContent() {
   }), [className, search, section]);
 
   return (
-    <div className="min-w-0 max-w-full overflow-x-hidden p-gutter md:p-8">
+    <div className="w-full min-w-0 max-w-[100vw] overflow-x-hidden p-gutter md:max-w-none md:p-8">
       <nav className="mb-4 flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-[13px] text-on-surface-variant">
         <Link href="/admin/students" className="hover:text-primary">Class Records</Link>
         <span className="material-symbols-outlined text-[16px]">chevron_right</span>
@@ -60,19 +60,19 @@ function ClassViewContent() {
         </Link>
       </div>
 
-      <div className="mx-auto mb-5 grid w-full max-w-[340px] grid-cols-2 gap-3">
-        <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`h-32 text-center rounded-xl border bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <span className="material-symbols-outlined text-[52px] text-primary">co_present</span>
-          <span className="mt-1 block text-lg font-bold text-on-surface">Teacher</span>
+      <div className="mx-auto mb-5 grid w-[calc(100vw-32px)] max-w-[340px] grid-cols-2 gap-3 md:w-full">
+        <button type="button" onClick={() => setPanel('teachers')} aria-label="Open class teachers" className={`flex h-32 min-w-0 flex-col items-center justify-center rounded-xl border bg-white p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'teachers' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[48px] text-primary md:text-[52px]">co_present</span>
+          <span className="mt-2 block text-[17px] font-bold text-on-surface">Teacher</span>
         </button>
-        <button type="button" onClick={() => setPanel('students')} aria-label="Open class students" className={`h-32 text-center rounded-xl border bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
-          <span className="material-symbols-outlined text-[52px] text-primary">groups</span>
-          <span className="mt-1 block text-lg font-bold text-on-surface">Students</span>
+        <button type="button" onClick={() => setPanel('students')} aria-label="Open class students" className={`flex h-32 min-w-0 flex-col items-center justify-center rounded-xl border bg-white p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:h-36 ${panel === 'students' ? 'border-primary ring-2 ring-primary/20' : 'border-outline-variant/40'}`}>
+          <span className="material-symbols-outlined text-[48px] text-primary md:text-[52px]">groups</span>
+          <span className="mt-2 block text-[17px] font-bold text-on-surface">Students</span>
         </button>
       </div>
 
       {panel === 'teachers' && (
-        <section className="glass-card min-w-0 max-w-full rounded-xl overflow-hidden">
+        <section className="glass-card w-full min-w-0 max-w-full rounded-xl overflow-hidden">
           <div className="p-stack-md border-b border-outline-variant flex items-center justify-between gap-3">
             <h2 className="font-headline-md text-headline-md text-primary">Class Teachers</h2>
             <Link href={`/admin/teachers/new?class=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}`} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-on-primary font-bold"><span className="material-symbols-outlined text-[18px]">person_add</span>Add Teacher</Link>
@@ -100,7 +100,7 @@ function ClassViewContent() {
       )}
 
       {panel === 'students' && (
-        <section className="glass-card min-w-0 max-w-full rounded-xl overflow-hidden">
+        <section className="glass-card w-full min-w-0 max-w-full rounded-xl overflow-hidden">
           <div className="p-stack-md border-b border-outline-variant flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
             <div>
               <h2 className="font-headline-md text-headline-md text-primary">Class Students</h2>
@@ -111,7 +111,7 @@ function ClassViewContent() {
               <input value={search} onChange={event => setSearch(event.target.value)} className="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="Search students..." />
             </label>
           </div>
-          <div className="max-w-full overflow-x-auto">
+          <div className="w-full min-w-0 max-w-full overflow-x-auto">
             <table className="w-full min-w-[560px] text-left border-collapse">
               <thead className="bg-surface-container-high text-on-surface-variant font-label-md text-label-md">
                 <tr>{['S No', 'Student Name', 'Student ID', 'Action'].map(h => <th key={h} className={`px-6 py-4 font-bold ${h === 'Action' ? 'text-right' : ''}`}>{h}</th>)}</tr>

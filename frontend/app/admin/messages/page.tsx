@@ -149,14 +149,14 @@ function AdminMessagesContent() {
 
       <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden flex flex-col">
-          <div className="order-2 max-h-28 overflow-y-auto overflow-x-hidden p-3 border-b border-outline-variant/30">
-            <div className="flex flex-wrap gap-2">
+          <div className="order-2 p-3 border-b border-outline-variant/30">
+            <div className="flex flex-col gap-2">
             {groupTabs.map(tab => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => changeGroup(tab.id)}
-                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-left text-label-sm font-bold whitespace-nowrap transition-all ${activeGroup === tab.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant bg-white text-on-surface-variant hover:bg-surface-container'}`}
+                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-label-sm font-bold transition-all ${activeGroup === tab.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant bg-white text-on-surface-variant hover:bg-surface-container'}`}
               >
                 <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
                 <span>{tab.label}</span>

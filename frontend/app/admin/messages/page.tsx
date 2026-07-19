@@ -62,10 +62,10 @@ const threads: Record<string, Message[]> = {
 };
 
 const groupTabs: { id: MessageGroup; label: string; icon: string; helper: string }[] = [
-  { id: 'all', label: 'All Messages', icon: 'chat', helper: 'All recent conversations' },
-  { id: 'common', label: 'Admin Common Group', icon: 'campaign', helper: 'Admin and all teachers included' },
-  { id: 'teacher', label: 'Direct Teachers', icon: 'badge', helper: 'Admin can chat with any teacher' },
-  { id: 'parent', label: 'Direct Parents', icon: 'family_restroom', helper: 'Admin can chat with parent contacts' },
+  { id: 'all', label: 'All', icon: 'chat', helper: 'All recent conversations' },
+  { id: 'common', label: 'Admin', icon: 'campaign', helper: 'Admin and all teachers included' },
+  { id: 'teacher', label: 'Teacher', icon: 'badge', helper: 'Admin can chat with any teacher' },
+  { id: 'parent', label: 'Parent', icon: 'family_restroom', helper: 'Admin can chat with parent contacts' },
 ];
 
 function conversationTimeScore(time: string) {
@@ -189,10 +189,10 @@ function AdminMessagesContent() {
         <header className="px-4 py-3 bg-surface border-y border-outline-variant/30 flex items-center gap-3 shrink-0">
           <button type="button" onClick={() => setMobileChatOpen(false)} className="-ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages"><span className="material-symbols-outlined">arrow_back</span></button>
           <span className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-sm">{activeConversation.avatar}</span>
-          <span><span className="block font-bold text-on-surface">{activeConversation.name}</span><span className="block text-label-sm text-secondary">{activeConversation.sub}</span></span>
+          <span className="block font-bold text-on-surface">{activeConversation.name}</span>
         </header>
         <div className="no-scrollbar flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
-          {activeThread.map((message, index) => <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}><div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${message.me ? 'bg-primary text-on-primary rounded-br-sm' : 'bg-white text-on-surface rounded-bl-sm shadow-sm border border-outline-variant/20'}`}><p>{message.text}</p><p className={`mt-1 text-label-sm ${message.me ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>{message.from} | {message.time}</p></div></div>)}
+          {activeThread.map((message, index) => <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}><div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${message.me ? 'bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'bg-primary text-on-primary rounded-bl-sm'}`}><p>{message.text}</p><p className={`mt-1 text-label-sm ${message.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{message.from} | {message.time}</p></div></div>)}
         </div>
         <footer className="p-3 bg-surface border-t border-outline-variant/30 shrink-0"><div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant"><input value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') sendMessage(); }} className="flex-1 bg-transparent outline-none text-body-md" placeholder="Type a message..." /><button type="button" onClick={sendMessage} className={`p-1.5 rounded-full ${draft.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button></div></footer>
       </div>
@@ -252,16 +252,15 @@ function AdminMessagesContent() {
             <span className="w-11 h-11 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">{activeConversation.avatar}</span>
             <div>
               <h2 className="font-bold text-primary">{activeConversation.name}</h2>
-              <p className="text-label-md text-on-surface-variant">{activeConversation.sub}</p>
             </div>
           </header>
           <p className="sr-only" aria-live="polite">{notice}</p>
           <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-background">
             {activeThread.map((message, index) => (
               <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-md px-4 py-2.5 rounded-2xl ${message.me ? 'bg-primary text-on-primary rounded-br-sm' : 'bg-white border border-outline-variant/30 text-on-surface rounded-bl-sm shadow-sm'}`}>
+                <div className={`max-w-md px-4 py-2.5 rounded-2xl ${message.me ? 'bg-white border border-outline-variant/30 text-on-surface rounded-br-sm shadow-sm' : 'bg-primary text-on-primary rounded-bl-sm'}`}>
                   <p>{message.text}</p>
-                  <p className={`text-label-sm mt-1 ${message.me ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>{message.from} | {message.time}</p>
+                  <p className={`text-label-sm mt-1 ${message.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{message.from} | {message.time}</p>
                 </div>
               </div>
             ))}

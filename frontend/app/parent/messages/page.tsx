@@ -171,7 +171,7 @@ export default function ParentMessagesPage() {
             <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
           </button>
           <div className="relative"><div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-label-sm">{activeConv?.avatar}</div>{activeConv?.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></span>}</div>
-          <div><p className="font-label-md font-bold text-on-surface">{activeConv?.name}</p><p className="text-label-sm text-on-surface-variant">{activeConv?.role}</p></div>
+          <p className="font-label-md font-bold text-on-surface">{activeConv?.name}</p>
         </div>
         {activeStudent && !activeStudent.absenceReason && (
           <div className="px-4 py-3 bg-error-container text-error border-b border-error/20 text-label-md font-bold">
@@ -181,8 +181,8 @@ export default function ParentMessagesPage() {
         <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
           {thread.map((m, i) => (
             <div key={`${m.time}-${i}`} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'bg-primary text-on-primary rounded-br-sm' : 'bg-white text-on-surface rounded-bl-sm shadow-sm border border-outline-variant/20'}`}>
-                <p>{m.text}</p><p className={`text-label-sm mt-1 ${m.me ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>{m.time}</p>
+              <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'bg-primary text-on-primary rounded-bl-sm'}`}>
+                <p>{m.text}</p><p className={`text-label-sm mt-1 ${m.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{m.time}</p>
               </div>
             </div>
           ))}

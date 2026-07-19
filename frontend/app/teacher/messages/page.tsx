@@ -154,8 +154,8 @@ export default function TeacherMessagesPage() {
   return (
     <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full min-h-0 overflow-hidden">
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
-        <div className="order-2 max-h-28 border-b border-outline-variant/20 p-3 overflow-y-auto overflow-x-hidden">
-          <div className="flex flex-wrap items-center gap-1.5">
+        <div className="order-2 border-b border-outline-variant/20 p-3 overflow-x-auto admin-message-category-scroll">
+          <div className="flex min-w-max items-center gap-1.5">
             {groups.map(group => {
               const unread = conversations.filter(conversation => (group.id === 'all' || conversation.group === group.id) && conversation.unread > 0).reduce((total, conversation) => total + conversation.unread, 0);
               return (
@@ -257,12 +257,7 @@ export default function TeacherMessagesPage() {
             <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
           </button>
           <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-label-sm">{activeConv?.avatar}</div>
-          <div>
-            <p className="font-label-md font-bold text-on-surface">{activeConv?.name}</p>
-            <p className="text-label-sm text-green-600">
-              {activeStudent ? 'Class student / parent direct workflow' : groups.find(group => group.id === selectedGroup)?.label}
-            </p>
-          </div>
+          <p className="font-label-md font-bold text-on-surface">{activeConv?.name}</p>
         </div>
         {activeStudent && (
           <div className="px-4 py-3 bg-surface-container-low border-b border-outline-variant/30 text-label-md">
@@ -272,8 +267,8 @@ export default function TeacherMessagesPage() {
         <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
           {thread.map((m, i) => (
             <div key={`${m.time}-${i}`} className={`flex ${m.me ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'bg-primary text-on-primary rounded-br-sm' : 'bg-white text-on-surface rounded-bl-sm shadow-sm border border-outline-variant/20'}`}>
-                <p>{m.text}</p><p className={`text-label-sm mt-1 ${m.me ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>{m.time}</p>
+              <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${m.me ? 'bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'bg-primary text-on-primary rounded-bl-sm'}`}>
+                <p>{m.text}</p><p className={`text-label-sm mt-1 ${m.me ? 'text-on-surface-variant' : 'text-on-primary/70'}`}>{m.time}</p>
               </div>
             </div>
           ))}

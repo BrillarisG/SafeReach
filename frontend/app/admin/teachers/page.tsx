@@ -64,15 +64,7 @@ export default function AdminTeachersPage() {
 
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-stack-lg gap-stack-md">
-        <div>
-          <h1 className="text-headline-lg font-headline-lg text-primary">Staff Directory</h1>
-        </div>
-        <Link href="/admin/teachers/profile?mode=new" className="bg-primary text-on-primary h-[48px] px-stack-lg rounded-lg font-bold flex items-center gap-stack-sm hover:shadow-lg transition-shadow">
-          <span className="material-symbols-outlined">person_add</span>
-          Add New Teacher
-        </Link>
-      </div>
+      <div className="mb-stack-lg"><h1 className="text-headline-lg font-headline-lg text-primary">Staff Directory</h1></div>
 
       {error && (
         <div className="mb-stack-md rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-error font-bold">
@@ -87,14 +79,11 @@ export default function AdminTeachersPage() {
           { label: 'On Leave', value: String(teachers.filter(t => (t.status || '').toLowerCase().includes('leave')).length), sub: 'Stored status', border: 'border-tertiary-fixed-dim', icon: 'event_busy', iconCls: 'text-tertiary bg-tertiary/10' },
           { label: 'Unassigned Classes', value: String(unassignedCount), sub: 'Action required', border: 'border-error', icon: 'warning', iconCls: 'text-error bg-error/10', alert: unassignedCount > 0 },
         ].map(card => (
-          <div key={card.label} className={`safe-surface-enter bg-surface-container-lowest p-3 rounded-xl shadow-sm border-l-4 ${card.border}`}>
-            <div className="flex justify-between items-start">
-              <span className={`material-symbols-outlined p-2 ${card.iconCls} rounded-lg`}>{card.icon}</span>
-              <span className={`text-label-sm font-bold ${card.alert ? 'text-error' : 'text-on-surface-variant'}`}>{card.sub}</span>
-            </div>
-            <div className="mt-stack-sm">
-              <p className="text-label-md text-on-surface-variant">{card.label}</p>
-              <h3 className={`text-headline-md font-bold ${card.alert ? 'text-error' : 'text-primary'}`}>{card.value}</h3>
+          <div key={card.label} className={`safe-surface-enter flex min-h-[96px] items-center gap-3 bg-surface-container-lowest p-3 rounded-xl shadow-sm border-l-4 ${card.border}`}>
+            <span className={`material-symbols-outlined shrink-0 p-2 ${card.iconCls} rounded-lg`}>{card.icon}</span>
+            <div className="min-w-0">
+              <p className="text-label-md font-bold text-on-surface-variant">{card.label}</p>
+              <h3 className={`mt-1 text-headline-md font-bold ${card.alert ? 'text-error' : 'text-primary'}`}>{card.value}</h3>
             </div>
           </div>
         ))}
@@ -137,8 +126,8 @@ export default function AdminTeachersPage() {
       </section>
 
       <div className="safe-surface-enter bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] overflow-hidden">
-        <div className="p-stack-md border-b border-surface-container flex flex-wrap gap-stack-md justify-between items-center">
-          <div className="flex gap-stack-sm overflow-x-auto pb-2 sm:pb-0">
+        <div className="relative p-stack-md border-b border-surface-container flex flex-col gap-3">
+          <div className="admin-message-category-scroll flex min-w-max gap-2 overflow-x-auto pb-2 pr-14">
             {['All Staff', 'active', 'In Transit', 'On Leave'].map(filter => (
               <button
                 key={filter}
@@ -150,10 +139,14 @@ export default function AdminTeachersPage() {
               </button>
             ))}
           </div>
-          <label className="relative w-full sm:w-80">
+          <label className="relative w-full md:max-w-sm">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
             <input value={staffSearch} onChange={event => setStaffSearch(event.target.value)} className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search stored staff..." />
           </label>
+          <Link href="/admin/teachers/profile?mode=new" title="Add new teacher" aria-label="Add new teacher" className="group absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-on-primary shadow-sm transition hover:bg-primary-container focus-visible:z-50">
+            <span className="material-symbols-outlined text-[20px]">person_add</span>
+            <span role="tooltip" className="pointer-events-none absolute bottom-full right-0 z-[60] mb-2 whitespace-nowrap rounded-md border border-outline-variant bg-white px-2 py-1 text-xs font-bold text-on-surface shadow-md opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Add New Teacher</span>
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left border-collapse md:min-w-[960px]">

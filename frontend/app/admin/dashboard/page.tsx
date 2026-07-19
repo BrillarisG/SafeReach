@@ -2,7 +2,7 @@
 
 import Link from '@/src/next-link';
 import { useMemo } from 'react';
-import { statusLabel, useBackendBootstrap } from '@/lib/backendData';
+import { useBackendBootstrap } from '@/lib/backendData';
 
 export default function AdminDashboardPage() {
   const { data, loading, error } = useBackendBootstrap();
@@ -43,18 +43,21 @@ export default function AdminDashboardPage() {
           <h3 className="font-headline-md text-on-surface mb-4">Class Records</h3>
           <div className="grid grid-cols-1 justify-items-center sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {data.classes.map(item => {
-              const studentCount = data.students.filter(student => student.class_name === item.class_name).length;
+              const classStudents = data.students.filter(student => student.class_name === item.class_name);
+              const studentCount = classStudents.length;
+              const presentCount = classStudents.filter(student => student.attendance_status === 'present').length;
+              const safetyPercent = studentCount ? Math.round((presentCount / studentCount) * 100) : 0;
               const section = item.sections[0]?.name ?? '';
               return (
                 <Link
                   key={item.id}
                   href={`/admin/students/class-view?class=${encodeURIComponent(item.class_name)}&section=${encodeURIComponent(section)}`}
-                  className="w-full max-w-[180px] rounded-[22px] border border-outline-variant bg-surface-container-low p-4 transition-colors hover:border-primary hover:bg-primary/5"
+                  className="w-full max-w-[180px] rounded-[22px] border border-outline-variant/70 bg-surface-container-low px-5 py-4 shadow-sm transition-colors hover:border-primary hover:bg-primary/5"
                 >
-                  <span className="material-symbols-outlined text-primary">school</span>
-                  <p className="mt-2 font-bold text-primary">{item.class_name}</p>
-                  <p className="text-label-sm text-on-surface-variant">Section {section || '-'}</p>
-                  <div className="mt-3 flex items-center justify-between text-label-md"><span>Students</span><span className="font-bold text-primary">{studentCount}</span></div>
+                  <p className="text-[24px] leading-none font-extrabold text-on-surface">{item.class_name}</p>
+                  <p className="mt-1 text-[16px] leading-none font-bold text-outline">Section {section || '-'}</p>
+                  <p className="mt-5 text-[16px] leading-none font-extrabold text-primary-container">Students: {String(studentCount).padStart(2, '0')}</p>
+                  <p className="mt-2 text-[16px] leading-none font-extrabold text-green-700">SafeReach: {safetyPercent}%</p>
                 </Link>
               );
             })}

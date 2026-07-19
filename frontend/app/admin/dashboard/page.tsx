@@ -26,11 +26,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-stack-lg gap-4">
-        <div>
-          <h1 className="font-headline-lg text-headline-lg text-primary">System Overview</h1>
-          <p className="text-body-md text-on-surface-variant">Stored DB data for the active SafeReach school environment.</p>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-end mb-stack-lg gap-4">
         <div className="flex flex-wrap gap-3">
           <select value={selectedClass?.id ?? ''} onChange={event => setSelectedClassId(event.target.value)} className="bg-white border border-outline-variant rounded-lg px-4 py-2 text-label-md focus:ring-2 focus:ring-primary focus:outline-none">
             {data.classes.map(item => <option key={item.id} value={item.id}>{item.class_name}</option>)}

@@ -67,7 +67,6 @@ export default function AdminTeachersPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-stack-lg gap-stack-md">
         <div>
           <h1 className="text-headline-lg font-headline-lg text-primary">Staff Directory</h1>
-          <p className="text-body-md text-on-surface-variant">Stored teacher assignments, availability, and school permissions from DB-1.</p>
         </div>
         <Link href="/admin/teachers/profile?mode=new" className="bg-primary text-on-primary h-[48px] px-stack-lg rounded-lg font-bold flex items-center gap-stack-sm hover:shadow-lg transition-shadow">
           <span className="material-symbols-outlined">person_add</span>
@@ -200,7 +199,6 @@ export default function AdminTeachersPage() {
         </div>
         <div className="p-stack-md bg-surface-container-low flex justify-between items-center border-t border-surface-container">
           <span className="text-label-md text-on-surface-variant">Showing {filteredTeachers.length} of {teachers.length} stored teachers</span>
-          <span className="text-label-sm font-bold text-primary">DB-1 source</span>
         </div>
       </div>
     </div>

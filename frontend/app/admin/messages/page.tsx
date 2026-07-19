@@ -145,15 +145,12 @@ function AdminMessagesContent() {
 
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop min-w-0 max-w-full overflow-x-hidden">
-      <div className="mb-stack-lg">
-        <h1 className="font-headline-lg text-headline-lg text-primary">Admin Messages</h1>
-        <p className="text-body-md text-on-surface-variant">Common teacher announcements and direct teacher or parent chat access.</p>
-      </div>
+      <div className="mb-stack-lg"><h1 className="font-headline-lg text-headline-lg text-primary">Admin Message</h1></div>
 
       <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="min-w-0 bg-white rounded-xl border border-outline-variant/50 shadow-sm overflow-hidden flex flex-col">
-          <div className="order-2 p-3 border-b border-outline-variant/30 overflow-x-scroll">
-            <div className="flex min-w-max gap-2">
+          <div className="order-2 max-h-28 overflow-y-auto overflow-x-hidden p-3 border-b border-outline-variant/30">
+            <div className="flex flex-wrap gap-2">
             {groupTabs.map(tab => (
               <button
                 key={tab.id}

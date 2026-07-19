@@ -83,7 +83,7 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
   }
 
   return (
-    <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-0 h-screen'} flex-col w-64 bg-surface border-r border-outline-variant/60 p-3 overflow-y-auto z-50`}>
+    <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-16 h-[calc(100vh-64px)]'} flex-col w-64 bg-surface border-r border-outline-variant/60 p-3 overflow-y-auto z-50`}>
       <div className="mb-6">
         <h2 className="text-label-md font-bold text-primary px-2 mb-1">Admin Panel</h2>
       </div>

@@ -154,8 +154,8 @@ export default function TeacherMessagesPage() {
   return (
     <div className="flex h-[calc(100dvh-4rem)] w-full min-w-0 max-w-full min-h-0 overflow-hidden">
       <aside className="w-80 border-r border-outline-variant/30 bg-surface-container-low flex-col shrink-0 hidden md:flex">
-        <div className="order-2 border-b border-outline-variant/20 p-3 overflow-x-scroll">
-          <div className="flex min-w-max items-center gap-1.5">
+        <div className="order-2 max-h-28 border-b border-outline-variant/20 p-3 overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-wrap items-center gap-1.5">
             {groups.map(group => {
               const unread = conversations.filter(conversation => (group.id === 'all' || conversation.group === group.id) && conversation.unread > 0).reduce((total, conversation) => total + conversation.unread, 0);
               return (

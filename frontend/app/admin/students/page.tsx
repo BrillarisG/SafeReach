@@ -34,7 +34,6 @@ export default function AdminStudentsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-stack-lg">
         <div>
           <h2 className="font-headline-lg text-headline-lg text-primary">Class Records</h2>
-          <p className="font-body-md text-body-md text-on-surface-variant">Only classes, sections, and students stored in DB-1 are displayed.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <button onClick={downloadTemplate} className="flex items-center gap-2 px-4 py-2 border border-outline text-primary font-label-md rounded-lg hover:bg-surface-container-high transition-all">

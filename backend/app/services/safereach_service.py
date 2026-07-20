@@ -11,6 +11,7 @@ from ..security import create_token, verify_password
 from .audit_service import write_audit
 from .cache_service import delete as cache_delete, get_json as cache_get_json, set_json as cache_set_json
 from .db3_service import write_event
+from . import message_service
 from .sms_service import send_parent_sms
 
 BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v2"
@@ -40,6 +41,10 @@ def login(email: str, password: str) -> dict:
 
 
 def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
+    # Render can briefly run a new backend image against a database that has
+    # not yet received the matching message migration. Ensure those additive
+    # columns exist before the bootstrap query reads absence-request data.
+    message_service.ensure_schema()
     with db1_conn() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             _ensure_school_operating_columns(cur)

@@ -5,7 +5,7 @@ services:
     rootDir: backend
     plan: free
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: gunicorn -w 1 --threads 100 --bind 0.0.0.0:$PORT run:app
+    startCommand: python scripts/migrate.py all && gunicorn -w 1 --threads 100 --bind 0.0.0.0:$PORT run:app
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION

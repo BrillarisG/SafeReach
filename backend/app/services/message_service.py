@@ -45,6 +45,14 @@ def list_student_messages(student_id: str, limit: int = 100) -> list[dict]:
     return _serialize(rows)
 
 
+def ensure_schema() -> None:
+    """Make deployed DB-1 instances compatible before messaging-aware reads."""
+    with db1_conn() as conn:
+        with conn.cursor() as cur:
+            _ensure_schema(cur)
+        conn.commit()
+
+
 def send_parent_message(student_id: str, body: str, actor_user_id: str | None = None) -> dict:
     return _create_message(
         student_id=student_id,

@@ -17,7 +17,7 @@ const inactiveClass = 'flex items-center gap-3 rounded-md px-3 py-2.5 text-on-su
 
 export default function ParentSidebar({ activeItem, className = 'hidden md:flex', onNavigate }: ParentSidebarProps) {
   return (
-    <aside className={`${className} flex-col h-dvh max-h-dvh w-64 fixed left-0 top-0 z-50 border-r border-outline-variant/60 bg-surface px-3 py-4 overflow-y-auto overscroll-contain`}>
+    <aside className={`${className} flex-col h-[100svh] max-h-[100svh] w-64 fixed left-0 top-0 z-50 border-r border-outline-variant/60 bg-surface px-3 py-4 pb-20 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]`}>
       <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
         <div className="mb-1 flex items-center gap-2">
           <LogoMark className="h-8 w-8 rounded-md" />

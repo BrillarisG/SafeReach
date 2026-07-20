@@ -23,7 +23,7 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
   const [menuOpen, setMenuOpen] = useState(false);
 
   const sidebar = (
-    <aside className="w-64 h-dvh max-h-dvh overflow-y-auto overscroll-contain bg-surface border-r border-outline-variant/60 flex flex-col p-3 shadow-sm">
+    <aside className="w-64 h-[100svh] max-h-[100svh] overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] bg-surface border-r border-outline-variant/60 flex flex-col p-3 pb-20 shadow-sm">
       <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
         <div className="flex items-center gap-2 mb-1">
           <LogoMark className="h-8 w-8 rounded-md" />

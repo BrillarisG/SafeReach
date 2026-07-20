@@ -32,7 +32,7 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
 
   if (variant === 'hub') {
     return (
-      <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-dvh max-h-dvh overflow-y-auto overscroll-contain bg-surface border-r border-outline-variant/60 w-64 z-50 p-3">
+      <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-[100svh] max-h-[100svh] overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] bg-surface border-r border-outline-variant/60 w-64 z-50 p-3">
         <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
           <div className="flex items-center gap-2 mb-1">
             <LogoMark className="h-8 w-8 rounded-lg" />
@@ -79,7 +79,7 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
   }
 
   return (
-    <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-16 h-[calc(100dvh-64px)]'} flex-col w-64 max-h-[calc(100dvh-64px)] bg-surface border-r border-outline-variant/60 p-3 overflow-y-auto overscroll-contain z-50`}>
+    <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-16 h-[calc(100svh-64px)]'} flex-col w-64 max-h-[calc(100svh-64px)] bg-surface border-r border-outline-variant/60 p-3 pb-20 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] z-50`}>
       <div className="mb-6">
         <h2 className="text-label-md font-bold text-primary px-2 mb-1">Admin Panel</h2>
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { apiBaseUrl } from './runtimeConfig';
+import { safereachRealtime } from './realtimeApi';
 
 const API_BASE = apiBaseUrl;
 
@@ -112,6 +113,36 @@ const emptyBootstrap: BackendBootstrap = {
   timetable: { className: '', section: '', breaks: [], days: [] },
 };
 
+type TravelUpdate = {
+  student_id: string;
+  status: string;
+  attendance_status?: string;
+  last_event_at?: string;
+};
+
+function applyTravelUpdates(current: BackendBootstrap, updates: TravelUpdate[]) {
+  if (updates.length === 0) return current;
+  const byStudentId = new Map(updates.map(update => [update.student_id, update]));
+  return {
+    ...current,
+    students: current.students.map(student => {
+      const update = byStudentId.get(student.id);
+      if (!update) return student;
+      return {
+        ...student,
+        travel_status: update.status,
+        attendance_status: update.attendance_status ?? student.attendance_status,
+        travel_updated_at: update.last_event_at ?? student.travel_updated_at,
+      };
+    }),
+    attendance: current.attendance.map(record => {
+      const update = byStudentId.get(record.student_id);
+      if (!update || !update.attendance_status) return record;
+      return { ...record, status: update.attendance_status };
+    }),
+  };
+}
+
 export function useBackendBootstrap() {
   const [data, setData] = useState<BackendBootstrap>(emptyBootstrap);
   const [loading, setLoading] = useState(true);
@@ -145,6 +176,41 @@ export function useBackendBootstrap() {
       });
     return () => {
       active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateFromPayload = (payload: unknown) => {
+      const candidate = payload as TravelUpdate | { records?: TravelUpdate[] };
+      const updates = 'records' in candidate && Array.isArray(candidate.records)
+        ? candidate.records
+        : typeof candidate.student_id === 'string' ? [candidate] : [];
+      if (updates.length > 0) setData(current => applyTravelUpdates(current, updates));
+    };
+    const updateFromTravelSnapshot = (event: Event) => {
+      if (!(event instanceof CustomEvent) || !Array.isArray(event.detail)) return;
+      const updates = event.detail
+        .filter((record: unknown): record is { id: string; status: string; attendance: string; updatedAt?: string } =>
+          Boolean(record) && typeof (record as { id?: unknown }).id === 'string'
+        )
+        .map(record => ({
+          student_id: record.id,
+          status: record.status,
+          attendance_status: record.attendance,
+          last_event_at: record.updatedAt,
+        }));
+      setData(current => applyTravelUpdates(current, updates));
+    };
+
+    safereachRealtime.connect();
+    const unsubscribe = safereachRealtime.subscribe(event => {
+      if (event.type !== 'student.status.changed' && event.type !== 'attendance.marked') return;
+      updateFromPayload(event.payload);
+    });
+    window.addEventListener('safereach-travel-state-updated', updateFromTravelSnapshot);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('safereach-travel-state-updated', updateFromTravelSnapshot);
     };
   }, []);
 

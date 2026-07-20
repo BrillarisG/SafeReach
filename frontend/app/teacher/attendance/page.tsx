@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { readDailyIds, writeDailyIds } from '@/lib/dailyActionLocks';
 import { travelStatusClass, travelStatusIcon, travelStatusLabel, useStudentTravelState } from '@/lib/studentTravel';
 
-type AttendanceStatus = 'present' | 'absent' | 'late' | 'reached_school';
+type AttendanceStatus = 'pending' | 'present' | 'absent' | 'late' | 'reached_school';
+type AttendanceAction = Exclude<AttendanceStatus, 'pending'>;
 type AttendanceView = 'class' | 'out';
 
-const btnCls = (cur: AttendanceStatus, tgt: AttendanceStatus) => {
+const btnCls = (cur: AttendanceStatus, tgt: AttendanceAction) => {
   const base = 'px-3 py-1 rounded-lg text-label-sm font-bold transition-all border ';
   if (cur === tgt) {
     if (tgt === 'present') return base + 'bg-green-500 text-white border-green-500';
@@ -188,11 +189,12 @@ export default function TeacherAttendancePage() {
     const student = classStudents.find(item => item.id === studentId);
     if (student?.attendance === 'absent') return 'absent';
     if (student?.attendance === 'late') return 'late';
+    if (student?.attendance === 'present') return 'present';
     if (student?.status === 'reached_school') return 'reached_school';
-    return 'present';
+    return 'pending';
   }
 
-  async function mark(studentId: string, status: AttendanceStatus) {
+  async function mark(studentId: string, status: AttendanceAction) {
     const student = classStudents.find(item => item.id === studentId);
     const current = currentAttendance(studentId);
     const isSubmitted = submittedSet.has(studentId);
@@ -217,7 +219,7 @@ export default function TeacherAttendancePage() {
     setSaved(false);
   }
 
-  async function markAll(status: AttendanceStatus) {
+  async function markAll(status: AttendanceAction) {
     await Promise.all(filteredAttendanceStudents.map(student => mark(student.id, status)));
     setSaved(false);
   }
@@ -251,7 +253,7 @@ export default function TeacherAttendancePage() {
     setLeaveSaved(false);
   }
 
-  function isAttendanceButtonDisabled(studentId: string, target: AttendanceStatus) {
+  function isAttendanceButtonDisabled(studentId: string, target: AttendanceAction) {
     if (!submittedSet.has(studentId)) return false;
     const current = currentAttendance(studentId);
     return !(current === 'late' && (target === 'present' || target === 'absent'));

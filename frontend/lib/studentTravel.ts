@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type BackendStudent, useBackendBootstrap } from '@/lib/backendData';
 import { safereachRealtime } from '@/lib/realtimeApi';
 import { apiBaseUrl } from './runtimeConfig';
@@ -284,8 +284,12 @@ export function readTravelRecords(baseRecords: StudentTravelRecord[] = backendBa
 }
 
 function writeTravelRecords(records: StudentTravelRecord[]) {
+  if (typeof window === 'undefined') return;
   window.localStorage.setItem(TRAVEL_STORAGE_KEY, JSON.stringify(records));
-  window.dispatchEvent(new Event(TRAVEL_EVENT));
+  // Share the exact next snapshot with every mounted role view immediately.
+  // Reading from storage again here could merge a stale bootstrap response back
+  // over the teacher or parent action that was just clicked.
+  window.dispatchEvent(new CustomEvent<StudentTravelRecord[]>(TRAVEL_EVENT, { detail: records }));
 }
 
 function appendDb3RealtimeEvent(record: StudentTravelRecord, event: Omit<Db3RealtimeEvent, 'id' | 'studentId' | 'studentName' | 'createdAt'>) {
@@ -419,6 +423,12 @@ type BackendTravelPayload = {
 function applyBackendTravelPayload(records: StudentTravelRecord[], payload: BackendTravelPayload) {
   return records.map(record => {
     if (record.id !== payload.student_id) return record;
+    const backendUpdatedAt = payload.last_event_at || '';
+    const localTime = statusTimestamp(record.updatedAt);
+    const backendTime = statusTimestamp(backendUpdatedAt);
+    // Socket broadcasts can arrive out of order. Do not replace the optimistic
+    // click result with an older status; accept the matching/newer server event.
+    if (backendTime > 0 && localTime > backendTime) return record;
     const status = safeStatus(payload.status);
     return {
       ...record,
@@ -426,7 +436,7 @@ function applyBackendTravelPayload(records: StudentTravelRecord[], payload: Back
       attendance: safeAttendance(payload.attendance_status || record.attendance),
       location: locationForStatus(status),
       absenceReasonRequested: status === 'absent' || record.absenceReasonRequested,
-      updatedAt: payload.last_event_at || nowLabel(),
+      updatedAt: backendUpdatedAt || nowLabel(),
     };
   });
 }
@@ -510,22 +520,29 @@ export function travelStatusClass(status: StudentTravelStatus) {
 export function useStudentTravelState() {
   const { data: backend } = useBackendBootstrap();
   const [records, setRecords] = useState<StudentTravelRecord[]>([]);
+  const recordsRef = useRef<StudentTravelRecord[]>([]);
 
   const commitRecords = useCallback((updater: (current: StudentTravelRecord[]) => StudentTravelRecord[]) => {
-    setRecords(current => {
-      const source = current.length > 0 ? current : readTravelRecords(backendBaseRecords);
-      const next = updater(source);
-      if (typeof window !== 'undefined') {
-        window.setTimeout(() => writeTravelRecords(next), 0);
-      }
-      return next;
-    });
+    const source = recordsRef.current.length > 0 ? recordsRef.current : readTravelRecords(backendBaseRecords);
+    const next = updater(source);
+    recordsRef.current = next;
+    setRecords(next);
+    writeTravelRecords(next);
+    return next;
   }, []);
 
   useEffect(() => {
     backendBaseRecords = backend.students.map(backendStudentToTravelRecord);
-    setRecords(readTravelRecords(backendBaseRecords));
-    const refresh = () => setRecords(readTravelRecords(backendBaseRecords));
+    const initialRecords = readTravelRecords(backendBaseRecords);
+    recordsRef.current = initialRecords;
+    setRecords(initialRecords);
+    const refresh = (event?: Event) => {
+      const next = event instanceof CustomEvent && Array.isArray(event.detail)
+        ? event.detail as StudentTravelRecord[]
+        : readTravelRecords(backendBaseRecords);
+      recordsRef.current = next;
+      setRecords(next);
+    };
     window.addEventListener('storage', refresh);
     window.addEventListener(TRAVEL_EVENT, refresh);
     safereachRealtime.connect();
@@ -556,13 +573,13 @@ export function useStudentTravelState() {
         method: 'POST',
         body: JSON.stringify({ actorUserId: null }),
       });
-      const existingRecord = records.find(item => item.id === studentId);
+      const existingRecord = recordsRef.current.find(item => item.id === studentId);
       commitRecords(current => applyBackendTravelPayload(current, payload).map(record =>
           record.id === studentId
             ? { ...record, attendance: 'pending', absenceReason: '', absenceReasonRequested: false, absenceSmsSentAt: '' }
             : record
       ));
-      const record = existingRecord ? { ...existingRecord, status: 'to_school' as const } : records.find(item => item.id === studentId);
+      const record = existingRecord ? { ...existingRecord, status: 'to_school' as const } : recordsRef.current.find(item => item.id === studentId);
       if (record) {
         appendDb3RealtimeEvent(record, {
           table: 'parent_events',
@@ -677,7 +694,7 @@ export function useStudentTravelState() {
       writeTravelRecords(backendBaseRecords);
       setRecords(backendBaseRecords);
     },
-  }), [records, commitRecords]);
+  }), [commitRecords]);
 
   return {
     records,

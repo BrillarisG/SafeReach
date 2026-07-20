@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSafetyProtocols } from '@/lib/safetyProtocols';
 import TeacherStudentsPage, { TeacherStudentDashboardSummary } from '../students/page';
 
 const teacherDayTimetables = [
@@ -10,16 +11,20 @@ const teacherDayTimetables = [
 ];
 
 export default function TeacherDashboardPage() {
-  const [protocols, setProtocols] = useState([
-    'Morning roll-call synchronized',
-    'Dismissal badges prepared',
-    'Emergency contact logs synced',
-  ]);
-  const [checkedProtocols, setCheckedProtocols] = useState<number[]>([]);
-  const [submittedProtocols, setSubmittedProtocols] = useState<number[]>([]);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const {
+    protocols,
+    loading: protocolsLoading,
+    error: protocolsError,
+    add: addProtocolRow,
+    update: updateProtocol,
+    remove: removeProtocol,
+    submit: submitProtocolRows,
+  } = useSafetyProtocols('teacher');
+  const [checkedProtocolIds, setCheckedProtocolIds] = useState<string[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [newProtocol, setNewProtocol] = useState('');
+  const [notice, setNotice] = useState('');
   const [dayIndex, setDayIndex] = useState(0);
   const activeDay = teacherDayTimetables[dayIndex];
 
@@ -28,8 +33,7 @@ export default function TeacherDashboardPage() {
       const today = new Date().toISOString().slice(0, 10);
       const storageKey = 'safereach-teacher-protocol-reset-date';
       if (window.localStorage.getItem(storageKey) !== today) {
-        setCheckedProtocols([]);
-        setSubmittedProtocols([]);
+        setCheckedProtocolIds([]);
         window.localStorage.setItem(storageKey, today);
       }
     }
@@ -39,33 +43,61 @@ export default function TeacherDashboardPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  function beginEdit(index: number) {
-    setEditingIndex(index);
-    setEditText(protocols[index]);
+  useEffect(() => {
+    setCheckedProtocolIds(protocols.filter(protocol => protocol.checked).map(protocol => protocol.id));
+  }, [protocols]);
+
+  function showNotice(message: string) {
+    setNotice(message);
+    window.setTimeout(() => setNotice(''), 2500);
   }
 
-  function saveProtocol() {
-    if (editingIndex === null || editText.trim() === '') return;
-    setProtocols(current => current.map((item, index) => index === editingIndex ? editText.trim() : item));
-    setEditingIndex(null);
+  function beginEdit(id: string, label: string) {
+    setEditingId(id);
+    setEditText(label);
+  }
+
+  async function saveProtocol() {
+    if (editingId === null || editText.trim() === '') return;
+    try {
+      await updateProtocol(editingId, { label: editText.trim() });
+      showNotice('Safety protocol updated in backend.');
+    } catch (reason) {
+      showNotice(reason instanceof Error ? reason.message : 'Safety protocol update failed.');
+    }
+    setEditingId(null);
     setEditText('');
   }
 
-  function submitProtocols() {
-    setSubmittedProtocols(checkedProtocols);
+  async function submitProtocols() {
+    try {
+      await submitProtocolRows(checkedProtocolIds);
+      showNotice('Checked safety protocols submitted to backend.');
+    } catch (reason) {
+      showNotice(reason instanceof Error ? reason.message : 'Safety protocol submit failed.');
+    }
   }
 
-  function addProtocol() {
+  async function addProtocol() {
     if (!newProtocol.trim()) return;
-    setProtocols(current => [...current, newProtocol.trim()]);
-    setNewProtocol('');
+    try {
+      await addProtocolRow(newProtocol.trim());
+      setNewProtocol('');
+      showNotice('Safety protocol added to backend.');
+    } catch (reason) {
+      showNotice(reason instanceof Error ? reason.message : 'Safety protocol add failed.');
+    }
   }
 
-  function deleteProtocol(index: number) {
-    if (!window.confirm(`Delete safety protocol "${protocols[index]}"?`)) return;
-    setProtocols(current => current.filter((_, i) => i !== index));
-    setCheckedProtocols(current => current.filter(i => i !== index).map(i => i > index ? i - 1 : i));
-    setSubmittedProtocols(current => current.filter(i => i !== index).map(i => i > index ? i - 1 : i));
+  async function deleteProtocol(id: string, label: string) {
+    if (!window.confirm(`Delete safety protocol "${label}"?`)) return;
+    try {
+      await removeProtocol(id);
+      setCheckedProtocolIds(current => current.filter(itemId => itemId !== id));
+      showNotice('Safety protocol deleted in backend.');
+    } catch (reason) {
+      showNotice(reason instanceof Error ? reason.message : 'Safety protocol delete failed.');
+    }
   }
 
   function previousDay() {
@@ -120,22 +152,32 @@ export default function TeacherDashboardPage() {
                 <span className="material-symbols-outlined text-primary">verified_user</span>
                 <h3 className="font-headline-md text-headline-md text-primary">Safety Protocols</h3>
               </div>
+              {notice && <div className="mb-3 rounded-lg border border-green-100 bg-green-50 px-3 py-2 text-label-md font-bold text-green-700">{notice}</div>}
+              {protocolsLoading && <p className="text-label-md text-on-surface-variant">Loading safety protocols from backend...</p>}
+              {protocolsError && <p className="rounded-lg border border-error/30 bg-error-container/30 p-3 text-label-md font-bold text-error">{protocolsError}</p>}
               <div className="flex flex-col gap-3">
-                {protocols.map((item, i) => (
-                  <div key={`${item}-${i}`} className="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-lg border border-outline-variant">
+                {protocols.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-lg border border-outline-variant">
                     <input
-                      checked={checkedProtocols.includes(i)}
-                      onChange={e => setCheckedProtocols(current => e.target.checked ? [...current, i] : current.filter(itemIndex => itemIndex !== i))}
+                      checked={checkedProtocolIds.includes(item.id)}
+                      onChange={async e => {
+                        setCheckedProtocolIds(current => e.target.checked ? [...current, item.id] : current.filter(itemId => itemId !== item.id));
+                        try {
+                          await updateProtocol(item.id, { checked: e.target.checked });
+                        } catch (reason) {
+                          showNotice(reason instanceof Error ? reason.message : 'Safety protocol check failed.');
+                        }
+                      }}
                       className="w-5 h-5 rounded border-outline text-primary focus:ring-primary"
                       type="checkbox"
                     />
-                    <span className={`font-label-md text-label-md text-on-surface flex-1 ${submittedProtocols.includes(i) ? 'line-through text-on-surface-variant' : ''}`}>{item}</span>
-                    <button onClick={() => beginEdit(i)} className="p-1 rounded hover:bg-primary/10 text-primary" title="Edit protocol"><span className="material-symbols-outlined text-[18px]">edit</span></button>
-                    <button onClick={() => deleteProtocol(i)} className="p-1 rounded hover:bg-error-container text-error" title="Delete protocol"><span className="material-symbols-outlined text-[18px]">delete</span></button>
+                    <span className={`font-label-md text-label-md text-on-surface flex-1 ${item.submitted ? 'line-through text-on-surface-variant' : ''}`}>{item.label}</span>
+                    <button onClick={() => beginEdit(item.id, item.label)} className="p-1 rounded hover:bg-primary/10 text-primary" title="Edit protocol"><span className="material-symbols-outlined text-[18px]">edit</span></button>
+                    <button onClick={() => deleteProtocol(item.id, item.label)} className="p-1 rounded hover:bg-error-container text-error" title="Delete protocol"><span className="material-symbols-outlined text-[18px]">delete</span></button>
                   </div>
                 ))}
               </div>
-              {editingIndex !== null && (
+              {editingId !== null && (
                 <div className="mt-4 flex gap-2">
                   <input className="flex-1 bg-white border border-outline-variant rounded-lg px-3 py-2 text-label-md min-w-0" value={editText} onChange={e => setEditText(e.target.value)} />
                   <button onClick={saveProtocol} className="px-3 py-2 bg-primary text-on-primary rounded-lg font-bold">Save</button>

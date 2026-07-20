@@ -228,7 +228,22 @@ create table if not exists sms_delivery_logs (
   created_at timestamptz not null default now()
 );
 
+create table if not exists safety_protocols (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references schools(id) on delete cascade,
+  role_key text not null check (role_key in ('parent', 'teacher')),
+  label text not null,
+  checked boolean not null default false,
+  submitted boolean not null default false,
+  active boolean not null default true,
+  created_by uuid references users(id),
+  updated_by uuid references users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists idx_users_school_role on users(school_id, role_id);
 create index if not exists idx_students_school_class_section on students(school_id, class_id, section_id);
 create index if not exists idx_attendance_date on attendance_records(school_id, attendance_date, session);
 create index if not exists idx_notifications_user on notifications(user_id, read_at, created_at desc);
+create index if not exists idx_safety_protocols_role on safety_protocols(school_id, role_key, active);

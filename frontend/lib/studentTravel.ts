@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { type BackendStudent, useBackendBootstrap } from '@/lib/backendData';
+import { apiBaseUrl } from './runtimeConfig';
 
 export type StudentTravelStatus =
   | 'at_home'
@@ -189,7 +190,17 @@ export const seedTravelRecords: StudentTravelRecord[] = [
 
 function normalizeRecords(records: StudentTravelRecord[], baseRecords: StudentTravelRecord[] = backendBaseRecords) {
   const stored = new Map(records.map(record => [record.id, record]));
-  return baseRecords.map(seed => ({ ...seed, ...(stored.get(seed.id) ?? {}) }));
+  return baseRecords.map(seed => {
+    const saved = stored.get(seed.id);
+    if (!saved) return seed;
+    return {
+      ...seed,
+      absenceReason: saved.absenceReason,
+      absenceReasonRequested: seed.absenceReasonRequested || saved.absenceReasonRequested,
+      absenceSmsSentAt: saved.absenceSmsSentAt,
+      smsHistory: saved.smsHistory ?? [],
+    };
+  });
 }
 
 function safeStatus(status: string): StudentTravelStatus {
@@ -355,6 +366,49 @@ function updateOneWithSms(studentId: string, status: TeacherSmsStatus, patch: Pa
   );
 }
 
+async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(init?.headers ?? {}),
+    },
+  });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(payload?.message || `Backend returned ${response.status}`);
+  }
+  return payload as T;
+}
+
+type BackendTravelPayload = {
+  student_id: string;
+  status: string;
+  attendance_status?: string;
+  event?: string;
+  last_event_at?: string;
+};
+
+function applyBackendTravelPayload(records: StudentTravelRecord[], payload: BackendTravelPayload) {
+  return records.map(record => {
+    if (record.id !== payload.student_id) return record;
+    const status = safeStatus(payload.status);
+    return {
+      ...record,
+      status,
+      attendance: safeAttendance(payload.attendance_status || record.attendance),
+      location: locationForStatus(status),
+      absenceReasonRequested: status === 'absent' || record.absenceReasonRequested,
+      updatedAt: payload.last_event_at || nowLabel(),
+    };
+  });
+}
+
+function persistAndReturn(records: StudentTravelRecord[]) {
+  writeTravelRecords(records);
+  return records;
+}
+
 export function travelStatusLabel(status: StudentTravelStatus, audience: 'parent' | 'teacher' = 'parent') {
   if (audience === 'teacher' && status === 'present') return 'Present';
   if (audience === 'parent' && (status === 'present' || status === 'reached_school' || status === 'reached_home')) return 'SafeReach';
@@ -414,16 +468,21 @@ export function useStudentTravelState() {
   }, [backend.students]);
 
   const actions = useMemo(() => ({
-    readyToSend(studentId: string) {
-      const updated = updateOne(studentId, {
-        status: 'to_school',
-        attendance: 'pending',
-        location: 'Tracking to school',
-        absenceReason: '',
-        absenceReasonRequested: false,
-        absenceSmsSentAt: '',
+    async readyToSend(studentId: string) {
+      const payload = await apiRequest<BackendTravelPayload>(`/student-travel/${encodeURIComponent(studentId)}/ready-to-school`, {
+        method: 'POST',
+        body: JSON.stringify({ actorUserId: null }),
       });
-      const record = updated.find(item => item.id === studentId);
+      let nextRecords: StudentTravelRecord[] = [];
+      setRecords(current => {
+        nextRecords = persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+          record.id === studentId
+            ? { ...record, attendance: 'pending', absenceReason: '', absenceReasonRequested: false, absenceSmsSentAt: '' }
+            : record
+        ));
+        return nextRecords;
+      });
+      const record = nextRecords.find(item => item.id === studentId);
       if (record) {
         appendDb3RealtimeEvent(record, {
           table: 'parent_events',
@@ -440,40 +499,42 @@ export function useStudentTravelState() {
           detail: 'Parent started school trip tracking.',
         });
       }
-      setRecords(updated);
     },
-    markPresent(studentId: string) {
-      setRecords(updateOneWithSms(studentId, 'present', {
-        status: 'present',
-        attendance: 'present',
-        location: 'SafeReach at school',
-        absenceReasonRequested: false,
-      }));
+    async markPresent(studentId: string) {
+      const payload = await apiRequest<BackendTravelPayload>(`/student-travel/${encodeURIComponent(studentId)}/attendance`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'present', actorUserId: null }),
+      });
+      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+        record.id === studentId ? { ...record, absenceReasonRequested: false } : record
+      )));
     },
-    markLate(studentId: string) {
-      setRecords(updateOneWithSms(studentId, 'late', {
-        status: 'present',
-        attendance: 'late',
-        location: 'SafeReach at school - late arrival',
-        absenceReasonRequested: false,
-      }));
+    async markLate(studentId: string) {
+      const payload = await apiRequest<BackendTravelPayload>(`/student-travel/${encodeURIComponent(studentId)}/attendance`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'late', actorUserId: null }),
+      });
+      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+        record.id === studentId ? { ...record, absenceReasonRequested: false } : record
+      )));
     },
-    markReachedSchool(studentId: string) {
-      setRecords(updateOneWithSms(studentId, 'reached_school', {
-        status: 'reached_school',
-        attendance: 'pending',
-        location: 'Reached school campus',
-        absenceReasonRequested: false,
-      }));
+    async markReachedSchool(studentId: string) {
+      const payload = await apiRequest<BackendTravelPayload>(`/student-travel/${encodeURIComponent(studentId)}/attendance`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'present', actorUserId: null }),
+      });
+      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+        record.id === studentId ? { ...record, absenceReasonRequested: false } : record
+      )));
     },
-    markAbsent(studentId: string) {
-      setRecords(updateOneWithSms(studentId, 'absent', {
-        status: 'absent',
-        attendance: 'absent',
-        location: 'Not reached school',
-        absenceReasonRequested: true,
-        absenceSmsSentAt: nowLabel(),
-      }));
+    async markAbsent(studentId: string) {
+      const payload = await apiRequest<BackendTravelPayload>(`/student-travel/${encodeURIComponent(studentId)}/attendance`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'absent', actorUserId: null }),
+      });
+      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+        record.id === studentId ? { ...record, absenceReasonRequested: true, absenceSmsSentAt: nowLabel() } : record
+      )));
     },
     submitAbsenceReason(studentId: string, reason: string) {
       setRecords(updateOne(studentId, {
@@ -481,40 +542,22 @@ export function useStudentTravelState() {
         absenceReasonRequested: false,
       }));
     },
-    markLeavingSchool(studentIds: string[]) {
-      setRecords(updateRecords(records =>
-        records.map(record => {
-          if (!studentIds.includes(record.id)) return record;
-          const sms = createSmsLog(record, 'going_home');
-          appendDb3RealtimeEvent(record, {
-            table: 'teacher_events',
-            actor: 'teacher',
-            event: 'Student Out of School',
-            status: 'going_home',
-            detail: `${record.name} is Tracking to Home.`,
-          });
-          appendDb3RealtimeEvent(record, {
-            table: 'students_status',
-            actor: 'system',
-            event: 'Student travel status update',
-            status: 'going_home',
-            detail: 'Teacher submitted go-out attendance.',
-          });
-          return {
-            ...record,
-            status: 'going_home',
-            location: 'Tracking to home',
-            smsHistory: [sms, ...(record.smsHistory ?? [])].slice(0, 20),
-            updatedAt: sms.sentAt,
-          };
-        })
-      ));
+    async markLeavingSchool(studentIds: string[]) {
+      const payload = await apiRequest<{ ok: boolean; records: BackendTravelPayload[] }>('/student-travel/go-out', {
+        method: 'POST',
+        body: JSON.stringify({ studentIds, actorUserId: null }),
+      });
+      setRecords(current => {
+        const updated = payload.records.reduce((records, recordPayload) => applyBackendTravelPayload(records, recordPayload), current);
+        return persistAndReturn(updated);
+      });
     },
-    markReachedHome(studentId: string) {
-      setRecords(updateOneWithSms(studentId, 'reached_home', {
-        status: 'reached_home',
-        location: 'SafeReach at home',
-      }));
+    async markReachedHome(studentId: string) {
+      const payload = await apiRequest<BackendTravelPayload>(`/student-travel/${encodeURIComponent(studentId)}/reached-home`, {
+        method: 'POST',
+        body: JSON.stringify({ actorUserId: null }),
+      });
+      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload)));
     },
     sendStatusSms(studentId: string, status: TeacherSmsStatus) {
       setRecords(updateOneWithSms(studentId, status, {}));

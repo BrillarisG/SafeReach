@@ -186,16 +186,21 @@ export default function TeacherAttendancePage() {
     return 'present';
   }
 
-  function mark(studentId: string, status: AttendanceStatus) {
+  async function mark(studentId: string, status: AttendanceStatus) {
     const student = classStudents.find(item => item.id === studentId);
     const current = currentAttendance(studentId);
     const isSubmitted = submittedSet.has(studentId);
     const canUpdateSubmittedLate = isSubmitted && current === 'late' && (status === 'present' || status === 'absent');
     if (isSubmitted && !canUpdateSubmittedLate) return;
-    if (status === 'present') actions.markPresent(studentId);
-    if (status === 'absent') actions.markAbsent(studentId);
-    if (status === 'late') actions.markLate(studentId);
-    if (status === 'reached_school') actions.markReachedSchool(studentId);
+    try {
+      if (status === 'present') await actions.markPresent(studentId);
+      if (status === 'absent') await actions.markAbsent(studentId);
+      if (status === 'late') await actions.markLate(studentId);
+      if (status === 'reached_school') await actions.markReachedSchool(studentId);
+    } catch (reason) {
+      setLastSmsNotice(reason instanceof Error ? reason.message : 'Attendance update failed.');
+      return;
+    }
     if (student) {
       const label = status === 'reached_school' ? 'Reached School' : status.charAt(0).toUpperCase() + status.slice(1);
       setLastSmsNotice(`SMS sent to ${student.parentName} (${student.parentPhone}): ${student.name} - ${label}.`);
@@ -206,8 +211,8 @@ export default function TeacherAttendancePage() {
     setSaved(false);
   }
 
-  function markAll(status: AttendanceStatus) {
-    filteredAttendanceStudents.forEach(student => mark(student.id, status));
+  async function markAll(status: AttendanceStatus) {
+    await Promise.all(filteredAttendanceStudents.map(student => mark(student.id, status)));
     setSaved(false);
   }
 
@@ -217,9 +222,14 @@ export default function TeacherAttendancePage() {
     setLeaveSaved(false);
   }
 
-  function submitLeave() {
+  async function submitLeave() {
     const selectedStudents = classStudents.filter(student => leaveIds.includes(student.id));
-    actions.markLeavingSchool(leaveIds);
+    try {
+      await actions.markLeavingSchool(leaveIds);
+    } catch (reason) {
+      setLastSmsNotice(reason instanceof Error ? reason.message : 'Out of school submit failed.');
+      return;
+    }
     setLeaveSubmittedIds(current => Array.from(new Set([...current, ...leaveIds])));
     setLastSmsNotice(`${selectedStudents.length} go-out SMS ${selectedStudents.length === 1 ? 'was' : 'were'} sent to parent phones.`);
     setLeaveIds([]);

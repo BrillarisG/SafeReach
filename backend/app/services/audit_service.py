@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from flask import current_app
+from psycopg import Error as PsycopgError
 from psycopg.errors import UndefinedTable
 
 from ..db import db2_conn
@@ -25,3 +26,8 @@ def write_audit(event_type: str, entity_type: str, entity_id: str | None, after_
             conn.commit()
     except UndefinedTable:
         current_app.logger.info("DB-2 is configured as a protected DB-1 mirror; legacy immutable_events audit insert skipped: %s", event_type)
+    except PsycopgError as exc:
+        # DB-2 is a protected backup/audit target. Its temporary outage must
+        # never reject the primary school workflow that was already committed
+        # in DB-1.
+        current_app.logger.warning("DB-2 audit event skipped for %s: %s", event_type, exc.__class__.__name__)

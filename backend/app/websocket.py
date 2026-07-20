@@ -41,19 +41,25 @@ def register_socket_handlers(socketio):
 
     @socketio.on("student.ready_to_school")
     def on_ready(payload):
-        _handle_student_event("student.status.changed", lambda: safereach_service.mark_ready_to_school(payload["studentId"], payload.get("actorUserId")))
+        return _handle_student_event("student.status.changed", lambda: safereach_service.mark_ready_to_school(payload["studentId"], payload.get("actorUserId")))
 
     @socketio.on("attendance.submit")
     def on_attendance(payload):
-        _handle_student_event("attendance.marked", lambda: safereach_service.submit_attendance(payload["studentId"], payload["status"], payload.get("actorUserId")))
+        return _handle_student_event("attendance.marked", lambda: safereach_service.submit_attendance(payload["studentId"], payload["status"], payload.get("actorUserId")))
 
     @socketio.on("travel.go_out")
     def on_go_out(payload):
-        _handle_student_event("student.status.changed", lambda: safereach_service.submit_go_out(payload["studentId"], payload.get("actorUserId")))
+        student_ids = payload.get("studentIds")
+        if isinstance(student_ids, list):
+            return _handle_student_event(
+                "student.status.changed",
+                lambda: {"ok": True, "records": [safereach_service.submit_go_out(student_id, payload.get("actorUserId")) for student_id in student_ids]},
+            )
+        return _handle_student_event("student.status.changed", lambda: safereach_service.submit_go_out(payload["studentId"], payload.get("actorUserId")))
 
     @socketio.on("parent.reached_home")
     def on_reached(payload):
-        _handle_student_event("student.status.changed", lambda: safereach_service.mark_reached_home(payload["studentId"], payload.get("actorUserId")))
+        return _handle_student_event("student.status.changed", lambda: safereach_service.mark_reached_home(payload["studentId"], payload.get("actorUserId")))
 
     @socketio.on("timetable.break.move")
     def on_timetable_break_move(payload):
@@ -81,5 +87,7 @@ def register_socket_handlers(socketio):
         try:
             result = action()
             emit(event_name, result, broadcast=True)
+            return {"ok": True, "data": result}
         except Exception as exc:
             emit("safe.error", {"message": str(exc)})
+            return {"ok": False, "message": str(exc)}

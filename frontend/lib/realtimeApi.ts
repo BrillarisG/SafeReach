@@ -70,6 +70,48 @@ class SafeReachRealtimeClient {
     this.emit({ ...event, type: `${type}.offline_preview` });
   }
 
+  request<TPayload = unknown, TResult = unknown>(type: string, payload: TPayload, timeoutMs = 10000): Promise<TResult> {
+    this.connect();
+    return new Promise((resolve, reject) => {
+      const socket = this.socket;
+      if (!socket) {
+        reject(new Error('Realtime socket is not available'));
+        return;
+      }
+      const finish = (result: { ok?: boolean; data?: TResult; message?: string } | TResult) => {
+        if (result && typeof result === 'object' && 'ok' in result) {
+          if ((result as { ok?: boolean }).ok) {
+            resolve((result as { data?: TResult }).data as TResult);
+          } else {
+            reject(new Error((result as { message?: string }).message || 'Realtime request failed'));
+          }
+          return;
+        }
+        resolve(result as TResult);
+      };
+      const emitRequest = () => {
+        const timeout = window.setTimeout(() => reject(new Error('Realtime request timed out')), timeoutMs);
+        socket.emit(type, payload, (result: { ok?: boolean; data?: TResult; message?: string } | TResult) => {
+          window.clearTimeout(timeout);
+          finish(result);
+        });
+      };
+      if (socket.connected) {
+        emitRequest();
+        return;
+      }
+      const connectTimeout = window.setTimeout(() => {
+        socket.off('connect', onConnect);
+        reject(new Error('Realtime socket is not connected'));
+      }, 2500);
+      const onConnect = () => {
+        window.clearTimeout(connectTimeout);
+        emitRequest();
+      };
+      socket.once('connect', onConnect);
+    });
+  }
+
   private emit(event: SafeReachRealtimeEvent) {
     this.handlers.forEach(handler => handler(event));
   }

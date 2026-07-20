@@ -111,21 +111,24 @@ export default function TeacherMessagesPage() {
   const [active, setActive] = useState('group-admin');
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [newMsg, setNewMsg] = useState('');
+  const [sentThreads, setSentThreads] = useState<Record<string, Message[]>>({});
   const activeConv = filteredConversations.find(c => c.id === active) ?? filteredConversations[0] ?? conversations[0];
   const activeStudent = classStudents.find(student => student.id === activeConv?.studentId);
   const showSenderName = Boolean(activeConv?.id?.startsWith('group-'));
 
   const thread = useMemo<Message[]>(() => {
+    const extra = sentThreads[activeConv?.id ?? active] ?? [];
     if (activeStudent) {
       return [
         { from: 'You', text: `${activeStudent.name} marked absent. SMS/reason request sent to ${activeStudent.parentName}.`, time: activeStudent.absenceSmsSentAt || 'Today', me: true },
         activeStudent.absenceReason
           ? { from: activeStudent.parentName, text: activeStudent.absenceReason, time: activeStudent.updatedAt, me: false }
           : { from: 'System', text: 'Parent reason is still pending in the app.', time: activeStudent.updatedAt, me: false },
+        ...extra,
       ];
     }
-    return baseThreads[activeConv?.id ?? active] || [];
-  }, [active, activeConv?.id, activeStudent]);
+    return [...(baseThreads[activeConv?.id ?? active] || []), ...extra];
+  }, [active, activeConv?.id, activeStudent, sentThreads]);
 
   function changeGroup(group: ConversationGroup) {
     setSelectedGroup(group);
@@ -142,7 +145,17 @@ export default function TeacherMessagesPage() {
 
   function sendMessage() {
     if (!newMsg.trim() || !activeConv) return;
-    setSentNotice(`Frontend demo message prepared for ${activeConv.name}. Backend delivery will be added later.`);
+    const message: Message = {
+      from: 'You',
+      text: newMsg.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      me: true,
+    };
+    setSentThreads(current => ({
+      ...current,
+      [activeConv.id]: [...(current[activeConv.id] ?? []), message],
+    }));
+    setSentNotice(`Message added for ${activeConv.name}.`);
     setNewMsg('');
   }
 
@@ -279,10 +292,10 @@ export default function TeacherMessagesPage() {
             </div>
           )}
         </div>
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))] md:static md:z-auto md:pb-3">
+        <div className="fixed bottom-3 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 pb-4 md:static md:z-auto md:pb-3">
           {sentNotice && <p className="mb-2 text-label-md font-bold text-primary">{sentNotice}</p>}
           <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant">
-            <input className="flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder:text-on-surface-variant outline-none" placeholder={activeStudent ? 'Reason review is read-only in this frontend demo.' : 'Type a message...'} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newMsg.trim()) setNewMsg(''); }} />
+            <input className="flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder:text-on-surface-variant outline-none" placeholder={activeStudent ? 'Type a message about this student...' : 'Type a message...'} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') sendMessage(); }} />
             <button className="text-on-surface-variant hover:text-primary transition-colors p-1"><span className="material-symbols-outlined text-[20px]">attach_file</span></button>
             <button onClick={sendMessage} className={`p-1.5 rounded-full transition-colors ${newMsg.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button>
           </div>

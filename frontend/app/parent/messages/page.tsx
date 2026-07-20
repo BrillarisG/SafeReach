@@ -74,26 +74,39 @@ export default function ParentMessagesPage() {
   const [active, setActive] = useState(conversations[0]?.id ?? 'base-1');
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [newMsg, setNewMsg] = useState('');
+  const [sentThreads, setSentThreads] = useState<Record<string, Message[]>>({});
   const activeConv = conversations.find(c => c.id === active) ?? conversations[0];
   const activeStudent = parentChildren.find(child => child.id === activeConv?.studentId);
   const unreadCount = conversations.reduce((sum, conversation) => sum + conversation.unread, 0);
   const groupCount = conversations.filter(conversation => conversation.role.toLowerCase().includes('administration') || conversation.role.toLowerCase().includes('safety')).length;
 
   const thread = useMemo<Message[]>(() => {
+    const extra = sentThreads[active] ?? [];
     if (activeStudent) {
       return [
         { from: activeStudent.teacherName, text: `${activeStudent.name} was marked absent today. An SMS has been sent to ${activeStudent.parentPhone}. Please reply with the absence reason in this app.`, time: activeStudent.absenceSmsSentAt || 'Today', me: false },
         ...(activeStudent.absenceReason ? [{ from: 'You', text: activeStudent.absenceReason, time: activeStudent.updatedAt, me: true }] : []),
+        ...extra,
       ];
     }
-    return baseThreads[active] || [];
-  }, [active, activeStudent]);
+    return [...(baseThreads[active] || []), ...extra];
+  }, [active, activeStudent, sentThreads]);
 
   function sendMessage() {
     if (!newMsg.trim()) return;
     if (activeStudent) {
       actions.submitAbsenceReason(activeStudent.id, newMsg);
     }
+    const message: Message = {
+      from: 'You',
+      text: newMsg.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      me: true,
+    };
+    setSentThreads(current => ({
+      ...current,
+      [active]: [...(current[active] ?? []), message],
+    }));
     setNewMsg('');
   }
 
@@ -187,7 +200,7 @@ export default function ParentMessagesPage() {
             </div>
           ))}
         </div>
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))] md:static md:z-auto md:pb-3">
+        <div className="fixed bottom-3 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 pb-4 md:static md:z-auto md:pb-3">
           <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant">
             <input className="flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder:text-on-surface-variant outline-none" placeholder={activeStudent ? 'Type absence reason for teacher...' : 'Type a message to the school...'} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') sendMessage(); }} />
             <button className="text-on-surface-variant hover:text-primary p-1"><span className="material-symbols-outlined text-[20px]">attach_file</span></button>

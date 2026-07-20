@@ -118,7 +118,18 @@ export default function TimetableManager({ mode, editMode = false, requestedClas
 
   function moveBreak(id: TimetableBreak['id'], afterPeriod: number) {
     const target = Math.min(Math.max(afterPeriod, 1), periodCount);
-    saveBreaks(data.breaks.map(item => item.id === id ? { ...item, afterPeriod: target } : item), `Break moved after P${target}.`);
+    const nextBreaks = data.breaks.map(item => item.id === id ? { ...item, afterPeriod: target } : item);
+    const interval1 = nextBreaks.find(item => item.id === 'interval1')?.label || 'Interval-1';
+    const lunch = nextBreaks.find(item => item.id === 'lunch')?.label || 'Lunch';
+    const interval2 = nextBreaks.find(item => item.id === 'interval2')?.label || 'Interval-2';
+    setData({
+      ...data,
+      breaks: nextBreaks,
+      breakAfterPeriod2: interval1,
+      lunchAfterPeriod4: lunch,
+      breakAfterPeriod6: interval2,
+    });
+    setNotice('');
   }
 
   function finishBreakPointer(event: PointerEvent<HTMLElement>) {

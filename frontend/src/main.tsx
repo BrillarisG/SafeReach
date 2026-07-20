@@ -162,14 +162,6 @@ function usePathname() {
 
 function AppRouter() {
   const pathname = usePathname();
-  const [routeLoading, setRouteLoading] = useState(false);
-
-  useEffect(() => {
-    setRouteLoading(true);
-    const timer = window.setTimeout(() => setRouteLoading(false), 260);
-    return () => window.clearTimeout(timer);
-  }, [pathname]);
-
   const rendered = useMemo(() => {
     const PlainPage = plainRoutes[pathname];
     if (PlainPage) return <PlainPage />;
@@ -186,7 +178,7 @@ function AppRouter() {
     return <NotFound />;
   }, [pathname]);
 
-  return <RootLayout>{routeLoading && <LoadingRing size="lg" />}{rendered}</RootLayout>;
+  return <RootLayout>{rendered}</RootLayout>;
 }
 
 createRoot(document.getElementById("root")!).render(

@@ -109,6 +109,7 @@ function AdminMessagesContent() {
   const [activeId, setActiveId] = useState(requestedConversation?.id ?? 'common-admin-teachers');
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState('');
+  const [sentThreads, setSentThreads] = useState<Record<string, Message[]>>({});
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [notice, setNotice] = useState('Admin messaging is a frontend demo. Backend delivery will be added later.');
 
@@ -129,7 +130,7 @@ function AdminMessagesContent() {
   }).sort((a, b) => conversationTimeScore(b.time) - conversationTimeScore(a.time)), [activeGroup, availableConversations, search]);
 
   const activeConversation = visibleConversations.find(conversation => conversation.id === activeId) ?? visibleConversations[0] ?? availableConversations[0];
-  const activeThread = threads[activeConversation.id] ?? [];
+  const activeThread = [...(threads[activeConversation.id] ?? []), ...(sentThreads[activeConversation.id] ?? [])];
   const showSenderName = activeConversation.group === 'common';
 
   function changeGroup(group: MessageGroup) {
@@ -145,7 +146,17 @@ function AdminMessagesContent() {
 
   function sendMessage() {
     if (!draft.trim()) return;
-    setNotice(`Message prepared for ${activeConversation.name}: "${draft.trim()}"`);
+    const message: Message = {
+      from: 'Admin Priya',
+      text: draft.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      me: true,
+    };
+    setSentThreads(current => ({
+      ...current,
+      [activeConversation.id]: [...(current[activeConversation.id] ?? []), message],
+    }));
+    setNotice(`Message added for ${activeConversation.name}.`);
     setDraft('');
   }
 
@@ -198,7 +209,7 @@ function AdminMessagesContent() {
         <div className="no-scrollbar flex-1 min-h-0 overflow-y-auto p-4 pb-28 md:pb-4 space-y-3">
           {activeThread.map((message, index) => <div key={`${message.time}-${index}`} className={`flex ${message.me ? 'justify-end' : 'justify-start'}`}><div className={`chat-bubble max-w-sm px-4 py-2.5 rounded-2xl text-body-md ${message.me ? 'chat-bubble-sent bg-white text-on-surface rounded-br-sm shadow-sm border border-outline-variant/20' : 'chat-bubble-received bg-primary text-on-primary rounded-bl-sm border border-primary'}`}><p>{message.text}</p><p className={`mt-2 text-[11px] ${message.me ? 'text-on-surface-variant' : 'text-on-primary/80'}`}>{showSenderName ? `${message.from} | ${message.time}` : message.time}</p></div></div>)}
         </div>
-        <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))] md:static md:z-auto md:pb-3"><div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant"><input value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') sendMessage(); }} className="flex-1 bg-transparent outline-none text-body-md" placeholder="Type a message..." /><button type="button" onClick={sendMessage} className={`p-1.5 rounded-full ${draft.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button></div></footer>
+        <footer className="fixed bottom-3 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 pb-4 md:static md:z-auto md:pb-3"><div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant"><input value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') sendMessage(); }} className="flex-1 bg-transparent outline-none text-body-md" placeholder="Type a message..." /><button type="button" onClick={sendMessage} className={`p-1.5 rounded-full ${draft.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}><span className="material-symbols-outlined text-[20px]">send</span></button></div></footer>
       </div>
 
       <div className="hidden h-full min-h-0 min-w-0 grid-cols-1 md:grid md:grid-cols-[320px_minmax(0,1fr)]">
@@ -272,7 +283,7 @@ function AdminMessagesContent() {
               <div className="rounded-xl border border-dashed border-outline-variant bg-white p-5 text-center text-on-surface-variant">No messages yet. Send a frontend demo message below.</div>
             )}
           </div>
-          <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))] md:static md:z-auto md:pb-3">
+          <footer className="fixed bottom-3 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 pb-4 md:static md:z-auto md:pb-3">
             <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant">
               <input value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') sendMessage(); }} className="flex-1 bg-transparent outline-none text-body-md" placeholder={`Message ${activeConversation.name}...`} />
               <button type="button" onClick={sendMessage} className={`p-2 rounded-full ${draft.trim() ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>

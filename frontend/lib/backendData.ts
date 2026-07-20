@@ -17,6 +17,7 @@ export type BackendStudent = {
   sms_enabled: boolean;
   travel_status: string;
   attendance_status: string;
+  travel_updated_at?: string;
 };
 
 export type BackendTeacher = {

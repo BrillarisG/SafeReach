@@ -70,6 +70,29 @@ def integrations_status():
     return jsonify(integration_status_service.integration_status())
 
 
+@api_bp.get("/school-settings")
+def school_settings():
+    try:
+        return jsonify(safereach_service.school_settings(request.args.get("schoolId")))
+    except LookupError as exc:
+        return _api_error("school_settings_not_found", exc, 404)
+    except Exception as exc:
+        return _api_error("school_settings_failed", exc, 503)
+
+
+@api_bp.patch("/school-settings")
+def update_school_settings():
+    payload = request.get_json(silent=True) or {}
+    try:
+        return jsonify(safereach_service.update_school_settings(payload, payload.get("actorUserId"), payload.get("schoolId")))
+    except ValueError as exc:
+        return _api_error("school_settings_invalid", exc, 400)
+    except LookupError as exc:
+        return _api_error("school_settings_not_found", exc, 404)
+    except Exception as exc:
+        return _api_error("school_settings_update_failed", exc, 503)
+
+
 @api_bp.post("/student-travel/<student_id>/ready-to-school")
 def student_ready_to_school(student_id: str):
     payload = request.get_json(silent=True) or {}

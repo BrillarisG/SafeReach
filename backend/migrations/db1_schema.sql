@@ -11,9 +11,14 @@ create table if not exists schools (
   phone text,
   email text,
   status text not null default 'active',
+  school_open_time time not null default '08:00',
+  school_close_time time not null default '16:30',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table schools add column if not exists school_open_time time not null default '08:00';
+alter table schools add column if not exists school_close_time time not null default '16:30';
 
 create table if not exists roles (
   id uuid primary key default gen_random_uuid(),

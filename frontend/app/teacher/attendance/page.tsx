@@ -101,12 +101,18 @@ function goOutRiskRank(student: ReturnType<typeof useStudentTravelState>['classS
 }
 
 function goOutRowClass(student: ReturnType<typeof useStudentTravelState>['classStudents'][number]) {
-  if (student.status === 'absent') return 'bg-red-50 border-l-4 border-error';
   const risk = goOutRisk(student);
   if (risk === 'overdue') return 'bg-red-50 border-l-4 border-error';
   if (risk === 'traveling') return 'bg-yellow-50 border-l-4 border-yellow-400';
   if (risk === 'reached') return 'bg-green-50 border-l-4 border-green-500';
   return '';
+}
+
+function canSelectForLeave(student: ReturnType<typeof useStudentTravelState>['classStudents'][number], submittedIds: string[]) {
+  if (submittedIds.includes(student.id)) return false;
+  if (student.status === 'absent' || student.attendance === 'absent') return false;
+  if (student.status === 'going_home' || student.status === 'reached_home') return false;
+  return true;
 }
 
 export default function TeacherAttendancePage() {
@@ -162,7 +168,7 @@ export default function TeacherAttendancePage() {
       return riskDiff !== 0 ? riskDiff : a.name.localeCompare(b.name);
     });
   const filteredLeaveStudents = classStudents
-    .filter(student => !leaveSubmittedIds.includes(student.id) && student.status !== 'going_home' && student.status !== 'reached_home')
+    .filter(student => student.status !== 'absent' && student.attendance !== 'absent')
     .filter(student => matchesSearch(student, leaveSearch))
     .slice()
     .sort((a, b) => {
@@ -174,7 +180,7 @@ export default function TeacherAttendancePage() {
     if (!value) return true;
     return [log.sentAt, log.studentName, log.parentName, log.phone, log.message].some(item => item.toLowerCase().includes(value));
   });
-  const filteredLeaveIds = filteredLeaveStudents.map(student => student.id);
+  const filteredLeaveIds = filteredLeaveStudents.filter(student => canSelectForLeave(student, leaveSubmittedIds)).map(student => student.id);
   const allFilteredLeaveSelected = filteredLeaveIds.length > 0 && filteredLeaveIds.every(id => leaveIds.includes(id));
   const submittedSet = useMemo(() => new Set(submittedIds), [submittedIds]);
 
@@ -217,7 +223,8 @@ export default function TeacherAttendancePage() {
   }
 
   function toggleLeave(studentId: string, checked: boolean) {
-    if (leaveSubmittedIds.includes(studentId)) return;
+    const student = classStudents.find(item => item.id === studentId);
+    if (!student || !canSelectForLeave(student, leaveSubmittedIds)) return;
     setLeaveIds(current => checked ? [...current, studentId] : current.filter(id => id !== studentId));
     setLeaveSaved(false);
   }
@@ -422,7 +429,7 @@ export default function TeacherAttendancePage() {
                       <input
                         type="checkbox"
                         checked={leaveIds.includes(student.id)}
-                        disabled={leaveSubmittedIds.includes(student.id) || student.status === 'absent' || student.attendance === 'absent' || student.status === 'going_home' || student.status === 'reached_home'}
+                        disabled={!canSelectForLeave(student, leaveSubmittedIds)}
                         onChange={event => toggleLeave(student.id, event.target.checked)}
                         className="w-5 h-5 rounded text-primary disabled:opacity-40"
                         aria-label={`Select ${student.name} for out of school attendance`}

@@ -42,13 +42,21 @@ def login(email: str, password: str) -> dict:
 def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
     with db1_conn() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
+            _ensure_school_operating_columns(cur)
             cur.execute(
                 """
                 select s.id, s.student_code, s.full_name, s.roll_no, c.name class_name, sec.name section_name,
                        p.guardian_name, p.phone parent_phone, p.sms_enabled,
-                       coalesce(sts.status, 'at_home') travel_status,
-                       coalesce(sts.attendance_status, 'pending') attendance_status
+                       case
+                         when coalesce(sts.status, 'at_home') = 'reached_home'
+                           and sts.last_event_at < (current_date + coalesce(sc.school_open_time, '08:00'::time))
+                         then 'at_home'
+                         else coalesce(sts.status, 'at_home')
+                       end travel_status,
+                       coalesce(sts.attendance_status, 'pending') attendance_status,
+                       sts.last_event_at travel_updated_at
                 from students s
+                join schools sc on sc.id = s.school_id
                 join classes c on c.id = s.class_id
                 join sections sec on sec.id = s.section_id
                 left join parents p on p.id = s.parent_id
@@ -79,7 +87,7 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
             )
             periods = [dict(row) for row in cur.fetchall()]
 
-            cur.execute("select id, name, code, status from schools order by created_at")
+            cur.execute("select id, name, code, status, school_open_time, school_close_time from schools order by created_at")
             schools = [dict(row) for row in cur.fetchall()]
 
             cur.execute(
@@ -173,6 +181,77 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
         "role": role,
         "schoolId": school_id,
     }
+
+
+def school_settings(school_id: str | None = None) -> dict:
+    with db1_conn() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            _ensure_school_operating_columns(cur)
+            selected_school_id = _school_id(cur, school_id)
+            cur.execute(
+                """
+                select id, name, code, address, city, state, country, phone, email, status,
+                       school_open_time, school_close_time, created_at, updated_at
+                from schools
+                where id=%s
+                """,
+                (selected_school_id,),
+            )
+            row = cur.fetchone()
+    if not row:
+        raise LookupError("School settings not found")
+    return _serialize(dict(row))
+
+
+def update_school_settings(payload: dict, actor_user_id: str | None = None, school_id: str | None = None) -> dict:
+    allowed = {
+        "name": "name",
+        "phone": "phone",
+        "email": "email",
+        "address": "address",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "status": "status",
+        "schoolOpenTime": "school_open_time",
+        "schoolCloseTime": "school_close_time",
+    }
+    assignments = []
+    values = []
+    for api_key, column in allowed.items():
+        if api_key not in payload:
+            continue
+        value = payload[api_key]
+        if column in {"school_open_time", "school_close_time"}:
+            value = _clean_time(value, api_key)
+        assignments.append(f"{column}=%s")
+        values.append(value)
+    if not assignments:
+        raise ValueError("No school settings supplied")
+
+    with db1_conn() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            _ensure_school_operating_columns(cur)
+            selected_school_id = _school_id(cur, school_id or payload.get("schoolId"))
+            values.append(selected_school_id)
+            cur.execute(
+                f"""
+                update schools
+                set {", ".join(assignments)}, updated_at=now()
+                where id=%s
+                returning id, name, code, address, city, state, country, phone, email, status,
+                          school_open_time, school_close_time, created_at, updated_at
+                """,
+                values,
+            )
+            row = cur.fetchone()
+        conn.commit()
+    if not row:
+        raise LookupError("School settings not found")
+    payload_out = _serialize(dict(row))
+    write_audit("school.settings_updated", "school", str(payload_out["id"]), payload_out, actor_user_id, payload_out.get("id"))
+    _invalidate_bootstrap_cache()
+    return payload_out
 
 
 def bootstrap_cached(role: str | None = None, school_id: str | None = None) -> tuple[dict, str]:
@@ -338,6 +417,31 @@ def _build_timetable(periods: list[dict], breaks: list[dict]) -> dict:
         "breaks": breaks,
         "days": [{"id": day.lower(), "label": day, "periods": values} for day, values in days.items()],
     }
+
+
+def _ensure_school_operating_columns(cur) -> None:
+    cur.execute("alter table schools add column if not exists school_open_time time not null default '08:00'")
+    cur.execute("alter table schools add column if not exists school_close_time time not null default '16:30'")
+
+
+def _school_id(cur, school_id: str | None) -> str:
+    if school_id:
+        return school_id
+    cur.execute("select id from schools order by created_at limit 1")
+    row = cur.fetchone()
+    if not row:
+        raise LookupError("No school is available")
+    return str(row["id"])
+
+
+def _clean_time(value: object, field_name: str) -> str:
+    text = str(value or "").strip()
+    if len(text) == 5 and text[2] == ":" and text[:2].isdigit() and text[3:].isdigit():
+        hour = int(text[:2])
+        minute = int(text[3:])
+        if 0 <= hour <= 23 and 0 <= minute <= 59:
+            return text
+    raise ValueError(f"Invalid {field_name}; expected HH:MM")
 
 
 def _serialize(value):

@@ -23,11 +23,32 @@ DEFAULT_PROTOCOLS = {
     ],
 }
 
+SAFETY_PROTOCOL_SCHEMA_SQL = """
+create extension if not exists pgcrypto;
+
+create table if not exists safety_protocols (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references schools(id) on delete cascade,
+  role_key text not null check (role_key in ('parent', 'teacher')),
+  label text not null,
+  checked boolean not null default false,
+  submitted boolean not null default false,
+  active boolean not null default true,
+  created_by uuid references users(id),
+  updated_by uuid references users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_safety_protocols_role on safety_protocols(school_id, role_key, active);
+"""
+
 
 def list_protocols(role_key: str, school_id: str | None = None) -> list[dict]:
     role = _clean_role(role_key)
     with db1_conn() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
+            _ensure_schema(cur)
             selected_school_id = _school_id(cur, school_id)
             _ensure_defaults(cur, selected_school_id, role)
             cur.execute(
@@ -49,6 +70,7 @@ def create_protocol(role_key: str, label: str, actor_user_id: str | None = None,
     clean_label = _clean_label(label)
     with db1_conn() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
+            _ensure_schema(cur)
             selected_school_id = _school_id(cur, school_id)
             cur.execute(
                 """
@@ -82,6 +104,7 @@ def update_protocol(protocol_id: str, payload: dict, actor_user_id: str | None =
     values.extend([actor_user_id, protocol_id])
     with db1_conn() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
+            _ensure_schema(cur)
             cur.execute(
                 f"""
                 update safety_protocols
@@ -106,6 +129,7 @@ def submit_protocols(role_key: str, protocol_ids: list[str], actor_user_id: str 
         return list_protocols(role, school_id)
     with db1_conn() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
+            _ensure_schema(cur)
             selected_school_id = _school_id(cur, school_id)
             cur.execute(
                 """
@@ -126,6 +150,7 @@ def submit_protocols(role_key: str, protocol_ids: list[str], actor_user_id: str 
 def delete_protocol(protocol_id: str, actor_user_id: str | None = None) -> dict:
     with db1_conn() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
+            _ensure_schema(cur)
             cur.execute(
                 """
                 update safety_protocols
@@ -170,6 +195,10 @@ def _ensure_defaults(cur, school_id: str, role_key: str) -> None:
             """,
             (school_id, role_key, label),
         )
+
+
+def _ensure_schema(cur) -> None:
+    cur.execute(SAFETY_PROTOCOL_SCHEMA_SQL)
 
 
 def _clean_role(role_key: str) -> str:

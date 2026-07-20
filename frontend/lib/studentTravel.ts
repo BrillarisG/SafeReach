@@ -250,7 +250,7 @@ function backendStudentToTravelRecord(student: BackendStudent): StudentTravelRec
     absenceReasonRequested: status === 'absent',
     absenceSmsSentAt: '',
     smsHistory: [],
-    updatedAt: 'DB stored record',
+    updatedAt: student.travel_updated_at || 'DB stored record',
   };
 }
 
@@ -446,7 +446,7 @@ export function travelStatusClass(status: StudentTravelStatus) {
     present: 'bg-green-100 text-green-700',
     absent: 'bg-error-container text-error',
     going_home: 'bg-yellow-100 text-yellow-700',
-    reached_home: 'bg-primary/10 text-primary',
+    reached_home: 'bg-green-100 text-green-700',
   };
   return classes[status];
 }

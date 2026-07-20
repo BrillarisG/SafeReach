@@ -4,6 +4,7 @@ import { usePathname } from '@/src/next-navigation';
 import Link from '@/src/next-link';
 import { useState } from 'react';
 import ParentSidebar from '@/components/ParentSidebar';
+import RoleBootstrapLoader from '@/components/RoleBootstrapLoader';
 
 type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'timetable';
 
@@ -39,6 +40,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="bg-background text-on-surface min-h-screen overflow-x-hidden pt-16">
+      <RoleBootstrapLoader key={pathname} />
       <ParentSidebar activeItem={activeItem} />
       {menuOpen && (
         <div className="fixed inset-0 z-40 md:hidden">

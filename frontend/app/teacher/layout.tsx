@@ -4,6 +4,7 @@ import { usePathname } from '@/src/next-navigation';
 import Link from '@/src/next-link';
 import { useState } from 'react';
 import TeacherSidebar from '@/components/TeacherSidebar';
+import RoleBootstrapLoader from '@/components/RoleBootstrapLoader';
 
 type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'timetable';
 
@@ -40,6 +41,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="bg-background text-on-surface min-h-screen overflow-x-hidden pt-16">
+      <RoleBootstrapLoader key={pathname} />
       <TeacherSidebar activeItem={activeItem} />
       {menuOpen && (
         <div className="fixed inset-0 z-40 md:hidden">

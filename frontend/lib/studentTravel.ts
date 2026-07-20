@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type BackendStudent, useBackendBootstrap } from '@/lib/backendData';
 import { safereachRealtime } from '@/lib/realtimeApi';
 import { apiBaseUrl } from './runtimeConfig';
@@ -194,9 +194,10 @@ function normalizeRecords(records: StudentTravelRecord[], baseRecords: StudentTr
   return baseRecords.map(seed => {
     const saved = stored.get(seed.id);
     if (!saved) return seed;
-    const savedTime = Date.parse(saved.updatedAt);
-    const seedTime = Date.parse(seed.updatedAt);
-    const savedIsCurrent = !Number.isNaN(savedTime) && (Number.isNaN(seedTime) || savedTime >= seedTime);
+    const savedTime = statusTimestamp(saved.updatedAt);
+    const seedTime = statusTimestamp(seed.updatedAt);
+    const savedHasLiveState = savedTime > 0 || saved.status !== seed.status || saved.attendance !== seed.attendance;
+    const savedIsCurrent = savedHasLiveState && (seedTime === 0 || savedTime === 0 || savedTime >= seedTime);
     return {
       ...seed,
       ...(savedIsCurrent ? {
@@ -211,6 +212,14 @@ function normalizeRecords(records: StudentTravelRecord[], baseRecords: StudentTr
       smsHistory: saved.smsHistory ?? [],
     };
   });
+}
+
+function statusTimestamp(value: string) {
+  if (!value) return 0;
+  const direct = Date.parse(value);
+  if (!Number.isNaN(direct)) return direct;
+  const normalized = Date.parse(value.replace(' ', 'T'));
+  return Number.isNaN(normalized) ? 0 : normalized;
 }
 
 function safeStatus(status: string): StudentTravelStatus {
@@ -422,6 +431,35 @@ function applyBackendTravelPayload(records: StudentTravelRecord[], payload: Back
   });
 }
 
+function applyLocalTravelPatch(records: StudentTravelRecord[], studentId: string, patch: Partial<StudentTravelRecord>) {
+  return records.map(record => {
+    if (record.id !== studentId) return record;
+    const status = patch.status ?? record.status;
+    return {
+      ...record,
+      ...patch,
+      status,
+      location: patch.location ?? locationForStatus(status),
+      updatedAt: patch.updatedAt ?? nowLabel(),
+    };
+  });
+}
+
+function applyLocalTravelPatchMany(records: StudentTravelRecord[], studentIds: string[], patch: Partial<StudentTravelRecord>) {
+  const selectedIds = new Set(studentIds);
+  return records.map(record => {
+    if (!selectedIds.has(record.id)) return record;
+    const status = patch.status ?? record.status;
+    return {
+      ...record,
+      ...patch,
+      status,
+      location: patch.location ?? locationForStatus(status),
+      updatedAt: patch.updatedAt ?? nowLabel(),
+    };
+  });
+}
+
 function persistAndReturn(records: StudentTravelRecord[]) {
   writeTravelRecords(records);
   return records;
@@ -473,6 +511,17 @@ export function useStudentTravelState() {
   const { data: backend } = useBackendBootstrap();
   const [records, setRecords] = useState<StudentTravelRecord[]>([]);
 
+  const commitRecords = useCallback((updater: (current: StudentTravelRecord[]) => StudentTravelRecord[]) => {
+    setRecords(current => {
+      const source = current.length > 0 ? current : readTravelRecords(backendBaseRecords);
+      const next = updater(source);
+      if (typeof window !== 'undefined') {
+        window.setTimeout(() => writeTravelRecords(next), 0);
+      }
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     backendBaseRecords = backend.students.map(backendStudentToTravelRecord);
     setRecords(readTravelRecords(backendBaseRecords));
@@ -484,31 +533,35 @@ export function useStudentTravelState() {
       if (event.type !== 'student.status.changed' && event.type !== 'attendance.marked') return;
       const payload = event.payload as BackendTravelPayload | { records?: BackendTravelPayload[] };
       const recordsPayload = 'records' in payload && Array.isArray(payload.records) ? payload.records : [payload as BackendTravelPayload];
-      setRecords(current => {
-        const updated = recordsPayload.reduce((next, recordPayload) => applyBackendTravelPayload(next, recordPayload), current);
-        return persistAndReturn(updated);
-      });
+      commitRecords(current => recordsPayload.reduce((next, recordPayload) => applyBackendTravelPayload(next, recordPayload), current));
     });
     return () => {
       window.removeEventListener('storage', refresh);
       window.removeEventListener(TRAVEL_EVENT, refresh);
       unsubscribe();
     };
-  }, [backend.students]);
+  }, [backend.students, commitRecords]);
 
   const actions = useMemo(() => ({
     async readyToSend(studentId: string) {
+      commitRecords(current => applyLocalTravelPatch(current, studentId, {
+        status: 'to_school',
+        attendance: 'pending',
+        absenceReason: '',
+        absenceReasonRequested: false,
+        absenceSmsSentAt: '',
+      }));
       const requestPayload = { studentId, actorUserId: null };
       const payload = await realtimeRequest<BackendTravelPayload>('student.ready_to_school', requestPayload, `/student-travel/${encodeURIComponent(studentId)}/ready-to-school`, {
         method: 'POST',
         body: JSON.stringify({ actorUserId: null }),
       });
       const existingRecord = records.find(item => item.id === studentId);
-      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+      commitRecords(current => applyBackendTravelPayload(current, payload).map(record =>
           record.id === studentId
             ? { ...record, attendance: 'pending', absenceReason: '', absenceReasonRequested: false, absenceSmsSentAt: '' }
             : record
-      )));
+      ));
       const record = existingRecord ? { ...existingRecord, status: 'to_school' as const } : records.find(item => item.id === studentId);
       if (record) {
         appendDb3RealtimeEvent(record, {
@@ -528,44 +581,66 @@ export function useStudentTravelState() {
       }
     },
     async markPresent(studentId: string) {
+      commitRecords(current => applyLocalTravelPatch(current, studentId, {
+        status: 'present',
+        attendance: 'present',
+        absenceReasonRequested: false,
+      }));
       const requestPayload = { studentId, status: 'present', actorUserId: null };
       const payload = await realtimeRequest<BackendTravelPayload>('attendance.submit', requestPayload, `/student-travel/${encodeURIComponent(studentId)}/attendance`, {
         method: 'POST',
         body: JSON.stringify({ status: 'present', actorUserId: null }),
       });
-      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+      commitRecords(current => applyBackendTravelPayload(current, payload).map(record =>
         record.id === studentId ? { ...record, absenceReasonRequested: false } : record
-      )));
+      ));
     },
     async markLate(studentId: string) {
+      commitRecords(current => applyLocalTravelPatch(current, studentId, {
+        status: 'reached_school',
+        attendance: 'late',
+        absenceReasonRequested: false,
+      }));
       const requestPayload = { studentId, status: 'late', actorUserId: null };
       const payload = await realtimeRequest<BackendTravelPayload>('attendance.submit', requestPayload, `/student-travel/${encodeURIComponent(studentId)}/attendance`, {
         method: 'POST',
         body: JSON.stringify({ status: 'late', actorUserId: null }),
       });
-      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+      commitRecords(current => applyBackendTravelPayload(current, payload).map(record =>
         record.id === studentId ? { ...record, absenceReasonRequested: false } : record
-      )));
+      ));
     },
     async markReachedSchool(studentId: string) {
+      commitRecords(current => applyLocalTravelPatch(current, studentId, {
+        status: 'present',
+        attendance: 'present',
+        absenceReasonRequested: false,
+      }));
       const requestPayload = { studentId, status: 'present', actorUserId: null };
       const payload = await realtimeRequest<BackendTravelPayload>('attendance.submit', requestPayload, `/student-travel/${encodeURIComponent(studentId)}/attendance`, {
         method: 'POST',
         body: JSON.stringify({ status: 'present', actorUserId: null }),
       });
-      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
+      commitRecords(current => applyBackendTravelPayload(current, payload).map(record =>
         record.id === studentId ? { ...record, absenceReasonRequested: false } : record
-      )));
+      ));
     },
     async markAbsent(studentId: string) {
+      const smsSentAt = nowLabel();
+      commitRecords(current => applyLocalTravelPatch(current, studentId, {
+        status: 'absent',
+        attendance: 'absent',
+        absenceReasonRequested: true,
+        absenceSmsSentAt: smsSentAt,
+      }));
       const requestPayload = { studentId, status: 'absent', actorUserId: null };
       const payload = await realtimeRequest<BackendTravelPayload>('attendance.submit', requestPayload, `/student-travel/${encodeURIComponent(studentId)}/attendance`, {
         method: 'POST',
         body: JSON.stringify({ status: 'absent', actorUserId: null }),
       });
-      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload).map(record =>
-        record.id === studentId ? { ...record, absenceReasonRequested: true, absenceSmsSentAt: nowLabel() } : record
-      )));
+      commitRecords(current => applyBackendTravelPayload(current, payload).map(record =>
+        record.id === studentId ? { ...record, absenceReasonRequested: true, absenceSmsSentAt: smsSentAt } : record
+      ));
     },
     submitAbsenceReason(studentId: string, reason: string) {
       setRecords(updateOne(studentId, {
@@ -574,23 +649,26 @@ export function useStudentTravelState() {
       }));
     },
     async markLeavingSchool(studentIds: string[]) {
+      commitRecords(current => applyLocalTravelPatchMany(current, studentIds, {
+        status: 'going_home',
+      }));
       const requestPayload = { studentIds, actorUserId: null };
       const payload = await realtimeRequest<{ ok: boolean; records: BackendTravelPayload[] }>('travel.go_out', requestPayload, '/student-travel/go-out', {
         method: 'POST',
         body: JSON.stringify({ studentIds, actorUserId: null }),
       });
-      setRecords(current => {
-        const updated = payload.records.reduce((records, recordPayload) => applyBackendTravelPayload(records, recordPayload), current);
-        return persistAndReturn(updated);
-      });
+      commitRecords(current => payload.records.reduce((next, recordPayload) => applyBackendTravelPayload(next, recordPayload), current));
     },
     async markReachedHome(studentId: string) {
+      commitRecords(current => applyLocalTravelPatch(current, studentId, {
+        status: 'reached_home',
+      }));
       const requestPayload = { studentId, actorUserId: null };
       const payload = await realtimeRequest<BackendTravelPayload>('parent.reached_home', requestPayload, `/student-travel/${encodeURIComponent(studentId)}/reached-home`, {
         method: 'POST',
         body: JSON.stringify({ actorUserId: null }),
       });
-      setRecords(current => persistAndReturn(applyBackendTravelPayload(current, payload)));
+      commitRecords(current => applyBackendTravelPayload(current, payload));
     },
     sendStatusSms(studentId: string, status: TeacherSmsStatus) {
       setRecords(updateOneWithSms(studentId, status, {}));
@@ -599,7 +677,7 @@ export function useStudentTravelState() {
       writeTravelRecords(backendBaseRecords);
       setRecords(backendBaseRecords);
     },
-  }), [records]);
+  }), [records, commitRecords]);
 
   return {
     records,

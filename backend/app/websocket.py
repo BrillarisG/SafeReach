@@ -4,7 +4,7 @@ from flask import request
 from flask_socketio import emit, join_room
 
 from .security import decode_token
-from .services import industry_menu_service, safereach_service
+from .services import industry_menu_service, message_service, safereach_service
 
 
 def register_socket_handlers(socketio):
@@ -60,6 +60,21 @@ def register_socket_handlers(socketio):
     @socketio.on("parent.reached_home")
     def on_reached(payload):
         return _handle_student_event("student.status.changed", lambda: safereach_service.mark_reached_home(payload["studentId"], payload.get("actorUserId")))
+
+    @socketio.on("message.send")
+    def on_message_send(payload):
+        return _handle_student_event("message.created", lambda: message_service.send_parent_message(payload["studentId"], payload.get("body", ""), payload.get("actorUserId")))
+
+    @socketio.on("absence.reason.submit")
+    def on_absence_reason(payload):
+        return _handle_student_event("absence.reason.submitted", lambda: message_service.submit_absence_reason(payload["studentId"], payload.get("reason", ""), payload.get("actorUserId")))
+
+    @socketio.on("attendance.absence.notify")
+    def on_absence_notify(payload):
+        return _handle_student_event(
+            "attendance.absence.notified",
+            lambda: {"ok": True, "notifications": message_service.notify_absent_parents(payload.get("studentIds") or [], payload.get("actorUserId"))},
+        )
 
     @socketio.on("timetable.break.move")
     def on_timetable_break_move(payload):

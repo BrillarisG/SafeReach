@@ -19,6 +19,8 @@ export type BackendStudent = {
   travel_status: string;
   attendance_status: string;
   travel_updated_at?: string;
+  absence_reason?: string;
+  absence_sms_sent_at?: string;
 };
 
 export type BackendTeacher = {

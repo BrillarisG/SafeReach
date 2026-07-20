@@ -13,7 +13,7 @@ from .cache_service import delete as cache_delete, get_json as cache_get_json, s
 from .db3_service import write_event
 from .sms_service import send_parent_sms
 
-BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v1"
+BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v2"
 
 
 def login(email: str, password: str) -> dict:
@@ -54,13 +54,27 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
                          else coalesce(sts.status, 'at_home')
                        end travel_status,
                        coalesce(sts.attendance_status, 'pending') attendance_status,
-                       sts.last_event_at travel_updated_at
+                       sts.last_event_at travel_updated_at,
+                       coalesce(today_attendance.reason, '') absence_reason,
+                       absence_notice.sent_at absence_sms_sent_at
                 from students s
                 join schools sc on sc.id = s.school_id
                 join classes c on c.id = s.class_id
                 join sections sec on sec.id = s.section_id
                 left join parents p on p.id = s.parent_id
                 left join student_travel_status sts on sts.student_id = s.id
+                left join lateral (
+                  select ar.reason
+                  from attendance_records ar
+                  where ar.student_id=s.id and ar.attendance_date=current_date and ar.session='morning'
+                  order by ar.updated_at desc
+                  limit 1
+                ) today_attendance on true
+                left join lateral (
+                  select max(m.created_at) sent_at
+                  from messages m
+                  where m.student_id=s.id and m.message_kind='absence_request' and m.created_at::date=current_date
+                ) absence_notice on true
                 order by c.sort_order, sec.name, s.roll_no
                 """
             )
@@ -280,7 +294,9 @@ def submit_attendance(student_id: str, status: str, actor_user_id: str | None) -
     if status not in {"present", "absent", "late"}:
         raise ValueError("Invalid attendance status")
     travel_status = "present" if status == "present" else "absent" if status == "absent" else "reached_school"
-    payload = _update_travel_status(student_id, travel_status, f"attendance_{status}", actor_user_id, attendance_status=status, sms=True)
+    # A parent receives the absence SMS and in-app reason request only when the
+    # teacher submits the attendance sheet. Present and late SMS behavior stays immediate.
+    payload = _update_travel_status(student_id, travel_status, f"attendance_{status}", actor_user_id, attendance_status=status, sms=status != "absent")
     with db1_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(

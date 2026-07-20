@@ -265,9 +265,9 @@ function backendStudentToTravelRecord(student: BackendStudent): StudentTravelRec
     isParentChild: true,
     status,
     attendance: safeAttendance(student.attendance_status),
-    absenceReason: '',
-    absenceReasonRequested: status === 'absent',
-    absenceSmsSentAt: '',
+    absenceReason: student.absence_reason || '',
+    absenceReasonRequested: Boolean(student.absence_sms_sent_at) && !student.absence_reason,
+    absenceSmsSentAt: student.absence_sms_sent_at || '',
     smsHistory: [],
     updatedAt: student.travel_updated_at || 'DB stored record',
   };
@@ -420,6 +420,20 @@ type BackendTravelPayload = {
   last_event_at?: string;
 };
 
+type AbsenceReasonPayload = {
+  student_id: string;
+  body: string;
+  created_at?: string;
+};
+
+type AbsenceNotificationPayload = {
+  notifications?: Array<{
+    student_id: string;
+    message?: { created_at?: string };
+    sms?: { status?: string };
+  }>;
+};
+
 function applyBackendTravelPayload(records: StudentTravelRecord[], payload: BackendTravelPayload) {
   return records.map(record => {
     if (record.id !== payload.student_id) return record;
@@ -435,7 +449,9 @@ function applyBackendTravelPayload(records: StudentTravelRecord[], payload: Back
       status,
       attendance: safeAttendance(payload.attendance_status || record.attendance),
       location: locationForStatus(status),
-      absenceReasonRequested: status === 'absent' || record.absenceReasonRequested,
+      // An absence prompt is created only by the final attendance submission,
+      // not when a teacher merely stages the Absent status.
+      absenceReasonRequested: record.absenceReasonRequested,
       updatedAt: backendUpdatedAt || nowLabel(),
     };
   });
@@ -547,10 +563,31 @@ export function useStudentTravelState() {
     window.addEventListener(TRAVEL_EVENT, refresh);
     safereachRealtime.connect();
     const unsubscribe = safereachRealtime.subscribe(event => {
-      if (event.type !== 'student.status.changed' && event.type !== 'attendance.marked') return;
-      const payload = event.payload as BackendTravelPayload | { records?: BackendTravelPayload[] };
-      const recordsPayload = 'records' in payload && Array.isArray(payload.records) ? payload.records : [payload as BackendTravelPayload];
-      commitRecords(current => recordsPayload.reduce((next, recordPayload) => applyBackendTravelPayload(next, recordPayload), current));
+      if (event.type === 'student.status.changed' || event.type === 'attendance.marked') {
+        const payload = event.payload as BackendTravelPayload | { records?: BackendTravelPayload[] };
+        const recordsPayload = 'records' in payload && Array.isArray(payload.records) ? payload.records : [payload as BackendTravelPayload];
+        commitRecords(current => recordsPayload.reduce((next, recordPayload) => applyBackendTravelPayload(next, recordPayload), current));
+        return;
+      }
+      if (event.type === 'absence.reason.submitted') {
+        const payload = event.payload as AbsenceReasonPayload;
+        if (!payload.student_id) return;
+        commitRecords(current => applyLocalTravelPatch(current, payload.student_id, {
+          absenceReason: payload.body,
+          absenceReasonRequested: false,
+          updatedAt: payload.created_at || nowLabel(),
+        }));
+        return;
+      }
+      if (event.type === 'attendance.absence.notified') {
+        const payload = event.payload as AbsenceNotificationPayload;
+        const ids = (payload.notifications ?? []).map(item => item.student_id).filter(Boolean);
+        if (ids.length === 0) return;
+        commitRecords(current => applyLocalTravelPatchMany(current, ids, {
+          absenceReasonRequested: true,
+          absenceSmsSentAt: nowLabel(),
+        }));
+      }
     });
     return () => {
       window.removeEventListener('storage', refresh);
@@ -643,12 +680,12 @@ export function useStudentTravelState() {
       ));
     },
     async markAbsent(studentId: string) {
-      const smsSentAt = nowLabel();
       commitRecords(current => applyLocalTravelPatch(current, studentId, {
         status: 'absent',
         attendance: 'absent',
-        absenceReasonRequested: true,
-        absenceSmsSentAt: smsSentAt,
+        absenceReason: '',
+        absenceReasonRequested: false,
+        absenceSmsSentAt: '',
       }));
       const requestPayload = { studentId, status: 'absent', actorUserId: null };
       const payload = await realtimeRequest<BackendTravelPayload>('attendance.submit', requestPayload, `/student-travel/${encodeURIComponent(studentId)}/attendance`, {
@@ -656,14 +693,47 @@ export function useStudentTravelState() {
         body: JSON.stringify({ status: 'absent', actorUserId: null }),
       });
       commitRecords(current => applyBackendTravelPayload(current, payload).map(record =>
-        record.id === studentId ? { ...record, absenceReasonRequested: true, absenceSmsSentAt: smsSentAt } : record
+        record.id === studentId ? { ...record, absenceReasonRequested: false, absenceSmsSentAt: '' } : record
       ));
     },
-    submitAbsenceReason(studentId: string, reason: string) {
-      setRecords(updateOne(studentId, {
-        absenceReason: reason.trim(),
+    async submitAbsenceReason(studentId: string, reason: string) {
+      const cleanReason = reason.trim();
+      const payload = await realtimeRequest<AbsenceReasonPayload, AbsenceReasonPayload>(
+        'absence.reason.submit',
+        { studentId, reason: cleanReason, actorUserId: null },
+        '/messages/absence-reason',
+        { method: 'POST', body: JSON.stringify({ studentId, reason: cleanReason, actorUserId: null }) },
+      );
+      commitRecords(current => applyLocalTravelPatch(current, studentId, {
+        absenceReason: payload.body || cleanReason,
         absenceReasonRequested: false,
+        updatedAt: payload.created_at || nowLabel(),
       }));
+      return payload;
+    },
+    async sendParentChat(studentId: string, body: string) {
+      return realtimeRequest(
+        'message.send',
+        { studentId, body: body.trim(), actorUserId: null },
+        '/messages',
+        { method: 'POST', body: JSON.stringify({ studentId, body: body.trim(), actorUserId: null }) },
+      );
+    },
+    async notifyAbsentParents(studentIds: string[]) {
+      const payload = await realtimeRequest<AbsenceNotificationPayload, AbsenceNotificationPayload>(
+        'attendance.absence.notify',
+        { studentIds, actorUserId: null },
+        '/attendance/absence-notifications',
+        { method: 'POST', body: JSON.stringify({ studentIds, actorUserId: null }) },
+      );
+      const ids = (payload.notifications ?? []).map(item => item.student_id).filter(Boolean);
+      if (ids.length > 0) {
+        commitRecords(current => applyLocalTravelPatchMany(current, ids, {
+          absenceReasonRequested: true,
+          absenceSmsSentAt: nowLabel(),
+        }));
+      }
+      return payload;
     },
     async markLeavingSchool(studentIds: string[]) {
       commitRecords(current => applyLocalTravelPatchMany(current, studentIds, {

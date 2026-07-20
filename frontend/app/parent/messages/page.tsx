@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { apiBaseUrl } from '@/lib/runtimeConfig';
 import { useStudentTravelState } from '@/lib/studentTravel';
 
 type Conversation = {
@@ -16,6 +17,7 @@ type Conversation = {
 };
 
 type Message = { from: string; text: string; time: string; me: boolean };
+type StoredMessage = { id: string; body: string; created_at: string; sender_name: string; message_kind: string };
 
 const baseConversations: Conversation[] = [
   { id: 'base-1', name: 'Mr. James Anderson', role: 'Class Teacher - Leo', time: '10:15 AM', unread: 2, avatar: 'JA', online: true, preview: "Regarding Leo's test score this week..." },
@@ -75,14 +77,42 @@ export default function ParentMessagesPage() {
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [newMsg, setNewMsg] = useState('');
   const [sentThreads, setSentThreads] = useState<Record<string, Message[]>>({});
+  const [storedThreads, setStoredThreads] = useState<Record<string, Message[]>>({});
+  const [sendError, setSendError] = useState('');
   const activeConv = conversations.find(c => c.id === active) ?? conversations[0];
   const activeStudent = parentChildren.find(child => child.id === activeConv?.studentId);
   const unreadCount = conversations.reduce((sum, conversation) => sum + conversation.unread, 0);
   const groupCount = conversations.filter(conversation => conversation.role.toLowerCase().includes('administration') || conversation.role.toLowerCase().includes('safety')).length;
 
+  useEffect(() => {
+    if (!activeStudent) return;
+    let activeRequest = true;
+    fetch(`${apiBaseUrl}/messages?studentId=${encodeURIComponent(activeStudent.id)}`, { cache: 'no-store' })
+      .then(async response => {
+        if (!response.ok) throw new Error('Unable to load student messages.');
+        return response.json() as Promise<StoredMessage[]>;
+      })
+      .then(messages => {
+        if (!activeRequest) return;
+        setStoredThreads(current => ({
+          ...current,
+          [activeStudent.id]: messages.map(message => ({
+            from: message.sender_name || 'SafeReach School',
+            text: message.body,
+            time: new Date(message.created_at).toLocaleString(),
+            me: message.message_kind === 'chat' || message.message_kind === 'absence_reason',
+          })),
+        }));
+      })
+      .catch(() => undefined);
+    return () => { activeRequest = false; };
+  }, [activeStudent]);
+
   const thread = useMemo<Message[]>(() => {
     const extra = sentThreads[active] ?? [];
     if (activeStudent) {
+      const stored = storedThreads[activeStudent.id];
+      if (stored) return [...stored, ...extra];
       return [
         { from: activeStudent.teacherName, text: `${activeStudent.name} was marked absent today. An SMS has been sent to ${activeStudent.parentPhone}. Please reply with the absence reason in this app.`, time: activeStudent.absenceSmsSentAt || 'Today', me: false },
         ...(activeStudent.absenceReason ? [{ from: 'You', text: activeStudent.absenceReason, time: activeStudent.updatedAt, me: true }] : []),
@@ -90,16 +120,27 @@ export default function ParentMessagesPage() {
       ];
     }
     return [...(baseThreads[active] || []), ...extra];
-  }, [active, activeStudent, sentThreads]);
+  }, [active, activeStudent, sentThreads, storedThreads]);
 
-  function sendMessage() {
+  async function sendMessage() {
     if (!newMsg.trim()) return;
-    if (activeStudent) {
-      actions.submitAbsenceReason(activeStudent.id, newMsg);
+    const body = newMsg.trim();
+    setSendError('');
+    try {
+      if (activeStudent) {
+        await actions.submitAbsenceReason(activeStudent.id, body);
+      } else {
+        const primaryChild = parentChildren[0];
+        if (!primaryChild) throw new Error('No child record is available for this message.');
+        await actions.sendParentChat(primaryChild.id, body);
+      }
+    } catch (reason) {
+      setSendError(reason instanceof Error ? reason.message : 'Message could not be sent.');
+      return;
     }
     const message: Message = {
       from: 'You',
-      text: newMsg.trim(),
+      text: body,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       me: true,
     };
@@ -201,6 +242,7 @@ export default function ParentMessagesPage() {
           ))}
         </div>
         <div className="fixed bottom-3 left-0 right-0 z-40 border-t border-outline-variant/30 bg-surface p-3 pb-4 md:static md:z-auto md:pb-3">
+          {sendError && <p className="mb-2 text-label-sm text-error" role="alert">{sendError}</p>}
           <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 border border-outline-variant">
             <input className="flex-1 bg-transparent border-none focus:ring-0 text-body-md placeholder:text-on-surface-variant outline-none" placeholder={activeStudent ? 'Type absence reason for teacher...' : 'Type a message to the school...'} value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') sendMessage(); }} />
             <button className="text-on-surface-variant hover:text-primary p-1"><span className="material-symbols-outlined text-[20px]">attach_file</span></button>

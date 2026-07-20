@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from ..services import industry_menu_service, integration_status_service, json_backup_service, safereach_service, safety_protocol_service
+from ..services import industry_menu_service, integration_status_service, json_backup_service, message_service, safereach_service, safety_protocol_service
 
 api_bp = Blueprint("api", __name__)
 
@@ -141,6 +141,55 @@ def student_go_out():
         return _api_error("student_travel_not_found", exc, 404)
     except Exception as exc:
         return _api_error("go_out_submit_failed", exc, 503)
+
+
+@api_bp.get("/messages")
+def list_messages():
+    student_id = request.args.get("studentId", "")
+    if not student_id:
+        return _api_error("messages_invalid", ValueError("studentId is required"), 400)
+    try:
+        return jsonify(message_service.list_student_messages(student_id))
+    except Exception as exc:
+        return _api_error("messages_list_failed", exc, 503)
+
+
+@api_bp.post("/messages")
+def send_parent_message():
+    payload = request.get_json(silent=True) or {}
+    try:
+        return jsonify(message_service.send_parent_message(payload.get("studentId", ""), payload.get("body", ""), payload.get("actorUserId")))
+    except ValueError as exc:
+        return _api_error("message_invalid", exc, 400)
+    except LookupError as exc:
+        return _api_error("student_not_found", exc, 404)
+    except Exception as exc:
+        return _api_error("message_send_failed", exc, 503)
+
+
+@api_bp.post("/messages/absence-reason")
+def submit_absence_reason():
+    payload = request.get_json(silent=True) or {}
+    try:
+        return jsonify(message_service.submit_absence_reason(payload.get("studentId", ""), payload.get("reason", ""), payload.get("actorUserId")))
+    except ValueError as exc:
+        return _api_error("absence_reason_invalid", exc, 400)
+    except LookupError as exc:
+        return _api_error("student_not_found", exc, 404)
+    except Exception as exc:
+        return _api_error("absence_reason_submit_failed", exc, 503)
+
+
+@api_bp.post("/attendance/absence-notifications")
+def notify_absent_parents():
+    payload = request.get_json(silent=True) or {}
+    student_ids = payload.get("studentIds") or []
+    if not isinstance(student_ids, list):
+        return _api_error("absence_notification_invalid", ValueError("studentIds must be a list"), 400)
+    try:
+        return jsonify({"ok": True, "notifications": message_service.notify_absent_parents(student_ids, payload.get("actorUserId"))})
+    except Exception as exc:
+        return _api_error("absence_notification_failed", exc, 503)
 
 
 @api_bp.get("/safety-protocols")

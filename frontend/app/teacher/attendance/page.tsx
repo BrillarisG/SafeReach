@@ -210,8 +210,12 @@ export default function TeacherAttendancePage() {
       return;
     }
     if (student) {
-      const label = status === 'reached_school' ? 'Reached School' : status.charAt(0).toUpperCase() + status.slice(1);
-      setLastSmsNotice(`SMS sent to ${student.parentName} (${student.parentPhone}): ${student.name} - ${label}.`);
+      if (status === 'absent') {
+        setLastSmsNotice(`${student.name} is marked absent. The parent message and SMS request will be sent when attendance is submitted.`);
+      } else {
+        const label = status === 'reached_school' ? 'Reached School' : status.charAt(0).toUpperCase() + status.slice(1);
+        setLastSmsNotice(`SMS sent to ${student.parentName} (${student.parentPhone}): ${student.name} - ${label}.`);
+      }
     }
     if (canUpdateSubmittedLate) {
       setSubmittedIds(currentIds => currentIds.filter(id => id !== studentId));
@@ -259,13 +263,25 @@ export default function TeacherAttendancePage() {
     return !(current === 'late' && (target === 'present' || target === 'absent'));
   }
 
-  function submitAttendance() {
+  async function submitAttendance() {
     const idsToSubmit = classStudents
       .filter(student => {
         const current = currentAttendance(student.id);
         return current === 'present' || current === 'absent' || current === 'late';
       })
       .map(student => student.id);
+    const absentStudentIds = classStudents
+      .filter(student => currentAttendance(student.id) === 'absent')
+      .map(student => student.id);
+    try {
+      const notification = await actions.notifyAbsentParents(absentStudentIds);
+      if (notification.notifications.length > 0) {
+        setLastSmsNotice(`${notification.notifications.length} absence request${notification.notifications.length === 1 ? '' : 's'} sent to parent Messages and SMS.`);
+      }
+    } catch (reason) {
+      setLastSmsNotice(reason instanceof Error ? reason.message : 'Unable to send absence requests. Attendance was not submitted.');
+      return;
+    }
     setSubmittedIds(current => Array.from(new Set([...current, ...idsToSubmit])));
     setSaved(true);
   }
@@ -346,7 +362,7 @@ export default function TeacherAttendancePage() {
                     <div className="flex flex-wrap gap-1.5">
                       {([
                         ['present', 'P', 'Mark present and send parent SMS'],
-                        ['absent', 'A', 'Mark absent and send parent SMS'],
+                        ['absent', 'A', 'Mark absent; request sent on Submit'],
                         ['late', 'L', 'Mark late and send parent SMS'],
                       ] as const).map(([status, label, title]) => {
                         const disabled = isAttendanceButtonDisabled(student.id, status);

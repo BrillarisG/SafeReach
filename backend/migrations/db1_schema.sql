@@ -212,10 +212,12 @@ create table if not exists messages (
   id uuid primary key default gen_random_uuid(),
   school_id uuid not null references schools(id) on delete cascade,
   conversation_type text not null,
+  message_kind text not null default 'chat',
   sender_id uuid references users(id),
   recipient_id uuid references users(id),
   class_id uuid references classes(id),
   section_id uuid references sections(id),
+  student_id uuid references students(id) on delete set null,
   body text not null,
   created_at timestamptz not null default now()
 );
@@ -252,3 +254,5 @@ create index if not exists idx_students_school_class_section on students(school_
 create index if not exists idx_attendance_date on attendance_records(school_id, attendance_date, session);
 create index if not exists idx_notifications_user on notifications(user_id, read_at, created_at desc);
 create index if not exists idx_safety_protocols_role on safety_protocols(school_id, role_key, active);
+create index if not exists idx_messages_student_created on messages(student_id, created_at desc);
+create index if not exists idx_messages_kind_created on messages(message_kind, created_at desc);

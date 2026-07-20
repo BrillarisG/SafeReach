@@ -5,6 +5,27 @@ import { readDailyIds, writeDailyIds } from '@/lib/dailyActionLocks';
 import { useSafetyProtocols } from '@/lib/safetyProtocols';
 import { travelStatusClass, travelStatusIcon, travelStatusLabel, useStudentTravelState } from '@/lib/studentTravel';
 
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
+function isOverdueTravel(status: string, updatedAt: string) {
+  if (status !== 'to_school' && status !== 'going_home') return false;
+  const timestamp = Date.parse(updatedAt);
+  return !Number.isNaN(timestamp) && Date.now() - timestamp > TWO_HOURS_MS;
+}
+
+function childCardStyle(status: string, updatedAt: string) {
+  if (status === 'absent' || isOverdueTravel(status, updatedAt)) {
+    return { card: 'border-red-200 bg-red-100', chip: 'bg-red-400 text-white' };
+  }
+  if (status === 'to_school' || status === 'going_home') {
+    return { card: 'border-amber-200 bg-amber-100', chip: 'bg-amber-300 text-amber-950' };
+  }
+  if (status === 'reached_school' || status === 'present' || status === 'reached_home') {
+    return { card: 'border-green-200 bg-green-100', chip: 'bg-green-300 text-green-900' };
+  }
+  return { card: 'border-slate-200 bg-white', chip: 'bg-slate-100 text-slate-700' };
+}
+
 export default function ParentDashboardPage() {
   const { parentChildren, actions } = useStudentTravelState();
   const currentParentName = 'Sarah Thompson';
@@ -144,17 +165,17 @@ export default function ParentDashboardPage() {
       {notice && <div className="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-lg font-label-md">{notice}</div>}
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-12">
         <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {dashboardChildren.map((child, i) => {
+          {dashboardChildren.map(child => {
             const canConfirmHome = child.status === 'going_home' && !reachedHomeIds.includes(child.id);
+            const cardStyle = childCardStyle(child.status, child.updatedAt);
             return (
-            <div key={child.id} className={`glass-card rounded-xl p-stack-md flex flex-col gap-4 relative overflow-hidden group ${child.status === 'at_home' ? 'ring-2 ring-yellow-200 bg-yellow-50/30' : ''}`}>
-              <div className={`absolute top-0 left-0 w-1 h-full ${i % 2 === 0 ? 'bg-secondary' : 'bg-primary'}`}></div>
+            <div key={child.id} className={`rounded-[20px] border p-stack-md flex flex-col gap-4 relative overflow-hidden shadow-[0_5px_10px_rgba(15,23,42,0.18)] transition-colors ${cardStyle.card}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full bg-primary-container text-primary flex items-center justify-center font-bold">{child.avatar}</div>
-                  <div><h4 className="font-headline-md text-[18px] font-bold">{child.name}</h4><p className="text-label-sm text-on-surface-variant">{child.className} - Section {child.section}</p></div>
+                  <div className="w-14 h-14 rounded-full bg-white text-primary ring-1 ring-black/5 flex items-center justify-center font-bold shadow-sm">{child.avatar}</div>
+                  <div><h4 className="font-headline-md text-[18px] font-bold text-slate-950">{child.name}</h4><p className="text-label-sm font-bold text-slate-500">{child.className} - Section {child.section}</p></div>
                 </div>
-                <span className={`${travelStatusClass(child.status)} px-3 py-1 rounded-full text-label-sm font-bold flex items-center gap-1`}>
+                <span className={`${cardStyle.chip} px-3 py-1 rounded-full text-label-sm font-bold flex items-center gap-1`}>
                   <span className="material-symbols-outlined text-[14px]">{travelStatusIcon(child.status)}</span>{travelStatusLabel(child.status, 'parent')}
                 </span>
               </div>

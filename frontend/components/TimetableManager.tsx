@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState, type PointerEvent } from 'react';
 import Link from '@/src/next-link';
 import { type TimetableBreak, type TimetableData } from '@/lib/timetable';
 import { useBackendBootstrap } from '@/lib/backendData';
@@ -121,6 +121,16 @@ export default function TimetableManager({ mode, editMode = false, requestedClas
     saveBreaks(data.breaks.map(item => item.id === id ? { ...item, afterPeriod: target } : item), `Break moved after P${target}.`);
   }
 
+  function finishBreakPointer(event: PointerEvent<HTMLElement>) {
+    if (!draggedBreakId) return;
+    const target = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest<HTMLElement>('[data-break-slot]');
+    const afterPeriod = Number(target?.dataset.breakSlot || '');
+    if (afterPeriod) moveBreak(draggedBreakId, afterPeriod);
+    setDraggedBreakId(null);
+  }
+
   function breaksAfter(periodNumber: number) {
     return data.breaks.filter(item => item.afterPeriod === periodNumber).sort((first, second) => {
       const order = { interval1: 1, lunch: 2, interval2: 3 };
@@ -217,12 +227,14 @@ export default function TimetableManager({ mode, editMode = false, requestedClas
                 return (
                   <div
                     key={afterPeriod}
+                    data-break-slot={afterPeriod}
                     onDragOver={event => event.preventDefault()}
                     onDrop={() => {
                       if (draggedBreakId) moveBreak(draggedBreakId, afterPeriod);
                       setDraggedBreakId(null);
                     }}
-                    className="min-h-20 rounded-lg border border-dashed border-outline-variant bg-surface-container-low p-2"
+                    onPointerUp={finishBreakPointer}
+                    className={`min-h-20 touch-none rounded-lg border border-dashed border-outline-variant bg-surface-container-low p-2 transition-colors ${draggedBreakId ? 'border-primary bg-primary/5' : ''}`}
                   >
                     <p className="mb-1.5 text-[10px] font-extrabold uppercase tracking-wide text-on-surface-variant">After P{afterPeriod}</p>
                     <div className="space-y-1.5">
@@ -232,7 +244,13 @@ export default function TimetableManager({ mode, editMode = false, requestedClas
                           draggable
                           onDragStart={() => setDraggedBreakId(item.id)}
                           onDragEnd={() => setDraggedBreakId(null)}
-                          className={`cursor-move rounded-md bg-white px-2 py-1.5 text-center text-[11px] font-extrabold shadow-sm ring-1 ring-outline-variant/50 ${breakTone(item)}`}
+                          onPointerDown={event => {
+                            event.preventDefault();
+                            setDraggedBreakId(item.id);
+                          }}
+                          onPointerUp={finishBreakPointer}
+                          onPointerCancel={() => setDraggedBreakId(null)}
+                          className={`cursor-move touch-none select-none rounded-md bg-white px-2 py-1.5 text-center text-[11px] font-extrabold shadow-sm ring-1 ring-outline-variant/50 ${draggedBreakId === item.id ? 'scale-105 ring-primary' : ''} ${breakTone(item)}`}
                         >
                           {item.label}
                         </div>

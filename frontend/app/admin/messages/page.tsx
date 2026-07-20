@@ -90,13 +90,14 @@ function AdminMessagesContent() {
   const requestedName = searchParams?.get('name');
   const requestedRole = searchParams?.get('role');
   const dynamicConversation = useMemo<Conversation | undefined>(() => {
-    if (!requestedChat?.startsWith('teacher-') || !requestedName || conversations.some(conversation => conversation.id === requestedChat)) return undefined;
+    if (!requestedChat || !requestedName || conversations.some(conversation => conversation.id === requestedChat)) return undefined;
+    const group: MessageGroup = requestedChat.startsWith('teacher-') ? 'teacher' : requestedChat.startsWith('parent-') || requestedChat.startsWith('guardian-') ? 'parent' : 'parent';
     const initials = requestedName.split(' ').slice(0, 2).map(part => part[0]).join('').toUpperCase();
     return {
       id: requestedChat,
-      group: 'teacher',
+      group,
       name: requestedName,
-      sub: requestedRole || 'Teacher direct chat',
+      sub: requestedRole || (group === 'teacher' ? 'Teacher direct chat' : 'Parent direct chat'),
       avatar: initials || 'TC',
       unread: 0,
       time: 'New',
@@ -117,6 +118,7 @@ function AdminMessagesContent() {
     setActiveGroup(conversation.group);
     setActiveId(conversation.id);
     setSearch('');
+    setMobileChatOpen(true);
     setNotice(`Direct chat opened for ${conversation.name}.`);
   }, [availableConversations, requestedChat]);
 

@@ -10,6 +10,24 @@ export default function StudentProfilePage() {
   const [studentStatus, setStudentStatus] = useState('At School');
   const [studentClass, setStudentClass] = useState('Class 4');
   const [studentSection, setStudentSection] = useState('B');
+  const [attendanceMonth, setAttendanceMonth] = useState('2026-07');
+  const [attendanceFrom, setAttendanceFrom] = useState('2026-07-01');
+  const [attendanceTo, setAttendanceTo] = useState('2026-07-31');
+  const guardianChatHref = `/admin/messages?chat=parent-sarah-henderson&name=${encodeURIComponent('Sarah Henderson')}&role=${encodeURIComponent(`Parent of ${studentName}`)}`;
+  const monthDate = new Date(`${attendanceMonth}-01T00:00:00`);
+  const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
+  const attendanceDays = Array.from({ length: daysInMonth }, (_, index) => {
+    const day = index + 1;
+    const date = `${attendanceMonth}-${String(day).padStart(2, '0')}`;
+    const inRange = date >= attendanceFrom && date <= attendanceTo;
+    const isWeekend = new Date(`${date}T00:00:00`).getDay() % 6 === 0;
+    const absent = day === 5 || day === 18;
+    return {
+      day,
+      inRange,
+      status: !inRange ? 'Muted' : absent ? 'Absent' : isWeekend ? 'Holiday' : 'Present',
+    };
+  });
 
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop max-w-7xl mx-auto w-full">
@@ -37,10 +55,10 @@ export default function StudentProfilePage() {
             <div className="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-lg border border-outline-variant"><span className="material-symbols-outlined text-tertiary text-[20px]">medical_services</span><span className="text-label-md">Asthma (Inhaler in Office)</span></div>
           </div>
         </div>
-        <div className="flex flex-col gap-2 w-full md:w-auto">
-          <button onClick={() => setNotice('Safety report action opened for this frontend demo student.')} className="bg-primary text-white h-[48px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90"><span className="material-symbols-outlined">description</span>Safety Report</button>
-          <button onClick={() => setEditMode(open => !open)} className="border-2 border-outline-variant text-on-surface-variant h-[48px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low"><span className="material-symbols-outlined">edit</span>Edit Profile</button>
-          <button onClick={() => { if (window.confirm(`Delete/archive ${studentName}?`)) setNotice(`${studentName} marked for delete/archive in this frontend demo.`); }} className="border-2 border-error/30 text-error h-[48px] px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-error/5"><span className="material-symbols-outlined">delete</span>Delete</button>
+        <div className="grid w-full grid-cols-3 gap-2 md:flex md:w-auto md:flex-col">
+          <button title="Safety Report" aria-label="Safety Report" onClick={() => setNotice('Safety report action opened for this frontend demo student.')} className="h-12 rounded-lg bg-primary px-3 font-bold text-white flex items-center justify-center gap-2 hover:opacity-90 md:px-6"><span className="material-symbols-outlined md:hidden">description</span><span className="hidden md:inline">Safety Report</span></button>
+          <button title="Edit Profile" aria-label="Edit Profile" onClick={() => setEditMode(open => !open)} className="h-12 rounded-lg border-2 border-outline-variant px-3 font-bold text-on-surface-variant flex items-center justify-center gap-2 hover:bg-surface-container-low md:px-6"><span className="material-symbols-outlined md:hidden">edit</span><span className="hidden md:inline">Edit Profile</span></button>
+          <button title="Delete" aria-label="Delete" onClick={() => { if (window.confirm(`Delete/archive ${studentName}?`)) setNotice(`${studentName} marked for delete/archive in this frontend demo.`); }} className="h-12 rounded-lg border-2 border-error/30 px-3 font-bold text-error flex items-center justify-center gap-2 hover:bg-error/5 md:px-6"><span className="material-symbols-outlined md:hidden">delete</span><span className="hidden md:inline">Delete</span></button>
         </div>
       </div>
       {editMode && (
@@ -101,7 +119,7 @@ export default function StudentProfilePage() {
                     <div className="flex-1"><h4 className="font-bold text-body-md">{g.name}</h4><p className="text-label-md text-on-surface-variant">{g.role}</p></div>
                     <div className="flex gap-2">
                       <button className="p-2 rounded-full bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all"><span className="material-symbols-outlined">call</span></button>
-                      {i===0 && <Link href="/admin/messages" className="p-2 rounded-full bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all"><span className="material-symbols-outlined">chat</span></Link>}
+                      {i===0 && <Link href={guardianChatHref} title={`Message ${g.name}`} aria-label={`Message ${g.name}`} className="p-2 rounded-full bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all"><span className="material-symbols-outlined">chat</span></Link>}
                     </div>
                   </div>
                 ))}
@@ -127,15 +145,38 @@ export default function StudentProfilePage() {
         </div>
         <div className="lg:col-span-4 flex flex-col gap-gutter">
           <div className="bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] p-stack-lg">
-            <div className="flex items-center justify-between mb-stack-md"><h3 className="font-headline-md text-headline-md text-primary">Attendance</h3><div className="text-secondary font-bold text-headline-md">98%</div></div>
+            <div className="flex flex-col gap-3 mb-stack-md">
+              <div className="flex items-center justify-between"><h3 className="font-headline-md text-headline-md text-primary">Attendance</h3><div className="text-secondary font-bold text-headline-md">98%</div></div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <label className="space-y-1">
+                  <span className="text-label-sm font-bold text-on-surface-variant">Month</span>
+                  <input type="month" value={attendanceMonth} onChange={event => setAttendanceMonth(event.target.value)} className="w-full rounded-lg border border-outline-variant bg-surface-container px-3 py-2" />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-label-sm font-bold text-on-surface-variant">From</span>
+                  <input type="date" value={attendanceFrom} onChange={event => setAttendanceFrom(event.target.value)} className="w-full rounded-lg border border-outline-variant bg-surface-container px-3 py-2" />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-label-sm font-bold text-on-surface-variant">To</span>
+                  <input type="date" value={attendanceTo} onChange={event => setAttendanceTo(event.target.value)} className="w-full rounded-lg border border-outline-variant bg-surface-container px-3 py-2" />
+                </label>
+              </div>
+            </div>
             <div className="grid grid-cols-7 gap-2 mb-4">
               {['M','T','W','T','F','S','S'].map((d,i)=><div key={i} className="text-center text-label-sm text-on-surface-variant font-bold">{d}</div>)}
-              {[{n:1,cls:'bg-secondary'},{n:2,cls:'bg-secondary'},{n:3,cls:'bg-secondary'},{n:4,cls:'bg-secondary'},{n:5,cls:'bg-error-container text-error'},{n:'',cls:'bg-surface-container opacity-30'},{n:'',cls:'bg-surface-container opacity-30'},
-                {n:8,cls:'bg-secondary'},{n:9,cls:'bg-secondary'},{n:10,cls:'bg-secondary'},{n:11,cls:'bg-secondary'},{n:12,cls:'bg-secondary'},{n:'',cls:'bg-surface-container opacity-30'},{n:'',cls:'bg-surface-container opacity-30'},
-              ].map((d,i)=><div key={i} className={`aspect-square ${d.cls} rounded-lg flex items-center justify-center font-bold text-label-md ${d.cls.includes('secondary')?'text-white':''}`}>{d.n}</div>)}
+              {attendanceDays.map(day => {
+                const cls = day.status === 'Present'
+                  ? 'bg-secondary text-white'
+                  : day.status === 'Absent'
+                    ? 'bg-error-container text-error'
+                    : day.status === 'Holiday'
+                      ? 'bg-tertiary/10 text-tertiary'
+                      : 'bg-surface-container text-on-surface-variant opacity-40';
+                return <div key={day.day} title={day.status} className={`aspect-square ${cls} rounded-lg flex items-center justify-center font-bold text-label-md`}>{day.day}</div>;
+              })}
             </div>
             <div className="space-y-2">
-              {[['Present','144 Days'],['Absent','2 Days'],['Excused','1 Day']].map(([k,v])=><div key={k} className="flex justify-between text-label-md"><span className="text-on-surface-variant">{k}</span><span className="font-bold">{v}</span></div>)}
+              {[['Present', String(attendanceDays.filter(day => day.status === 'Present').length)], ['Absent', String(attendanceDays.filter(day => day.status === 'Absent').length)], ['Holiday', String(attendanceDays.filter(day => day.status === 'Holiday').length)]].map(([k,v])=><div key={k} className="flex justify-between text-label-md"><span className="text-on-surface-variant">{k}</span><span className="font-bold">{v} Days</span></div>)}
             </div>
           </div>
           <div className="bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] p-stack-lg border-l-4 border-primary">

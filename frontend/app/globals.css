@@ -124,10 +124,14 @@ body { font-family: 'Inter', sans-serif; }
 }
 
 .safe-loading-center {
-  min-height: min(320px, 70dvh);
-  width: 100%;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100dvh;
   display: grid;
   place-items: center;
+  pointer-events: none;
 }
 
 .safe-loading-ring {

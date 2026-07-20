@@ -17,14 +17,14 @@ const inactiveClass = 'text-on-surface-variant hover:bg-surface-container-low px
 
 export default function TeacherSidebar({ activeItem, className = 'hidden md:flex', onNavigate }: TeacherSidebarProps) {
   return (
-    <aside className={`${className} flex-col h-full w-60 fixed left-0 top-0 z-50 border-r border-outline-variant/60 bg-surface px-3 py-4 overflow-y-auto`}>
+    <aside className={`${className} flex-col h-dvh max-h-dvh w-60 fixed left-0 top-0 z-50 border-r border-outline-variant/60 bg-surface px-3 py-4 overflow-y-auto overscroll-contain`}>
       <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
         <div className="mb-1 flex items-center gap-2">
           <LogoMark className="h-8 w-8 rounded-md" />
           <h1 className="font-headline-md text-headline-md font-extrabold text-on-surface">SafeReach</h1>
         </div>
       </div>
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="flex min-h-0 flex-1 flex-col gap-1">
         <Link href="/teacher/dashboard" onClick={onNavigate} className={activeItem === 'dashboard' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">dashboard</span>
           <span className="font-label-md text-label-md">Dashboard</span>
@@ -50,7 +50,7 @@ export default function TeacherSidebar({ activeItem, className = 'hidden md:flex
           <span className="font-label-md text-label-md">Reports</span>
         </Link>
       </nav>
-      <div className="mt-auto flex flex-col gap-3 border-t border-outline-variant/60 pt-4">
+      <div className="mt-auto flex shrink-0 flex-col gap-3 border-t border-outline-variant/60 pt-4">
         <button className="flex items-center justify-center gap-2 rounded-md bg-error px-3 py-2.5 font-bold text-on-error transition-transform hover:opacity-90 active:scale-95">
           <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>report</span>
           Emergency Alert

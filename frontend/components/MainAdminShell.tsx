@@ -23,7 +23,7 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
   const [menuOpen, setMenuOpen] = useState(false);
 
   const sidebar = (
-    <aside className="w-64 h-screen bg-surface border-r border-outline-variant/60 flex flex-col p-3 shadow-sm">
+    <aside className="w-64 h-dvh max-h-dvh overflow-y-auto overscroll-contain bg-surface border-r border-outline-variant/60 flex flex-col p-3 shadow-sm">
       <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
         <div className="flex items-center gap-2 mb-1">
           <LogoMark className="h-8 w-8 rounded-md" />
@@ -32,7 +32,7 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
         </div>
         </div>
       </div>
-      <nav className="space-y-1">
+      <nav className="min-h-0 flex-1 space-y-1">
         {navItems.map(item => (
           <Link
             key={item.id}
@@ -45,7 +45,7 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
           </Link>
         ))}
       </nav>
-      <div className="mt-auto space-y-1 border-t border-outline-variant/60 pt-4">
+      <div className="mt-auto shrink-0 space-y-1 border-t border-outline-variant/60 pt-4">
         <Link href="/school-registration" className="flex items-center gap-3 rounded-md px-3 py-2.5 text-primary hover:bg-surface-container-low font-label-md">
           <span className="material-symbols-outlined text-[20px]">domain_add</span>
           School Registration URL

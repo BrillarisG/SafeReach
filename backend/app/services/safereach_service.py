@@ -15,7 +15,7 @@ from . import message_service
 from . import academic_result_service
 from .sms_service import send_parent_sms
 
-BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v3"
+BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v4"
 CURRENT_TEACHER_NAME = "Sarah Jenkins"
 
 
@@ -470,30 +470,32 @@ def _invalidate_bootstrap_cache() -> None:
 
 def _default_teacher_timetable_section(cur, school_id: str | None) -> dict:
     school_filter = ""
-    params: list[object] = [CURRENT_TEACHER_NAME]
+    params: list[object] = []
     if school_id:
         school_filter = "and ta.school_id=%s"
         params.append(school_id)
 
     cur.execute(
         f"""
-        select c.id class_id, sec.id section_id, c.name class_name, sec.name section_name
+        select c.id class_id, sec.id section_id, c.name class_name, sec.name section_name,
+               count(s.id) student_count,
+               max(case when u.full_name = %s then 1 else 0 end) preferred_teacher
         from teacher_assignments ta
         join teachers t on t.id = ta.teacher_id
         join users u on u.id = t.user_id
         join classes c on c.id = ta.class_id
         join sections sec on sec.id = ta.section_id
+        left join students s on s.class_id = c.id and s.section_id = sec.id
         where ta.active = true
-          and u.full_name = %s
           {school_filter}
-        order by case
-          when ta.assignment_type = 'primary_incharge' then 1
-          when ta.assignment_type = 'assistant_incharge' then 2
-          else 3
-        end, c.sort_order, sec.name
+        group by c.id, sec.id, c.name, sec.name, c.sort_order
+        order by max(case when u.full_name = %s then 1 else 0 end) desc,
+          count(s.id) desc,
+          c.sort_order,
+          sec.name
         limit 1
         """,
-        tuple(params),
+        tuple([CURRENT_TEACHER_NAME, *params, CURRENT_TEACHER_NAME]),
     )
     row = cur.fetchone()
     if row:

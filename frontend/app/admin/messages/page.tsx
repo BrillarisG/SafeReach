@@ -12,6 +12,7 @@ type Conversation = {
   name: string;
   sub: string;
   avatar: string;
+  online?: boolean;
   unread: number;
   time: string;
 };
@@ -24,13 +25,13 @@ type Message = {
 };
 
 const conversations: Conversation[] = [
-  { id: 'common-admin-teachers', group: 'common', name: 'Admin + All Teachers', sub: 'School admin common group with all teachers', avatar: 'AT', unread: 3, time: 'Live' },
-  { id: 'teacher-james', group: 'teacher', name: 'Mr. James Anderson', sub: 'Senior Mathematics Teacher', avatar: 'JA', unread: 0, time: '10:20 AM' },
-  { id: 'teacher-elena', group: 'teacher', name: 'Elena Smith', sub: 'Class 4-A Incharge', avatar: 'ES', unread: 1, time: '09:45 AM' },
-  { id: 'teacher-julian', group: 'teacher', name: 'Julian Thorne', sub: 'Transport and route duty', avatar: 'JT', unread: 0, time: '09:30 AM' },
+  { id: 'common-admin-teachers', group: 'common', name: 'Admin + All Teachers', sub: 'School admin common group with all teachers', avatar: 'AT', online: true, unread: 3, time: 'Live' },
+  { id: 'teacher-james', group: 'teacher', name: 'Mr. James Anderson', sub: 'Senior Mathematics Teacher', avatar: 'JA', online: true, unread: 0, time: '10:20 AM' },
+  { id: 'teacher-elena', group: 'teacher', name: 'Elena Smith', sub: 'Class 4-A Incharge', avatar: 'ES', online: true, unread: 1, time: '09:45 AM' },
+  { id: 'teacher-julian', group: 'teacher', name: 'Julian Thorne', sub: 'Transport and route duty', avatar: 'JT', online: true, unread: 0, time: '09:30 AM' },
   { id: 'teacher-clara', group: 'teacher', name: 'Clara White', sub: 'Grade 2 Aurora teacher', avatar: 'CW', unread: 0, time: '08:55 AM' },
   { id: 'teacher-david', group: 'teacher', name: 'David Ng', sub: 'Class 4-B Incharge', avatar: 'DN', unread: 0, time: 'Yesterday' },
-  { id: 'parent-sarah', group: 'parent', name: 'Sarah Thompson', sub: 'Parent of Leo and Maya Thompson', avatar: 'ST', unread: 2, time: '11:05 AM' },
+  { id: 'parent-sarah', group: 'parent', name: 'Sarah Thompson', sub: 'Parent of Leo and Maya Thompson', avatar: 'ST', online: true, unread: 2, time: '11:05 AM' },
   { id: 'parent-nisha', group: 'parent', name: 'Nisha Sharma', sub: 'Parent of Aarav Sharma', avatar: 'NS', unread: 0, time: 'Yesterday' },
   { id: 'parent-sunita', group: 'parent', name: 'Sunita Nair', sub: 'Parent of Priya Nair', avatar: 'SN', unread: 1, time: 'Jun 13' },
 ];
@@ -110,6 +111,8 @@ function AdminMessagesContent() {
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState('');
   const [sentThreads, setSentThreads] = useState<Record<string, Message[]>>({});
+  const [recentActivity, setRecentActivity] = useState<Record<string, number>>({});
+  const [readConversationIds, setReadConversationIds] = useState<Record<string, true>>({});
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [notice, setNotice] = useState('Admin messaging is a frontend demo. Backend delivery will be added later.');
 
@@ -117,28 +120,39 @@ function AdminMessagesContent() {
     const conversation = availableConversations.find(item => item.id === requestedChat);
     if (!conversation) return;
     setActiveGroup(conversation.group);
-    setActiveId(conversation.id);
+    selectConversation(conversation.id);
     setSearch('');
     setMobileChatOpen(true);
     setNotice(`Direct chat opened for ${conversation.name}.`);
   }, [availableConversations, requestedChat]);
 
+  const conversationScore = (conversation: Conversation) => recentActivity[conversation.id] ?? conversationTimeScore(conversation.time);
   const visibleConversations = useMemo(() => availableConversations.filter(conversation => {
     const inGroup = activeGroup === 'all' || conversation.group === activeGroup;
     const match = `${conversation.name} ${conversation.sub}`.toLowerCase().includes(search.toLowerCase());
     return inGroup && match;
-  }).sort((a, b) => conversationTimeScore(b.time) - conversationTimeScore(a.time)), [activeGroup, availableConversations, search]);
+  }).sort((a, b) => conversationScore(b) - conversationScore(a)), [activeGroup, availableConversations, recentActivity, search]);
 
   const activeConversation = visibleConversations.find(conversation => conversation.id === activeId) ?? visibleConversations[0] ?? availableConversations[0];
   const activeThread = [...(threads[activeConversation.id] ?? []), ...(sentThreads[activeConversation.id] ?? [])];
   const showSenderName = activeConversation.group === 'common';
+  const isUnread = (conversation: Conversation) => conversation.unread > 0 && !readConversationIds[conversation.id];
+
+  function selectConversation(id: string) {
+    setActiveId(id);
+    setReadConversationIds(current => ({ ...current, [id]: true }));
+  }
+
+  useEffect(() => {
+    if (activeId) setReadConversationIds(current => ({ ...current, [activeId]: true }));
+  }, [activeId]);
 
   function changeGroup(group: MessageGroup) {
     const first = [...availableConversations]
-      .sort((a, b) => conversationTimeScore(b.time) - conversationTimeScore(a.time))
+      .sort((a, b) => conversationScore(b) - conversationScore(a))
       .find(conversation => group === 'all' || conversation.group === group);
     setActiveGroup(group);
-    setActiveId(first?.id ?? '');
+    selectConversation(first?.id ?? '');
     setSearch('');
     setMobileChatOpen(false);
     setNotice(groupTabs.find(tab => tab.id === group)?.helper ?? '');
@@ -156,6 +170,7 @@ function AdminMessagesContent() {
       ...current,
       [activeConversation.id]: [...(current[activeConversation.id] ?? []), message],
     }));
+    setRecentActivity(current => ({ ...current, [activeConversation.id]: Date.now() }));
     setNotice(`Message added for ${activeConversation.name}.`);
     setDraft('');
   }
@@ -167,7 +182,6 @@ function AdminMessagesContent() {
         <div className="px-2 py-2 bg-surface border-y border-outline-variant/30 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5 min-w-max">
             {groupTabs.map(tab => {
-              const unread = availableConversations.filter(conversation => (tab.id === 'all' || conversation.group === tab.id) && conversation.unread > 0).reduce((total, conversation) => total + conversation.unread, 0);
               return (
                 <button
                   key={tab.id}
@@ -176,7 +190,7 @@ function AdminMessagesContent() {
                   title={tab.label}
                   className={`max-w-[104px] truncate rounded-full border px-3 py-1.5 text-[12px] leading-none whitespace-nowrap ${activeGroup === tab.id ? 'border-primary bg-primary text-on-primary' : 'border-outline-variant/70 bg-white text-on-surface-variant'}`}
                 >
-                  {tab.label}{unread > 0 && <span className={`ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full border px-1 text-[10px] font-bold ${activeGroup === tab.id ? 'border-white/70 text-on-primary' : 'border-primary/40 text-primary'}`}>{unread}</span>}
+                  {tab.label}
                 </button>
               );
             })}
@@ -187,13 +201,13 @@ function AdminMessagesContent() {
             <button
               key={conversation.id}
               type="button"
-              onClick={() => { setActiveId(conversation.id); setMobileChatOpen(true); }}
+              onClick={() => { selectConversation(conversation.id); setMobileChatOpen(true); }}
               className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-surface-container"
             >
-              <span className="w-12 h-12 shrink-0 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-md">{conversation.avatar}</span>
+              <span className="relative shrink-0"><span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-label-md font-bold text-on-primary">{conversation.avatar}</span>{conversation.online && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />}</span>
               <span className="min-w-0 flex-1 border-b border-outline-variant/20 pb-3">
-                <span className="flex items-start justify-between gap-2"><span className="font-medium text-on-surface truncate">{conversation.name}</span><span className="shrink-0 text-label-sm text-primary">{conversation.time}</span></span>
-                <span className="mt-1 flex items-center gap-2"><span className="flex-1 text-[13px] leading-5 text-on-surface-variant truncate">{conversation.sub}</span><span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span>{conversation.unread > 0 && <span className="w-5 h-5 shrink-0 rounded-full border border-primary/40 text-primary text-label-sm font-bold flex items-center justify-center">{conversation.unread}</span>}</span>
+                <span className="flex items-start justify-between gap-2"><span className={`font-medium truncate ${isUnread(conversation) ? 'text-on-surface' : 'text-on-surface-variant'}`}>{conversation.name}</span><span className={`shrink-0 text-label-sm ${isUnread(conversation) ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>{conversation.time}</span></span>
+                <span className="mt-1 flex items-center gap-2"><span className="flex-1 text-[13px] leading-5 text-on-surface-variant truncate">{conversation.sub}</span><span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span></span>
               </span>
             </button>
           ))}
@@ -203,7 +217,7 @@ function AdminMessagesContent() {
       <div className={`${mobileChatOpen ? 'flex' : 'hidden'} h-full min-h-0 md:hidden flex-col bg-background`}>
         <header className="px-4 py-3 bg-surface border-y border-outline-variant/30 flex items-center gap-3 shrink-0">
           <button type="button" onClick={() => setMobileChatOpen(false)} className="-ml-2 h-9 w-9 flex items-center justify-center rounded-full hover:bg-surface-container" aria-label="Back to messages"><span className="material-symbols-outlined">arrow_back</span></button>
-          <span className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-sm">{activeConversation.avatar}</span>
+          <span className="relative"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-label-sm font-bold text-on-primary">{activeConversation.avatar}</span>{activeConversation.online && <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500" />}</span>
           <span className="block font-bold text-on-surface">{activeConversation.name}</span>
         </header>
         <div className="no-scrollbar flex-1 min-h-0 overflow-y-auto p-4 pb-28 md:pb-4 space-y-3">
@@ -245,18 +259,17 @@ function AdminMessagesContent() {
               <button
                 key={conversation.id}
                 type="button"
-                onClick={() => setActiveId(conversation.id)}
+                onClick={() => selectConversation(conversation.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 border-b border-outline-variant/20 text-left ${activeConversation.id === conversation.id ? 'bg-primary-container/35' : 'hover:bg-surface-container-low'}`}
               >
-                <span className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-label-sm shrink-0">{conversation.avatar}</span>
+                <span className="relative shrink-0"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-label-sm font-bold text-on-primary">{conversation.avatar}</span>{conversation.online && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2">
                     <span className="font-bold text-on-surface truncate">{conversation.name}</span>
-                    <span className="text-label-sm text-on-surface-variant shrink-0">{conversation.time}</span>
+                    <span className={`text-label-sm shrink-0 ${isUnread(conversation) ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>{conversation.time}</span>
                   </span>
                   <span className="block text-label-sm text-on-surface-variant truncate">{conversation.sub}</span>
                 </span>
-                {conversation.unread > 0 && <span className="w-5 h-5 rounded-full border border-primary/40 text-primary text-label-sm font-bold flex items-center justify-center">{conversation.unread}</span>}
               </button>
             ))}
           </div>
@@ -264,7 +277,7 @@ function AdminMessagesContent() {
 
         <section className="safe-surface-enter min-w-0 min-h-0 bg-background overflow-hidden flex flex-col">
           <header className="p-4 border-b border-outline-variant/30 flex items-center gap-3">
-            <span className="w-11 h-11 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold">{activeConversation.avatar}</span>
+            <span className="relative"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary font-bold text-on-primary">{activeConversation.avatar}</span>{activeConversation.online && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />}</span>
             <div>
               <h2 className="font-bold text-primary">{activeConversation.name}</h2>
             </div>

@@ -12,9 +12,11 @@ from .audit_service import write_audit
 from .cache_service import delete as cache_delete, get_json as cache_get_json, set_json as cache_set_json
 from .db3_service import write_event
 from . import message_service
+from . import academic_result_service
 from .sms_service import send_parent_sms
 
-BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v2"
+BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v3"
+CURRENT_TEACHER_NAME = "Sarah Jenkins"
 
 
 def login(email: str, password: str) -> dict:
@@ -85,24 +87,36 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
             )
             students = [dict(row) for row in cur.fetchall()]
 
+            selected_timetable_section = _default_teacher_timetable_section(cur, school_id)
+            timetable_params = (
+                selected_timetable_section.get("class_id"),
+                selected_timetable_section.get("section_id"),
+            )
+
             cur.execute(
                 """
-                select tb.break_key id, tb.label, tb.after_period "afterPeriod", tb.tone
+                select tb.break_key id, min(tb.label) label, min(tb.after_period) "afterPeriod", min(tb.tone) tone
                 from timetable_breaks tb
-                order by tb.after_period
-                """
+                where tb.class_id=%s and tb.section_id=%s
+                group by tb.break_key
+                order by min(tb.after_period)
+                """,
+                timetable_params,
             )
             breaks = [dict(row) for row in cur.fetchall()]
 
             cur.execute(
                 """
-                select day_name, period_no, subject
+                select day_name, period_no, min(subject) subject
                 from timetable_periods
+                where class_id=%s and section_id=%s
+                group by day_name, period_no
                 order by case day_name
                   when 'Monday' then 1 when 'Tuesday' then 2 when 'Wednesday' then 3
                   when 'Thursday' then 4 when 'Friday' then 5 when 'Saturday' then 6 else 7 end,
                   period_no
-                """
+                """,
+                timetable_params,
             )
             periods = [dict(row) for row in cur.fetchall()]
 
@@ -124,7 +138,7 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
 
             cur.execute(
                 """
-                select t.id, u.full_name, u.email, u.phone, t.employee_code, t.subject, t.qualification, t.status,
+                select t.id, t.user_id, u.full_name, u.email, u.phone, t.employee_code, t.subject, t.qualification, t.status,
                        coalesce(json_agg(json_build_object(
                          'className', c.name,
                          'sectionName', sec.name,
@@ -136,7 +150,7 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
                 left join teacher_assignments ta on ta.teacher_id = t.id and ta.active = true
                 left join classes c on c.id = ta.class_id
                 left join sections sec on sec.id = ta.section_id
-                group by t.id, u.full_name, u.email, u.phone
+                group by t.id, t.user_id, u.full_name, u.email, u.phone
                 order by u.full_name
                 """
             )
@@ -187,6 +201,7 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
             )
             api_tests = [dict(row) for row in cur.fetchall()]
 
+    academic_results = academic_result_service.list_results()
     return {
         "schools": _serialize(schools),
         "classes": _serialize(classes),
@@ -196,7 +211,8 @@ def bootstrap(role: str | None = None, school_id: str | None = None) -> dict:
         "reports": _serialize(reports),
         "incidents": _serialize(incidents),
         "apiTests": _serialize(api_tests),
-        "timetable": _build_timetable(periods, breaks),
+        "timetable": _build_timetable(periods, breaks, selected_timetable_section),
+        "academicResults": academic_results,
         "role": role,
         "schoolId": school_id,
     }
@@ -299,9 +315,9 @@ def submit_attendance(student_id: str, status: str, actor_user_id: str | None) -
     if status not in {"present", "absent", "late"}:
         raise ValueError("Invalid attendance status")
     travel_status = "present" if status == "present" else "absent" if status == "absent" else "reached_school"
-    # A parent receives the absence SMS and in-app reason request only when the
-    # teacher submits the attendance sheet. Present and late SMS behavior stays immediate.
-    payload = _update_travel_status(student_id, travel_status, f"attendance_{status}", actor_user_id, attendance_status=status, sms=status != "absent")
+    # Attendance selection only stores the status. The final attendance Submit
+    # action creates the absence message/SMS request for SMS-enabled parents.
+    payload = _update_travel_status(student_id, travel_status, f"attendance_{status}", actor_user_id, attendance_status=status, sms=False)
     with db1_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -315,6 +331,31 @@ def submit_attendance(student_id: str, status: str, actor_user_id: str | None) -
                 (date.today(), status, actor_user_id, status in {"present", "absent"}, student_id),
             )
         conn.commit()
+    _invalidate_bootstrap_cache()
+    return payload
+
+
+def set_student_sms_enabled(student_id: str, enabled: bool, actor_user_id: str | None = None) -> dict:
+    """Allow the assigned teacher to opt a student's parent into SMS fallback."""
+    with db1_conn() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                """
+                update parents p
+                set sms_enabled=%s, updated_at=now()
+                from students s
+                where s.id=%s and s.parent_id=p.id
+                returning s.id student_id, s.school_id, s.full_name student_name, p.id parent_id, p.phone parent_phone, p.sms_enabled
+                """,
+                (enabled, student_id),
+            )
+            row = cur.fetchone()
+        conn.commit()
+    if not row:
+        raise LookupError("Student parent record not found")
+    payload = _serialize(dict(row))
+    write_event("student_settings", {"event": "sms_enabled_updated", **payload})
+    write_audit("student.sms_enabled_updated", "student", student_id, payload, actor_user_id, payload.get("school_id"))
     _invalidate_bootstrap_cache()
     return payload
 
@@ -427,16 +468,82 @@ def _invalidate_bootstrap_cache() -> None:
     cache_delete(BOOTSTRAP_CACHE_KEY)
 
 
-def _build_timetable(periods: list[dict], breaks: list[dict]) -> dict:
-    days: dict[str, list[str]] = {}
+def _default_teacher_timetable_section(cur, school_id: str | None) -> dict:
+    school_filter = ""
+    params: list[object] = [CURRENT_TEACHER_NAME]
+    if school_id:
+        school_filter = "and ta.school_id=%s"
+        params.append(school_id)
+
+    cur.execute(
+        f"""
+        select c.id class_id, sec.id section_id, c.name class_name, sec.name section_name
+        from teacher_assignments ta
+        join teachers t on t.id = ta.teacher_id
+        join users u on u.id = t.user_id
+        join classes c on c.id = ta.class_id
+        join sections sec on sec.id = ta.section_id
+        where ta.active = true
+          and u.full_name = %s
+          {school_filter}
+        order by case
+          when ta.assignment_type = 'primary_incharge' then 1
+          when ta.assignment_type = 'assistant_incharge' then 2
+          else 3
+        end, c.sort_order, sec.name
+        limit 1
+        """,
+        tuple(params),
+    )
+    row = cur.fetchone()
+    if row:
+        return dict(row)
+
+    fallback_filter = ""
+    fallback_params: list[object] = []
+    if school_id:
+        fallback_filter = "where c.school_id=%s"
+        fallback_params.append(school_id)
+    cur.execute(
+        f"""
+        select c.id class_id, sec.id section_id, c.name class_name, sec.name section_name
+        from classes c
+        join sections sec on sec.class_id = c.id
+        {fallback_filter}
+        order by c.sort_order, sec.name
+        limit 1
+        """,
+        tuple(fallback_params),
+    )
+    row = cur.fetchone()
+    return dict(row) if row else {}
+
+
+def _build_timetable(periods: list[dict], breaks: list[dict], selected_section: dict | None = None) -> dict:
+    ordered_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    days: dict[str, dict[int, str]] = {}
     for row in periods:
-        days.setdefault(row["day_name"], [])
-        days[row["day_name"]].append(row["subject"])
+        day_name = row["day_name"]
+        period_no = int(row["period_no"])
+        days.setdefault(day_name, {})
+        days[day_name][period_no] = row["subject"]
+
+    day_payload = []
+    for day_name in ordered_days:
+        period_map = days.get(day_name)
+        if not period_map:
+            continue
+        day_payload.append({
+            "id": day_name.lower(),
+            "label": day_name,
+            "periods": [period_map[index] for index in sorted(period_map)],
+        })
+
     return {
-        "className": "Class 4",
-        "section": "B",
+        "className": (selected_section or {}).get("class_name", "Class 4"),
+        "section": (selected_section or {}).get("section_name", "A"),
         "breaks": breaks,
-        "days": [{"id": day.lower(), "label": day, "periods": values} for day, values in days.items()],
+        "days": day_payload,
     }
 
 

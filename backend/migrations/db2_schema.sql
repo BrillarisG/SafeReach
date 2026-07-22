@@ -32,7 +32,10 @@ declare
     'sms_delivery_logs',
     'incident_logs',
     'safety_reports',
-    'api_test_results'
+    'api_test_results',
+    'result_exams',
+    'result_components',
+    'student_result_marks'
   ];
 begin
   foreach table_name in array protected_tables loop

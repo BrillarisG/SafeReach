@@ -20,6 +20,9 @@ DB1_TABLES = {
     "sms_delivery_logs": ["id pk", "school_id fk", "student_id fk", "to_phone", "body", "provider", "provider_message_id", "status"],
     "incident_logs": ["id pk", "school_id fk", "student_id fk", "incident_code unique", "incident_type", "level", "priority", "status", "handler_name", "incident_time", "detail"],
     "safety_reports": ["id pk", "school_id fk", "class_id fk", "section_id fk", "report_title", "safety_score", "alert_count", "attendance_percent", "report_text"],
+    "result_exams": ["id pk", "school_id fk", "class_id fk", "section_id fk", "name", "active", "created_by", "updated_by", "unique section/name"],
+    "result_components": ["id pk", "exam_id fk", "subject", "label", "maximum_marks", "sort_order", "unique exam/subject/label"],
+    "student_result_marks": ["id pk", "student_id fk", "result_component_id fk", "marks_obtained", "entered_by", "unique student/component"],
     "api_test_results": ["id pk", "test_name", "service_name", "status", "detail", "created_at"],
 }
 

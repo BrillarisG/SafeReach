@@ -4,6 +4,8 @@ import Link from '@/src/next-link';
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from '@/src/next-navigation';
 import LoadingRing from '@/components/LoadingRing';
+import { apiBaseUrl } from '@/lib/runtimeConfig';
+import { BackendStudent, useBackendBootstrap } from '@/lib/backendData';
 
 type TeacherStudent = {
   name: string;
@@ -18,6 +20,7 @@ type TeacherStudent = {
   img: string;
   alert?: boolean;
   parentSmsEnabled?: boolean;
+  studentCode?: string;
 };
 
 type StudentFormState = {
@@ -90,6 +93,17 @@ function buildStudent(form: StudentFormState, existing: TeacherStudent): Teacher
   };
 }
 
+function storedStudentToTeacherStudent(student: BackendStudent): TeacherStudent {
+  const status = student.travel_status === 'absent' ? 'Missing Scan' : student.travel_status === 'to_school' ? 'In Transit' : 'At School';
+  return {
+    name: student.full_name, sub: student.attendance_status === 'absent' ? 'Attendance marked absent' : 'Stored SafeReach record',
+    id: student.id, studentCode: student.student_code, grade: `${student.class_name}-${student.section_name}`,
+    status, stCls: status === 'Missing Scan' ? 'bg-error-container/20 text-error border-error/20' : 'bg-secondary-container/10 text-secondary border-secondary/20',
+    guardian: student.parent_phone || 'Phone unavailable', gSub: student.guardian_name ? `Guardian: ${student.guardian_name}` : 'Guardian: Not assigned',
+    activity: 'Stored SafeReach record', img: fallbackImage, alert: student.travel_status === 'absent', parentSmsEnabled: student.sms_enabled,
+  };
+}
+
 function TeacherStudentEditContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -97,6 +111,7 @@ function TeacherStudentEditContent() {
   const [students, setStudents] = useState<TeacherStudent[]>(teacherStudentSeed);
   const [formState, setFormState] = useState<StudentFormState>(emptyForm);
   const [notice, setNotice] = useState('');
+  const { data } = useBackendBootstrap();
 
   useEffect(() => {
     const loaded = readStudents();
@@ -110,6 +125,15 @@ function TeacherStudentEditContent() {
     }
   }, [studentId]);
 
+  useEffect(() => {
+    const stored = data.students.find(item => item.id === studentId);
+    if (!stored) return;
+    const loadedStudent = storedStudentToTeacherStudent(stored);
+    setStudents(current => [loadedStudent, ...current.filter(item => item.id !== studentId)]);
+    setFormState(formFromStudent(loadedStudent));
+    setNotice(`Editing ${loadedStudent.name} in ${loadedStudent.grade}.`);
+  }, [data.students, studentId]);
+
   const student = students.find(item => item.id === studentId);
 
   function updateForm(key: keyof StudentFormState, value: string) {
@@ -120,12 +144,32 @@ function TeacherStudentEditContent() {
     setFormState(current => ({ ...current, parentSmsEnabled: enabled }));
   }
 
-  function saveStudent(event: React.FormEvent<HTMLFormElement>) {
+  async function saveStudent(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!student || !formState.name.trim()) return;
+    if (data.students.some(item => item.id === student.id)) {
+      try {
+        const response = await fetch(`${apiBaseUrl}/students/${encodeURIComponent(student.id)}/sms-enabled`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: formState.parentSmsEnabled }),
+        });
+        if (!response.ok) throw new Error('Unable to update the parent SMS setting.');
+      } catch (reason) {
+        setNotice(reason instanceof Error ? reason.message : 'Unable to update the parent SMS setting.');
+        return;
+      }
+    }
     const updated = students.map(item => item.id === student.id ? buildStudent(formState, student) : item);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     setNotice(`${formState.name.trim()} updated successfully.`);
+    router.push('/teacher/students');
+  }
+
+  function deleteStudent() {
+    if (!student || !window.confirm(`Delete ${student.name} from ${assignedClass}? This cannot be undone.`)) return;
+    const updated = students.filter(item => item.id !== student.id);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     router.push('/teacher/students');
   }
 
@@ -149,7 +193,7 @@ function TeacherStudentEditContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               <label className="space-y-1.5">
                 <span className="text-label-sm font-bold text-on-surface-variant">Student ID</span>
-                <input value={student.id} disabled className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container text-on-surface-variant" />
+                <input value={student.studentCode ?? student.id} disabled className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container text-on-surface-variant" />
               </label>
               <label className="space-y-1.5">
                 <span className="text-label-sm font-bold text-on-surface-variant">Student Name</span>
@@ -182,7 +226,7 @@ function TeacherStudentEditContent() {
                 <span className="material-symbols-outlined text-primary mt-0.5">sms</span>
                 <div>
                   <h2 className="font-bold text-primary">Parent SMS Alerts</h2>
-                  <p className="text-label-md text-on-surface-variant">Enable SMS status updates for this student's parent when attendance, absent, reached, or go-out status changes.</p>
+                  <p className="text-label-md text-on-surface-variant">When enabled, this parent receives SMS only after the teacher submits this student's absence. Leave-school SMS remains available for enabled parents.</p>
                 </div>
               </div>
               <button
@@ -206,6 +250,12 @@ function TeacherStudentEditContent() {
               <Link href="/teacher/students" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-outline-variant font-bold text-on-surface">
                 Cancel
               </Link>
+            </div>
+            <div className="border-t border-outline-variant/50 pt-5">
+              <button type="button" onClick={deleteStudent} className="inline-flex items-center gap-2 rounded-lg border border-error px-5 py-3 font-bold text-error hover:bg-error-container/30">
+                <span className="material-symbols-outlined text-[20px]">delete</span>
+                Delete Student
+              </button>
             </div>
           </form>
         ) : (

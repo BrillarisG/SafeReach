@@ -6,9 +6,10 @@ import { useState } from 'react';
 import AdminSidebar from '@/components/AdminSidebar';
 import LogoMark from '@/components/LogoMark';
 
-type SidebarItem = 'analytics' | 'students' | 'teachers' | 'messages' | 'incident' | 'reports' | 'audit' | 'timetable';
+type SidebarItem = 'analytics' | 'students' | 'teachers' | 'messages' | 'incident' | 'reports' | 'results' | 'audit' | 'timetable';
 
 function getSidebar(p: string): SidebarItem {
+  if (p.includes('/results')) return 'results';
   if (p.includes('/incidents')) return 'incident';
   if (p.includes('/reports')) return 'reports';
   if (p.includes('/timetable')) return 'timetable';
@@ -34,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-[calc(100vh-64px)]">
         <AdminSidebar activeItem={getSidebar(pathname)} />
         {mobileMenuOpen && <button type="button" aria-label="Close admin menu" onClick={() => setMobileMenuOpen(false)} className="fixed inset-0 z-40 bg-on-surface/20 lg:hidden" />}
-        <AdminSidebar activeItem={getSidebar(pathname)} onNavigate={() => setMobileMenuOpen(false)} className={`fixed left-0 top-16 z-50 flex h-[calc(100svh-64px)] max-h-[calc(100svh-64px)] w-64 flex-col bg-surface border-r border-outline-variant/60 p-3 pb-20 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] transition-transform duration-200 lg:hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`} />
+        <AdminSidebar activeItem={getSidebar(pathname)} onNavigate={() => setMobileMenuOpen(false)} className={`fixed left-0 top-16 z-50 flex h-[calc(100svh-64px)] max-h-[calc(100svh-64px)] w-64 flex-col bg-surface border-r border-outline-variant/60 p-3 pb-4 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] transition-transform duration-200 lg:hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`} />
         <div key={pathname} className="admin-page-enter flex-1 min-w-0 lg:ml-64">
           {children}
         </div>

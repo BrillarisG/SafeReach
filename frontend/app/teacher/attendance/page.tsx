@@ -214,7 +214,7 @@ export default function TeacherAttendancePage() {
         setLastSmsNotice(`${student.name} is marked absent. The parent message and SMS request will be sent when attendance is submitted.`);
       } else {
         const label = status === 'reached_school' ? 'Reached School' : status.charAt(0).toUpperCase() + status.slice(1);
-        setLastSmsNotice(`SMS sent to ${student.parentName} (${student.parentPhone}): ${student.name} - ${label}.`);
+        setLastSmsNotice(`${student.name} is marked ${label}. No SMS is sent until an absence is submitted.`);
       }
     }
     if (canUpdateSubmittedLate) {
@@ -361,9 +361,9 @@ export default function TeacherAttendancePage() {
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1.5">
                       {([
-                        ['present', 'P', 'Mark present and send parent SMS'],
+                        ['present', 'P', 'Mark present'],
                         ['absent', 'A', 'Mark absent; request sent on Submit'],
-                        ['late', 'L', 'Mark late and send parent SMS'],
+                        ['late', 'L', 'Mark late'],
                       ] as const).map(([status, label, title]) => {
                         const disabled = isAttendanceButtonDisabled(student.id, status);
                         return (

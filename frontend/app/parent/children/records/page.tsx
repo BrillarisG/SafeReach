@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import Link from '@/src/next-link';
 import { travelStatusClass, travelStatusIcon, travelStatusLabel, useStudentTravelState } from '@/lib/studentTravel';
 
@@ -50,11 +49,7 @@ function DetailCard({ label, value }: { label: string; value: string }) {
 
 export default function ParentChildRecordsPage() {
   const { parentChildren } = useStudentTravelState();
-  const [selectedId, setSelectedId] = useState('');
-  const selectedChild = useMemo(() => {
-    if (parentChildren.length === 0) return null;
-    return parentChildren.find(child => child.id === selectedId) ?? parentChildren[0];
-  }, [parentChildren, selectedId]);
+  const selectedChild = parentChildren[0] ?? null;
 
   const profile = selectedChild ? childProfiles[selectedChild.id] ?? {
     dateOfBirth: 'Not updated',
@@ -73,24 +68,10 @@ export default function ParentChildRecordsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="font-headline-lg text-headline-lg text-primary">Child Records</h3>
-          <p className="text-body-md text-on-surface-variant">Select one child to view the full child details page.</p>
+          <p className="text-body-md text-on-surface-variant">Full child details for your linked student.</p>
         </div>
         <Link href="/parent/dashboard" className="w-fit px-4 py-2 border border-outline-variant rounded-lg text-primary font-bold hover:bg-surface-container">Back</Link>
       </div>
-
-      <section className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-stack-md">
-        <label className="block text-label-md font-bold text-on-surface-variant mb-2" htmlFor="child-select">Select Student</label>
-        <select
-          id="child-select"
-          value={selectedChild?.id ?? ''}
-          onChange={event => setSelectedId(event.target.value)}
-          className="w-full rounded-lg border border-outline-variant bg-surface-container px-3 py-3 text-body-md outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-        >
-          {parentChildren.map(child => (
-            <option key={child.id} value={child.id}>{child.name} - {child.className} Section {child.section}</option>
-          ))}
-        </select>
-      </section>
 
       {selectedChild && profile && (
         <>

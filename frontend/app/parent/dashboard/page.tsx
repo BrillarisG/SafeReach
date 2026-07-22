@@ -163,19 +163,19 @@ export default function ParentDashboardPage() {
         <p className="font-body-lg text-body-lg text-on-surface-variant">Your children are currently loaded from stored SafeReach records.</p>
       </section>
       {notice && <div className="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-lg font-label-md">{notice}</div>}
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-12">
-        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-12 lg:items-start">
+        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-5 content-start items-start">
           {dashboardChildren.map(child => {
             const canConfirmHome = child.status === 'going_home' && !reachedHomeIds.includes(child.id);
             const cardStyle = childCardStyle(child.status, child.updatedAt);
             return (
-            <div key={child.id} className={`rounded-[20px] border p-stack-md flex flex-col gap-4 relative overflow-hidden shadow-[0_5px_10px_rgba(15,23,42,0.18)] transition-colors ${cardStyle.card}`}>
+            <div key={child.id} className={`self-start rounded-[20px] border p-4 flex flex-col gap-3 relative overflow-hidden shadow-[0_5px_10px_rgba(15,23,42,0.18)] transition-colors ${cardStyle.card}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full bg-white text-primary ring-1 ring-black/5 flex items-center justify-center font-bold shadow-sm">{child.avatar}</div>
-                  <div><h4 className="font-headline-md text-[18px] font-bold text-slate-950">{child.name}</h4><p className="text-label-sm font-bold text-slate-500">{child.className} - Section {child.section}</p></div>
+                  <div className="w-12 h-12 rounded-full bg-white text-primary ring-1 ring-black/5 flex items-center justify-center font-bold shadow-sm">{child.avatar}</div>
+                  <div><h4 className="font-headline-md text-[17px] font-bold text-slate-950 leading-tight">{child.name}</h4><p className="text-label-sm font-bold text-slate-500">{child.className} - Section {child.section}</p></div>
                 </div>
-                <span className={`${cardStyle.chip} px-3 py-1 rounded-full text-label-sm font-bold flex items-center gap-1`}>
+                <span className={`${cardStyle.chip} px-3 py-1 rounded-full text-label-sm font-bold flex items-center gap-1 shrink-0`}>
                   <span className="material-symbols-outlined text-[14px]">{travelStatusIcon(child.status)}</span>{travelStatusLabel(child.status, 'parent')}
                 </span>
               </div>

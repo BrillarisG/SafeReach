@@ -23,7 +23,7 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
   const [menuOpen, setMenuOpen] = useState(false);
 
   const sidebar = (
-    <aside className="w-64 h-[100svh] max-h-[100svh] overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] bg-surface border-r border-outline-variant/60 flex flex-col p-3 pb-20 shadow-sm">
+    <aside className="w-64 h-[100svh] max-h-[100svh] overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] bg-surface border-r border-outline-variant/60 flex flex-col p-3 pb-4 shadow-sm">
       <div className="mb-7 rounded-lg bg-surface-container-low px-3 py-3">
         <div className="flex items-center gap-2 mb-1">
           <LogoMark className="h-8 w-8 rounded-md" />
@@ -51,6 +51,10 @@ export default function MainAdminShell({ active, title, subtitle, children }: Ma
           School Registration URL
         </Link>
         <LogoutConfirmButton className="w-full flex items-center gap-3 rounded-md px-3 py-2.5 text-error hover:bg-error-container font-label-md" />
+        <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-error px-3 py-2.5 font-bold text-on-error transition-transform hover:opacity-90 active:scale-95">
+          <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>emergency</span>
+          Emergency Alert
+        </button>
       </div>
     </aside>
   );

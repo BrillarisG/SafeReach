@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type BackendStudent, useBackendBootstrap } from '@/lib/backendData';
 import { safereachRealtime } from '@/lib/realtimeApi';
 import { apiBaseUrl } from './runtimeConfig';
+import { getCurrentTeacherAssignment } from './teacherAssignment';
 
 export type StudentTravelStatus =
   | 'at_home'
@@ -766,16 +767,21 @@ export function useStudentTravelState() {
     },
   }), [commitRecords]);
 
+  const teacherAssignment = getCurrentTeacherAssignment(backend);
+  const classStudents = records.filter(record =>
+    record.className === teacherAssignment.className && record.section === teacherAssignment.sectionName
+  );
+
   return {
     records,
     parentChildren: records.filter(record => record.isParentChild),
-    classStudents: records,
+    classStudents,
     counts: {
-      toSchool: records.filter(record => record.status === 'to_school').length,
-      present: records.filter(record => record.status === 'present' || record.status === 'reached_school').length,
-      absent: records.filter(record => record.status === 'absent').length,
-      goingHome: records.filter(record => record.status === 'going_home').length,
-      reachedHome: records.filter(record => record.status === 'reached_home').length,
+      toSchool: classStudents.filter(record => record.status === 'to_school').length,
+      present: classStudents.filter(record => record.status === 'present' || record.status === 'reached_school').length,
+      absent: classStudents.filter(record => record.status === 'absent').length,
+      goingHome: classStudents.filter(record => record.status === 'going_home').length,
+      reachedHome: classStudents.filter(record => record.status === 'reached_home').length,
     },
     smsLogs: records.flatMap(record => (record.smsHistory ?? []).map(log => ({ ...log, studentName: record.name, parentName: record.parentName })))
       .sort((a, b) => b.id.localeCompare(a.id)),

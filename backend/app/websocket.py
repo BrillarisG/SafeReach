@@ -4,7 +4,7 @@ from flask import request
 from flask_socketio import emit, join_room
 
 from .security import decode_token
-from .services import industry_menu_service, message_service, safereach_service
+from .services import academic_result_service, industry_menu_service, message_service, safereach_service
 
 
 def register_socket_handlers(socketio):
@@ -47,6 +47,13 @@ def register_socket_handlers(socketio):
     def on_attendance(payload):
         return _handle_student_event("attendance.marked", lambda: safereach_service.submit_attendance(payload["studentId"], payload["status"], payload.get("actorUserId")))
 
+    @socketio.on("student.sms.set")
+    def on_student_sms_set(payload):
+        return _handle_student_event(
+            "student.sms.updated",
+            lambda: safereach_service.set_student_sms_enabled(payload["studentId"], bool(payload["enabled"]), payload.get("actorUserId")),
+        )
+
     @socketio.on("travel.go_out")
     def on_go_out(payload):
         student_ids = payload.get("studentIds")
@@ -83,6 +90,16 @@ def register_socket_handlers(socketio):
             emit("timetable.updated", result, broadcast=True)
         except Exception as exc:
             emit("timetable.error", {"message": str(exc)})
+
+    @socketio.on("academic-results.exam.save")
+    def on_result_exam_save(payload):
+        payload = payload or {}
+        return _handle_student_event("results.updated", lambda: academic_result_service.save_exam(payload, payload.get("actorUserId")))
+
+    @socketio.on("academic-results.marks.save")
+    def on_result_marks_save(payload):
+        payload = payload or {}
+        return _handle_student_event("results.updated", lambda: academic_result_service.submit_marks(payload, payload.get("actorUserId")))
 
     @socketio.on("industry.menu.set")
     def on_industry_menu_set(payload):

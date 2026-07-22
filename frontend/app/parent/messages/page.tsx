@@ -78,11 +78,25 @@ export default function ParentMessagesPage() {
   const [newMsg, setNewMsg] = useState('');
   const [sentThreads, setSentThreads] = useState<Record<string, Message[]>>({});
   const [storedThreads, setStoredThreads] = useState<Record<string, Message[]>>({});
+  const [recentActivity, setRecentActivity] = useState<Record<string, number>>({});
+  const [readConversationIds, setReadConversationIds] = useState<Record<string, true>>({});
   const [sendError, setSendError] = useState('');
-  const activeConv = conversations.find(c => c.id === active) ?? conversations[0];
+  const recentConversations = useMemo(
+    () => [...conversations].sort((a, b) => (recentActivity[b.id] ?? conversationTimeScore(b.time)) - (recentActivity[a.id] ?? conversationTimeScore(a.time))),
+    [conversations, recentActivity],
+  );
+  const activeConv = recentConversations.find(c => c.id === active) ?? recentConversations[0];
   const activeStudent = parentChildren.find(child => child.id === activeConv?.studentId);
-  const unreadCount = conversations.reduce((sum, conversation) => sum + conversation.unread, 0);
-  const groupCount = conversations.filter(conversation => conversation.role.toLowerCase().includes('administration') || conversation.role.toLowerCase().includes('safety')).length;
+  const isUnread = (conversation: Conversation) => conversation.unread > 0 && !readConversationIds[conversation.id];
+
+  function selectConversation(id: string) {
+    setActive(id);
+    setReadConversationIds(current => ({ ...current, [id]: true }));
+  }
+
+  useEffect(() => {
+    if (active) setReadConversationIds(current => ({ ...current, [active]: true }));
+  }, [active]);
 
   useEffect(() => {
     if (!activeStudent) return;
@@ -148,11 +162,12 @@ export default function ParentMessagesPage() {
       ...current,
       [active]: [...(current[active] ?? []), message],
     }));
+    setRecentActivity(current => ({ ...current, [active]: Date.now() }));
     setNewMsg('');
   }
 
   function openMobileConversation(id: string) {
-    setActive(id);
+    selectConversation(id);
     setMobileChatOpen(true);
   }
 
@@ -163,11 +178,10 @@ export default function ParentMessagesPage() {
           <div className="relative"><span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input className="w-full pl-9 pr-3 py-2 bg-white border border-outline-variant rounded-lg text-label-md focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search conversations..." /></div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {conversations.map(c => (
-            <button key={c.id} onClick={() => setActive(c.id)} className={`w-full flex items-start gap-3 px-4 py-3 border-b border-outline-variant/20 text-left transition-colors ${active === c.id ? 'bg-primary-container/30' : 'hover:bg-surface-container'}`}>
+          {recentConversations.map(c => (
+            <button key={c.id} onClick={() => selectConversation(c.id)} className={`w-full flex items-start gap-3 px-4 py-3 border-b border-outline-variant/20 text-left transition-colors ${active === c.id ? 'bg-primary-container/30' : 'hover:bg-surface-container'}`}>
               <div className="relative shrink-0"><div className={`w-10 h-10 rounded-full flex items-center justify-center text-label-sm font-bold ${active === c.id ? 'bg-primary text-white' : 'bg-primary-container text-primary'}`}>{c.avatar}</div>{c.online && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>}</div>
-              <div className="flex-1 min-w-0"><div className="flex items-center justify-between"><p className={`text-label-md truncate ${c.unread > 0 ? 'font-bold text-on-surface' : 'text-on-surface-variant'}`}>{c.name}</p><p className="text-label-sm text-on-surface-variant shrink-0 ml-2">{c.time}</p></div><p className="text-label-sm text-on-surface-variant truncate">{c.preview}</p></div>
-              {c.unread > 0 && <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-label-sm font-bold flex items-center justify-center shrink-0 mt-1">{c.unread}</span>}
+              <div className="flex-1 min-w-0"><div className="flex items-center justify-between"><p className={`text-label-md truncate ${isUnread(c) ? 'font-bold text-on-surface' : 'text-on-surface-variant'}`}>{c.name}</p><p className={`text-label-sm shrink-0 ml-2 ${isUnread(c) ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>{c.time}</p></div><p className="text-label-sm text-on-surface-variant truncate">{c.preview}</p></div>
             </button>
           ))}
         </div>
@@ -177,9 +191,9 @@ export default function ParentMessagesPage() {
           <div className="flex items-center gap-2 min-w-max">
             {[
               ['All', ''],
-              ['Unread', String(unreadCount)],
+              ['Unread', ''],
               ['Favourites', ''],
-              ['Groups', String(groupCount)],
+              ['Groups', ''],
             ].map(([label, count], index) => (
               <button key={label} className={`rounded-full border px-4 py-1.5 text-label-md whitespace-nowrap ${index === 0 ? 'bg-surface-container border-outline-variant text-on-surface' : 'bg-white border-outline-variant/70 text-on-surface-variant'}`}>
                 {label}{count ? ` ${count}` : ''}
@@ -191,7 +205,7 @@ export default function ParentMessagesPage() {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto bg-background">
-          {conversations.map(conversation => (
+          {recentConversations.map(conversation => (
             <button
               key={conversation.id}
               type="button"
@@ -207,12 +221,11 @@ export default function ParentMessagesPage() {
               <div className="min-w-0 flex-1 border-b border-outline-variant/20 pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-body-lg font-medium text-on-surface truncate">{conversation.name}</p>
-                  <p className={`text-label-sm shrink-0 ${conversation.unread > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>{conversation.time}</p>
+                  <p className={`text-label-sm shrink-0 ${isUnread(conversation) ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>{conversation.time}</p>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
                   <p className="text-label-md text-on-surface-variant truncate flex-1">{conversation.preview}</p>
                   <span className="material-symbols-outlined text-[18px] text-on-surface-variant">notifications_off</span>
-                  {conversation.unread > 0 && <span className="w-5 h-5 rounded-full border border-primary/40 text-primary text-label-sm font-bold flex items-center justify-center shrink-0">{conversation.unread}</span>}
                 </div>
               </div>
             </button>

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import TeacherSidebar from '@/components/TeacherSidebar';
 import RoleBootstrapLoader from '@/components/RoleBootstrapLoader';
 
-type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'timetable';
+type ActiveItem = 'dashboard' | 'students' | 'attendance' | 'messages' | 'reports' | 'results' | 'timetable';
 
 const itemMap: Record<string, ActiveItem> = {
   '/teacher/dashboard': 'dashboard',
@@ -14,6 +14,8 @@ const itemMap: Record<string, ActiveItem> = {
   '/teacher/attendance': 'attendance',
   '/teacher/messages': 'messages',
   '/teacher/reports': 'reports',
+  '/teacher/results': 'results',
+  '/teacher/results/edit': 'results',
   '/teacher/timetable': 'timetable',
   '/teacher/notifications': 'messages',
 };
@@ -25,6 +27,8 @@ const titleMap: Record<string, { title: string; sub: string }> = {
   '/teacher/attendance': { title: 'Attendance', sub: 'Mark and track daily attendance' },
   '/teacher/messages': { title: 'Messages', sub: 'Communicate with parents and staff' },
   '/teacher/reports': { title: 'Reports', sub: 'File incidents and view class reports' },
+  '/teacher/results': { title: 'Results', sub: 'Enter assigned class assessment marks' },
+  '/teacher/results/edit': { title: 'Edit Results', sub: 'Update saved assessment marks' },
   '/teacher/settings': { title: 'Settings', sub: 'Teacher profile and account preferences' },
   '/teacher/support': { title: 'Support', sub: 'Help requests and school support contacts' },
   '/teacher/profile': { title: 'Profile', sub: 'Teacher profile settings' },

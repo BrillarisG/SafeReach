@@ -3,6 +3,8 @@
 import Link from '@/src/next-link';
 import { useEffect, useMemo, useState } from 'react';
 import { downloadTextFile } from '@/lib/downloadFile';
+import { BackendStudent, useBackendBootstrap } from '@/lib/backendData';
+import { getCurrentTeacherAssignment, studentsForAssignment } from '@/lib/teacherAssignment';
 
 type TeacherStudent = {
   name: string;
@@ -17,6 +19,7 @@ type TeacherStudent = {
   img: string;
   alert?: boolean;
   parentSmsEnabled?: boolean;
+  studentCode?: string;
 };
 
 type StudentFormState = {
@@ -29,14 +32,8 @@ type StudentFormState = {
 };
 
 const STORAGE_KEY = 'safereach_teacher_students_grade_4b';
-const assignedClass = 'Grade 4-B';
+const defaultAssignedClass = 'Class 4-A';
 const fallbackImage = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAWO8HpwwBhmeoajB7xWCMFKNJe3sw2BzJjZseSxmUMujJcYruCpH-zH5un-iKCmQ-Ys0Vgs3FqNTMYzOqsICx5AonWuC-QkildK8bDQ6NnDXJA1EKLuX6P4rjcRkY6ATnb8VQapagNpTBA8gIC2g4gwKfxil7G9-ynMmGALAh43c10wCR9D985t1MvUMfAHeZyNrFZanObrllIiGCBVFRDBYOZ2aVLOqYCu4Gc2SgEPOrv4WvLxL1s_d_60yhwdOBVu-uXPY7Csh7G';
-
-const teacherStudentSeed: TeacherStudent[] = [
-  { name: 'Liam Sanders', sub: 'Emergency: Severe Nut Allergy', id: '#STU-2024-001', grade: assignedClass, status: 'At School', stCls: 'bg-secondary-container/10 text-secondary border-secondary/20', guardian: '+1 (555) 012-3456', gSub: 'Mother: Sarah S.', activity: '08:15 AM - Scanned Gate 2', img: fallbackImage },
-  { name: 'Emma Wilson', sub: 'Bus Route: Blue-04', id: '#STU-2024-042', grade: assignedClass, status: 'At School', stCls: 'bg-secondary-container/10 text-secondary border-secondary/20', guardian: '+1 (555) 019-8765', gSub: 'Father: David W.', activity: '08:42 AM - Boarded Bus', img: fallbackImage },
-  { name: 'Noah Miller', sub: 'Unscheduled Absence', id: '#STU-2024-118', grade: assignedClass, status: 'Missing Scan', stCls: 'bg-error-container/20 text-error border-error/20', guardian: '+1 (555) 021-4433', gSub: 'Mother: Elena M.', activity: '08:30 AM - Expected Scan Missed', img: fallbackImage, alert: true },
-];
 
 const emptyForm: StudentFormState = {
   name: '',
@@ -55,22 +52,22 @@ function statusClass(status: StudentFormState['status']) {
 }
 
 function safeReadStudents() {
-  if (typeof window === 'undefined') return teacherStudentSeed;
+  if (typeof window === 'undefined') return [];
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '[]') as TeacherStudent[];
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : teacherStudentSeed;
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return teacherStudentSeed;
+    return [];
   }
 }
 
-function buildStudent(form: StudentFormState, id?: string): TeacherStudent {
+function buildStudent(form: StudentFormState, id?: string, classLabel = defaultAssignedClass): TeacherStudent {
   const studentId = id ?? `#STU-${Date.now().toString().slice(-6)}`;
   return {
     name: form.name.trim(),
     sub: form.note.trim() || 'Added by class incharge',
     id: studentId,
-    grade: assignedClass,
+    grade: classLabel,
     status: form.status,
     stCls: statusClass(form.status),
     guardian: form.phone.trim() || '+1 (555) 000-0000',
@@ -93,6 +90,17 @@ function formFromStudent(student: TeacherStudent): StudentFormState {
   };
 }
 
+function storedStudentToTeacherStudent(student: BackendStudent): TeacherStudent {
+  const status = student.travel_status === 'absent' ? 'Missing Scan' : student.travel_status === 'to_school' ? 'In Transit' : 'At School';
+  return {
+    name: student.full_name, sub: student.attendance_status === 'absent' ? 'Attendance marked absent' : 'Stored SafeReach record',
+    id: student.id, studentCode: student.student_code, grade: `${student.class_name}-${student.section_name}`,
+    status, stCls: statusClass(status), guardian: student.parent_phone || 'Phone unavailable',
+    gSub: student.guardian_name ? `Guardian: ${student.guardian_name}` : 'Guardian: Not assigned',
+    activity: 'Stored SafeReach record', img: fallbackImage, alert: student.travel_status === 'absent', parentSmsEnabled: student.sms_enabled,
+  };
+}
+
 function ToolbarIconButton({ icon, label, onClick, accent = false }: { icon: string; label: string; onClick: () => void; accent?: boolean }) {
   return (
     <button type="button" onClick={onClick} title={label} aria-label={label} className={`group relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:z-50 focus-visible:z-50 ${accent ? 'bg-secondary text-on-secondary hover:opacity-90' : 'border border-outline text-on-surface hover:bg-surface-container-high'}`}>
@@ -107,9 +115,14 @@ type TeacherStudentsPageProps = {
 };
 
 export function TeacherStudentDashboardSummary() {
-  const [students, setStudents] = useState<TeacherStudent[]>(teacherStudentSeed);
+  const [students, setStudents] = useState<TeacherStudent[]>([]);
+  const { data } = useBackendBootstrap();
+  const assignment = getCurrentTeacherAssignment(data);
+  const assignedClass = `${assignment.className}-${assignment.sectionName}`;
 
-  useEffect(() => setStudents(safeReadStudents()), []);
+  useEffect(() => {
+    setStudents(studentsForAssignment(data.students, assignment.className, assignment.sectionName).map(storedStudentToTeacherStudent));
+  }, [data.students, assignment.className, assignment.sectionName]);
 
   function downloadTemplate() {
     downloadTextFile(
@@ -139,14 +152,21 @@ export function TeacherStudentDashboardSummary() {
 export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPageProps = {}) {
   const dashboardMode = mode === 'dashboard';
   const addMode = mode === 'add';
-  const [teacherStudents, setTeacherStudents] = useState<TeacherStudent[]>(teacherStudentSeed);
+  const [teacherStudents, setTeacherStudents] = useState<TeacherStudent[]>([]);
   const [formState, setFormState] = useState<StudentFormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [notice, setNotice] = useState('Only assigned class students can be added, edited, or removed in this frontend demo.');
+  const [notice, setNotice] = useState('Only assigned class students can be added or edited by the class incharge or assistant incharge.');
+  const { data } = useBackendBootstrap();
+  const assignment = getCurrentTeacherAssignment(data);
+  const assignedClass = `${assignment.className}-${assignment.sectionName}`;
 
   useEffect(() => {
     setTeacherStudents(safeReadStudents());
   }, []);
+
+  useEffect(() => {
+    setTeacherStudents(studentsForAssignment(data.students, assignment.className, assignment.sectionName).map(storedStudentToTeacherStudent));
+  }, [data.students, assignment.className, assignment.sectionName]);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(teacherStudents));
@@ -178,10 +198,10 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
     event.preventDefault();
     if (!formState.name.trim()) return;
     if (editingId) {
-      setTeacherStudents(current => current.map(student => student.id === editingId ? buildStudent(formState, editingId) : student));
+      setTeacherStudents(current => current.map(student => student.id === editingId ? buildStudent(formState, editingId, assignedClass) : student));
       setNotice(`${formState.name.trim()} updated in ${assignedClass}.`);
     } else {
-      setTeacherStudents(current => [buildStudent(formState), ...current]);
+      setTeacherStudents(current => [buildStudent(formState, undefined, assignedClass), ...current]);
       setNotice(`${formState.name.trim()} added to ${assignedClass}.`);
     }
     resetForm();
@@ -191,13 +211,6 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
     setEditingId(student.id);
     setFormState(formFromStudent(student));
     setNotice(`Editing ${student.name}. Save changes or cancel to return to add mode.`);
-  }
-
-  function removeStudent(student: TeacherStudent) {
-    if (!window.confirm(`Remove ${student.name} from ${assignedClass}?`)) return;
-    setTeacherStudents(current => current.filter(item => item.id !== student.id));
-    if (editingId === student.id) resetForm();
-    setNotice(`${student.name} removed from the frontend class list.`);
   }
 
   function simulateUpload() {
@@ -240,7 +253,7 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
       </div>
       )}
 
-      {!dashboardMode && (
+      {addMode && (
       <form onSubmit={saveStudent} className="bg-surface rounded-xl border border-outline-variant shadow-sm p-stack-md">
         <div className="flex flex-col gap-stack-md">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-stack-sm">
@@ -354,7 +367,7 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
           <table className="w-full min-w-[620px] text-left border-collapse">
             <thead className="bg-surface-container-low sticky top-0">
               <tr>
-                {['Student Name', 'Student ID', 'Actions'].map(header => (
+                {['Student Name', 'Student ID', 'Status', 'Actions'].map(header => (
                   <th key={header} className={`p-4 font-label-md text-label-sm text-on-surface-variant uppercase tracking-wider ${header === 'Actions' ? 'text-right' : ''}`}>{header}</th>
                 ))}
               </tr>
@@ -371,17 +384,16 @@ export default function TeacherStudentsPage({ mode = 'full' }: TeacherStudentsPa
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-on-surface-variant font-label-md">{student.id}</td>
+                  <td className="p-4 text-on-surface-variant font-label-md">{student.studentCode ?? student.id}</td>
+                  <td className="p-4">
+                    <span className={`inline-flex rounded-full border px-3 py-1 text-label-sm font-bold ${student.stCls}`}>{student.status}</span>
+                  </td>
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Link href={`/teacher/students/edit?id=${encodeURIComponent(student.id)}`} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/15">
                         <span className="material-symbols-outlined text-[18px]">edit</span>
                         Edit
                       </Link>
-                      <button type="button" onClick={() => removeStudent(student)} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-error-container text-error font-bold hover:opacity-90">
-                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                        Remove
-                      </button>
                     </div>
                   </td>
                 </tr>

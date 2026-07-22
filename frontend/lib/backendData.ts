@@ -25,6 +25,7 @@ export type BackendStudent = {
 
 export type BackendTeacher = {
   id: string;
+  user_id?: string;
   full_name: string;
   email: string;
   phone: string;
@@ -86,6 +87,12 @@ export type BackendApiTest = {
   created_at: string;
 };
 
+export type BackendAcademicResults = {
+  exams: Array<{ id: string; school_id: string; class_id: string; section_id: string; name: string; active: boolean; class_name: string; section_name: string }>;
+  components: Array<{ id: string; exam_id: string; subject: string; label: string; maximum_marks: string | number; sort_order: number }>;
+  marks: Array<{ student_id: string; result_component_id: string; marks_obtained: string | number; updated_at: string }>;
+};
+
 export type BackendBootstrap = {
   schools: Array<{ id: string; name: string; code: string; status: string }>;
   classes: BackendClass[];
@@ -101,6 +108,7 @@ export type BackendBootstrap = {
     breaks: Array<{ id: string; label: string; afterPeriod: number; tone: string }>;
     days: Array<{ id: string; label: string; periods: string[] }>;
   };
+  academicResults: BackendAcademicResults;
 };
 
 const emptyBootstrap: BackendBootstrap = {
@@ -113,6 +121,7 @@ const emptyBootstrap: BackendBootstrap = {
   incidents: [],
   apiTests: [],
   timetable: { className: '', section: '', breaks: [], days: [] },
+  academicResults: { exams: [], components: [], marks: [] },
 };
 
 type TravelUpdate = {
@@ -206,6 +215,13 @@ export function useBackendBootstrap() {
 
     safereachRealtime.connect();
     const unsubscribe = safereachRealtime.subscribe(event => {
+      if (event.type === 'results.updated') {
+        fetch(`${API_BASE}/academic-results`, { cache: 'no-store' })
+          .then(response => response.ok ? response.json() : Promise.reject(new Error('Unable to refresh results')))
+          .then(academicResults => setData(current => ({ ...current, academicResults })))
+          .catch(() => undefined);
+        return;
+      }
       if (event.type !== 'student.status.changed' && event.type !== 'attendance.marked') return;
       updateFromPayload(event.payload);
     });

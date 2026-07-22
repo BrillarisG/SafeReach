@@ -5,7 +5,7 @@ import LogoutConfirmButton from './LogoutConfirmButton';
 import { downloadTextFile } from '@/lib/downloadFile';
 import LogoMark from './LogoMark';
 
-type AnalyticsItem = 'analytics' | 'students' | 'teachers' | 'messages' | 'incident' | 'reports' | 'audit' | 'timetable';
+type AnalyticsItem = 'analytics' | 'students' | 'teachers' | 'messages' | 'incident' | 'reports' | 'results' | 'audit' | 'timetable';
 type Variant = 'analytics' | 'hub';
 
 interface AdminSidebarProps {
@@ -61,25 +61,23 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
             <span className="font-label-md text-label-md">Reports</span>
           </Link>
         </nav>
-        <div className="mt-auto shrink-0 space-y-2">
-          <button className="w-full bg-error text-on-error py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
-            <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>emergency</span>
-            Emergency Alert
-          </button>
-          <div className="pt-4 border-t border-outline-variant space-y-1">
+        <div className="mt-auto shrink-0 border-t border-outline-variant pt-4 space-y-1">
             <Link href="/admin/account" onClick={onNavigate} className={activeItem === 'audit' ? activeClass : inactiveClass}>
               <span className="material-symbols-outlined text-[20px]">manage_accounts</span>
               <span className="font-label-md text-label-md">Account Settings</span>
             </Link>
             <LogoutConfirmButton label="Sign Out" className="w-full flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low" />
-          </div>
+          <button className="mt-3 w-full bg-error text-on-error py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+            <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>emergency</span>
+            Emergency Alert
+          </button>
         </div>
       </aside>
     );
   }
 
   return (
-    <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-16 h-[calc(100svh-64px)]'} flex-col w-64 max-h-[calc(100svh-64px)] bg-surface border-r border-outline-variant/60 p-3 pb-20 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] z-50`}>
+    <aside className={`${className ?? 'hidden lg:flex fixed left-0 top-16 h-[calc(100svh-64px)]'} flex-col w-64 max-h-[calc(100svh-64px)] bg-surface border-r border-outline-variant/60 p-3 pb-4 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] z-50`}>
       <div className="mb-6">
         <h2 className="text-label-md font-bold text-primary px-2 mb-1">Admin Panel</h2>
       </div>
@@ -108,21 +106,29 @@ export default function AdminSidebar({ activeItem, variant = 'analytics', classN
           <span className="material-symbols-outlined text-[20px]">bar_chart</span>
           <span className="text-label-md">Safety Reports</span>
         </Link>
+        <Link href="/admin/results" onClick={onNavigate} className={activeItem === 'results' ? activeClass : inactiveClass}>
+          <span className="material-symbols-outlined text-[20px]">grade</span>
+          <span className="text-label-md">Results Setup</span>
+        </Link>
         <Link href="/admin/account" onClick={onNavigate} className={activeItem === 'audit' ? activeClass : inactiveClass}>
           <span className="material-symbols-outlined text-[20px]">security</span>
           <span className="text-label-md">System Audit</span>
         </Link>
       </nav>
-      <button onClick={exportGlobalData} className="mt-4 mb-4 w-full shrink-0 py-2 bg-secondary text-on-secondary rounded-lg font-label-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-        <span className="material-symbols-outlined text-[18px]">download</span>
-        Export Global Data
-      </button>
-      <div className="shrink-0 border-t border-outline-variant pt-4 space-y-1">
+      <div className="mt-auto shrink-0 border-t border-outline-variant pt-4 space-y-1">
+        <button onClick={exportGlobalData} className="mb-2 w-full py-2 bg-secondary text-on-secondary rounded-lg font-label-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+          <span className="material-symbols-outlined text-[18px]">download</span>
+          Export Global Data
+        </button>
         <Link href="/admin/support" onClick={onNavigate} className="flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low">
           <span className="material-symbols-outlined text-[20px]">help</span>
           <span className="text-label-md">Support</span>
         </Link>
         <LogoutConfirmButton className="w-full flex items-center gap-3 rounded-md px-3 py-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low" />
+        <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-error px-3 py-2.5 font-bold text-on-error transition-transform hover:opacity-90 active:scale-95">
+          <span className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>emergency</span>
+          Emergency Alert
+        </button>
       </div>
     </aside>
   );

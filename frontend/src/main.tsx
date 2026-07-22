@@ -30,6 +30,7 @@ import AdminNotificationsPage from "@/app/admin/notifications/page";
 import AdminPreferencesPage from "@/app/admin/preferences/page";
 import AdminProfilePage from "@/app/admin/profile/page";
 import AdminReportsPage from "@/app/admin/reports/page";
+import AdminResultsPage from "@/app/admin/results/page";
 import AdminSecurityPage from "@/app/admin/security/page";
 import AdminStudentsPage from "@/app/admin/students/page";
 import AdminStudentsAddPage from "@/app/admin/students/add/page";
@@ -49,6 +50,8 @@ import TeacherMessagesPage from "@/app/teacher/messages/page";
 import TeacherNotificationsPage from "@/app/teacher/notifications/page";
 import TeacherProfilePage from "@/app/teacher/profile/page";
 import TeacherReportsPage from "@/app/teacher/reports/page";
+import TeacherResultsPage from "@/app/teacher/results/page";
+import TeacherResultsEditPage from "@/app/teacher/results/edit/page";
 import TeacherSettingsPage from "@/app/teacher/settings/page";
 import TeacherStudentsPage from "@/app/teacher/students/page";
 import TeacherStudentsEditPage from "@/app/teacher/students/edit/page";
@@ -98,6 +101,7 @@ const adminRoutes: Record<string, React.ComponentType> = {
   "/admin/preferences": AdminPreferencesPage,
   "/admin/profile": AdminProfilePage,
   "/admin/reports": AdminReportsPage,
+  "/admin/results": AdminResultsPage,
   "/admin/security": AdminSecurityPage,
   "/admin/students": AdminStudentsPage,
   "/admin/students/add": AdminStudentsAddPage,
@@ -121,6 +125,8 @@ const teacherRoutes: Record<string, React.ComponentType> = {
   "/teacher/notifications": TeacherNotificationsPage,
   "/teacher/profile": TeacherProfilePage,
   "/teacher/reports": TeacherReportsPage,
+  "/teacher/results": TeacherResultsPage,
+  "/teacher/results/edit": TeacherResultsEditPage,
   "/teacher/settings": TeacherSettingsPage,
   "/teacher/students": TeacherStudentsPage,
   "/teacher/students/edit": TeacherStudentsEditPage,

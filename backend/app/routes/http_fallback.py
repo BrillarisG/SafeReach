@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from ..services import industry_menu_service, integration_status_service, json_backup_service, message_service, safereach_service, safety_protocol_service
+from ..services import academic_result_service, industry_menu_service, integration_status_service, json_backup_service, message_service, safereach_service, safety_protocol_service
 
 api_bp = Blueprint("api", __name__)
 
@@ -128,6 +128,19 @@ def student_attendance(student_id: str):
         return _api_error("attendance_submit_failed", exc, 503)
 
 
+@api_bp.patch("/students/<student_id>/sms-enabled")
+def update_student_sms_enabled(student_id: str):
+    payload = request.get_json(silent=True) or {}
+    if not isinstance(payload.get("enabled"), bool):
+        return _api_error("student_sms_invalid", ValueError("enabled must be true or false"), 400)
+    try:
+        return jsonify(safereach_service.set_student_sms_enabled(student_id, payload["enabled"], payload.get("actorUserId")))
+    except LookupError as exc:
+        return _api_error("student_sms_not_found", exc, 404)
+    except Exception as exc:
+        return _api_error("student_sms_update_failed", exc, 503)
+
+
 @api_bp.post("/student-travel/go-out")
 def student_go_out():
     payload = request.get_json(silent=True) or {}
@@ -190,6 +203,44 @@ def notify_absent_parents():
         return jsonify({"ok": True, "notifications": message_service.notify_absent_parents(student_ids, payload.get("actorUserId"))})
     except Exception as exc:
         return _api_error("absence_notification_failed", exc, 503)
+
+
+@api_bp.get("/academic-results")
+def academic_results():
+    try:
+        return jsonify(academic_result_service.list_results())
+    except Exception as exc:
+        return _api_error("academic_results_list_failed", exc, 503)
+
+
+@api_bp.post("/academic-results/exams")
+def save_result_exam():
+    payload = request.get_json(silent=True) or {}
+    try:
+        return jsonify(academic_result_service.save_exam(payload, payload.get("actorUserId")))
+    except ValueError as exc:
+        return _api_error("academic_result_exam_invalid", exc, 400)
+    except LookupError as exc:
+        return _api_error("academic_result_exam_not_found", exc, 404)
+    except PermissionError as exc:
+        return _api_error("academic_result_exam_forbidden", exc, 403)
+    except Exception as exc:
+        return _api_error("academic_result_exam_save_failed", exc, 503)
+
+
+@api_bp.post("/academic-results/marks")
+def save_student_result_marks():
+    payload = request.get_json(silent=True) or {}
+    try:
+        return jsonify(academic_result_service.submit_marks(payload, payload.get("actorUserId")))
+    except ValueError as exc:
+        return _api_error("academic_result_marks_invalid", exc, 400)
+    except PermissionError as exc:
+        return _api_error("academic_result_marks_forbidden", exc, 403)
+    except LookupError as exc:
+        return _api_error("academic_result_marks_not_found", exc, 404)
+    except Exception as exc:
+        return _api_error("academic_result_marks_save_failed", exc, 503)
 
 
 @api_bp.get("/safety-protocols")

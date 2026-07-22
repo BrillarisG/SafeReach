@@ -44,6 +44,7 @@ class SafeReachRealtimeClient {
         'attendance.absence.notified',
         'timetable.updated',
         'timetable.error',
+        'results.updated',
         'industry.menu.updated',
         'industry.menu.error',
         'safe.error',

@@ -1,16 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useBackendBootstrap } from '@/lib/backendData';
 import { useSafetyProtocols } from '@/lib/safetyProtocols';
 import TeacherStudentsPage, { TeacherStudentDashboardSummary } from '../students/page';
 
-const teacherDayTimetables = [
-  { label: 'Day-1', classes: ['Class 4-B', 'Class 7-A', '-', 'Class 6-A', 'Class 4-B', 'Class 8-B', '-'] },
-  { label: 'Day-2', classes: ['Class 7-A', 'Class 2-B', '-', 'Class 6-A', 'Class 7-A', 'Class 5-B', '-'] },
-  { label: 'Day-3', classes: ['Class 8-B', '-', 'Class 4-B', 'Class 7-A', 'Class 6-A', '-', 'Class 4-B'] },
-];
-
 export default function TeacherDashboardPage() {
+  const { data: bootstrap } = useBackendBootstrap();
   const {
     protocols,
     loading: protocolsLoading,
@@ -26,7 +22,15 @@ export default function TeacherDashboardPage() {
   const [newProtocol, setNewProtocol] = useState('');
   const [notice, setNotice] = useState('');
   const [dayIndex, setDayIndex] = useState(0);
-  const activeDay = teacherDayTimetables[dayIndex];
+  const timetableDays = bootstrap.timetable.days;
+  const activeDay = timetableDays[dayIndex] ?? timetableDays[0] ?? { label: 'No timetable', periods: [] };
+  const timetableClassLabel = bootstrap.timetable.className && bootstrap.timetable.section
+    ? `${bootstrap.timetable.className}-${bootstrap.timetable.section}`
+    : '-';
+  const teacherPeriods = useMemo(() => activeDay.periods.map(period => ({
+    subject: period,
+    classLabel: period && period !== '-' ? timetableClassLabel : '-',
+  })), [activeDay.periods, timetableClassLabel]);
 
   useEffect(() => {
     function resetIfNewDay() {
@@ -101,12 +105,16 @@ export default function TeacherDashboardPage() {
   }
 
   function previousDay() {
-    setDayIndex(current => (current === 0 ? teacherDayTimetables.length - 1 : current - 1));
+    setDayIndex(current => (current === 0 ? Math.max(timetableDays.length - 1, 0) : current - 1));
   }
 
   function nextDay() {
-    setDayIndex(current => (current + 1) % teacherDayTimetables.length);
+    setDayIndex(current => timetableDays.length === 0 ? 0 : (current + 1) % timetableDays.length);
   }
+
+  useEffect(() => {
+    if (dayIndex >= timetableDays.length) setDayIndex(0);
+  }, [dayIndex, timetableDays.length]);
 
   return (
     <div className="p-container-padding-mobile md:p-container-padding-desktop pb-6">
@@ -136,10 +144,13 @@ export default function TeacherDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {activeDay.classes.map((className, index) => (
+                    {teacherPeriods.map((period, index) => (
                       <tr key={`${activeDay.label}-${index}`} className={index % 2 === 0 ? 'bg-primary/5' : 'bg-surface'}>
                         <td className="px-2 py-3 font-bold text-primary border-r border-outline-variant">{index + 1}</td>
-                        <td className={`px-2 py-3 font-label-md whitespace-nowrap ${className === '-' ? 'text-on-surface-variant' : 'text-on-surface font-bold'}`}>{className}</td>
+                        <td className={`px-2 py-3 font-label-md ${period.classLabel === '-' ? 'text-on-surface-variant' : 'text-on-surface font-bold'}`}>
+                          <span className="block">{period.classLabel}</span>
+                          {period.classLabel !== '-' && <span className="block text-[11px] font-normal text-on-surface-variant">{period.subject}</span>}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

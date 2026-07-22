@@ -249,6 +249,46 @@ create table if not exists safety_protocols (
   updated_at timestamptz not null default now()
 );
 
+-- Academic results are configured by a school administrator and entered by
+-- the assigned class incharge or assistant. Components are separate rows so
+-- each school can use its own Internal / Practical / Exam mark structure.
+create table if not exists result_exams (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references schools(id) on delete cascade,
+  class_id uuid not null references classes(id) on delete cascade,
+  section_id uuid not null references sections(id) on delete cascade,
+  name text not null,
+  active boolean not null default true,
+  created_by uuid references users(id),
+  updated_by uuid references users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(section_id, name)
+);
+
+create table if not exists result_components (
+  id uuid primary key default gen_random_uuid(),
+  exam_id uuid not null references result_exams(id) on delete cascade,
+  subject text not null,
+  label text not null,
+  maximum_marks numeric(7,2) not null check (maximum_marks > 0),
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(exam_id, subject, label)
+);
+
+create table if not exists student_result_marks (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  result_component_id uuid not null references result_components(id) on delete cascade,
+  marks_obtained numeric(7,2) not null check (marks_obtained >= 0),
+  entered_by uuid references users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(student_id, result_component_id)
+);
+
 create index if not exists idx_users_school_role on users(school_id, role_id);
 create index if not exists idx_students_school_class_section on students(school_id, class_id, section_id);
 create index if not exists idx_attendance_date on attendance_records(school_id, attendance_date, session);
@@ -256,3 +296,6 @@ create index if not exists idx_notifications_user on notifications(user_id, read
 create index if not exists idx_safety_protocols_role on safety_protocols(school_id, role_key, active);
 create index if not exists idx_messages_student_created on messages(student_id, created_at desc);
 create index if not exists idx_messages_kind_created on messages(message_kind, created_at desc);
+create index if not exists idx_result_exams_section on result_exams(section_id, active);
+create index if not exists idx_result_components_exam on result_components(exam_id, subject, sort_order);
+create index if not exists idx_student_result_marks_student on student_result_marks(student_id);

@@ -22,6 +22,8 @@ PERMISSIONS = [
     ("app.teacher.student.edit_assigned", "Edit assigned class students"),
     ("app.teacher.attendance.submit", "Submit attendance"),
     ("app.teacher.go_out.submit", "Submit go-out attendance"),
+    ("app.teacher.results.enter", "Enter assigned class student results"),
+    ("app.admin.results.configure", "Configure result exams and mark limits"),
     ("app.parent.child.ready_to_school", "Mark child ready for school"),
     ("app.parent.child.reached_home", "Confirm child reached home"),
     ("app.timetable.edit", "Edit timetable subjects and break timing"),
@@ -31,8 +33,8 @@ PERMISSIONS = [
 ROLE_KEYS = {
     "main_admin": [key for key, _ in PERMISSIONS],
     "school_admin": [key for key, _ in PERMISSIONS if key.startswith("app.admin") or key.startswith("app.timetable") or key == "app.notification.read"],
-    "teacher": ["app.teacher.student.edit_assigned", "app.teacher.attendance.submit", "app.teacher.go_out.submit", "app.timetable.edit", "app.notification.read"],
-    "assistant_incharge": ["app.teacher.student.edit_assigned", "app.teacher.attendance.submit", "app.teacher.go_out.submit", "app.timetable.edit", "app.notification.read"],
+    "teacher": ["app.teacher.student.edit_assigned", "app.teacher.attendance.submit", "app.teacher.go_out.submit", "app.teacher.results.enter", "app.timetable.edit", "app.notification.read"],
+    "assistant_incharge": ["app.teacher.student.edit_assigned", "app.teacher.attendance.submit", "app.teacher.go_out.submit", "app.teacher.results.enter", "app.timetable.edit", "app.notification.read"],
     "parent": ["app.parent.child.ready_to_school", "app.parent.child.reached_home", "app.notification.read"],
 }
 
@@ -192,6 +194,23 @@ def main() -> None:
                         on conflict(section_id, break_key) do update set label=excluded.label, after_period=excluded.after_period, tone=excluded.tone, updated_at=now()
                     """, (school_id, class_id, section_id, break_key, label, after_period, tone))
 
+                # Every section begins with a usable quarterly assessment.
+                # Schools can later edit these component labels and maxima.
+                exam_id = one(cur, """
+                    insert into result_exams(school_id, class_id, section_id, name, created_by, updated_by)
+                    values(%s,%s,%s,'Quarterly',%s,%s)
+                    on conflict(section_id, name) do update set updated_by=excluded.updated_by, updated_at=now()
+                    returning id
+                """, (school_id, class_id, section_id, school_admin_id, school_admin_id))
+                for subject in SUBJECTS:
+                    for component_index, (label, maximum) in enumerate((("Internal 1", 25), ("Internal 2", 25), ("Exam", 50)), start=1):
+                        cur.execute("""
+                            insert into result_components(exam_id, subject, label, maximum_marks, sort_order)
+                            values(%s,%s,%s,%s,%s)
+                            on conflict(exam_id, subject, label)
+                            do update set maximum_marks=excluded.maximum_marks, sort_order=excluded.sort_order, updated_at=now()
+                        """, (exam_id, subject, label, maximum, component_index))
+
                 for roll_no in range(1, 21):
                     if student_number == 1:
                         full_name, parent_index = "Leo Thompson", 1
@@ -223,6 +242,16 @@ def main() -> None:
                         school_id, student_id, class_id, section_id, attendance_status,
                         "Seeded attendance history" if attendance_status != "present" else None, school_admin_id,
                     ))
+                    if roll_no <= 3:
+                        cur.execute("select id, maximum_marks from result_components where exam_id=%s order by subject, sort_order", (exam_id,))
+                        for component_id, maximum_marks in cur.fetchall():
+                            score = max(0, float(maximum_marks) - ((roll_no + int(float(maximum_marks))) % 6))
+                            cur.execute("""
+                                insert into student_result_marks(student_id, result_component_id, marks_obtained, entered_by)
+                                values(%s,%s,%s,%s)
+                                on conflict(student_id, result_component_id)
+                                do update set marks_obtained=excluded.marks_obtained, entered_by=excluded.entered_by, updated_at=now()
+                            """, (student_id, component_id, score, school_admin_id))
                     student_number += 1
 
                 cur.execute("""

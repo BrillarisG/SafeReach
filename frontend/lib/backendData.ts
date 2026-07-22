@@ -212,23 +212,28 @@ export function useBackendBootstrap() {
         }));
       setData(current => applyTravelUpdates(current, updates));
     };
+    const refreshAcademicResults = () => {
+      fetch(`${API_BASE}/academic-results`, { cache: 'no-store' })
+        .then(response => response.ok ? response.json() : Promise.reject(new Error('Unable to refresh results')))
+        .then(academicResults => setData(current => ({ ...current, academicResults })))
+        .catch(() => undefined);
+    };
 
     safereachRealtime.connect();
     const unsubscribe = safereachRealtime.subscribe(event => {
       if (event.type === 'results.updated') {
-        fetch(`${API_BASE}/academic-results`, { cache: 'no-store' })
-          .then(response => response.ok ? response.json() : Promise.reject(new Error('Unable to refresh results')))
-          .then(academicResults => setData(current => ({ ...current, academicResults })))
-          .catch(() => undefined);
+        refreshAcademicResults();
         return;
       }
       if (event.type !== 'student.status.changed' && event.type !== 'attendance.marked') return;
       updateFromPayload(event.payload);
     });
     window.addEventListener('safereach-travel-state-updated', updateFromTravelSnapshot);
+    window.addEventListener('safereach-results-updated', refreshAcademicResults);
     return () => {
       unsubscribe();
       window.removeEventListener('safereach-travel-state-updated', updateFromTravelSnapshot);
+      window.removeEventListener('safereach-results-updated', refreshAcademicResults);
     };
   }, []);
 

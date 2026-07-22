@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useBackendBootstrap } from '@/lib/backendData';
 import { safereachRealtime } from '@/lib/realtimeApi';
+import { apiBaseUrl } from '@/lib/runtimeConfig';
 
 type DraftComponent = { subject: string; label: string; maximumMarks: string };
 
@@ -18,11 +19,11 @@ export default function AdminResultsPage() {
   const currentClass = data.classes.find(item => item.id === classId) ?? data.classes[0];
   const availableSections = currentClass?.sections ?? [];
   const currentExams = useMemo(() => data.academicResults.exams.filter(exam => exam.class_id === classId && exam.section_id === sectionId), [data.academicResults.exams, classId, sectionId]);
-  const timetableSubjects = useMemo(() => Array.from(new Set(data.timetable.days.flatMap(day => day.periods))).filter(Boolean), [data.timetable.days]);
+  const timetableSubjects = useMemo(() => Array.from(new Set(data.timetable.days.flatMap(day => day.periods))).filter(subject => subject && subject !== '-'), [data.timetable.days]);
 
   useEffect(() => { if (!classId && data.classes[0]) setClassId(data.classes[0].id); }, [classId, data.classes]);
   useEffect(() => { if (availableSections[0] && !availableSections.some(section => section.id === sectionId)) setSectionId(availableSections[0].id); }, [availableSections, sectionId]);
-  useEffect(() => { if (!examId && currentExams[0]) setExamId(currentExams[0].id); }, [examId, currentExams]);
+  useEffect(() => { if (!currentExams.some(exam => exam.id === examId)) setExamId(currentExams[0]?.id ?? ''); }, [examId, currentExams]);
   useEffect(() => {
     const chosen = currentExams.find(exam => exam.id === examId);
     if (chosen) {
@@ -36,8 +37,10 @@ export default function AdminResultsPage() {
   async function save() {
     if (!classId || !sectionId) return;
     setSaving(true);
+    const payload = { examId: examId || undefined, classId, sectionId, name: examName, components };
     try {
-      await safereachRealtime.request('academic-results.exam.save', { examId: examId || undefined, classId, sectionId, name: examName, components });
+      await saveExamPayload(payload);
+      window.dispatchEvent(new Event('safereach-results-updated'));
       setNotice('Result format saved. Teachers can now enter marks for this class exam.');
     } catch (reason) { setNotice(reason instanceof Error ? reason.message : 'Could not save the result format.'); } finally { setSaving(false); }
   }
@@ -49,4 +52,25 @@ export default function AdminResultsPage() {
     <section className="rounded-xl border border-outline-variant bg-surface p-4 shadow-sm md:p-6"><div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><label className="block min-w-[220px] font-bold">Exam name<input value={examName} onChange={event => setExamName(event.target.value)} className="mt-1 w-full rounded-lg border border-outline-variant bg-surface-container px-3 py-2.5 font-normal" placeholder="Quarterly" /></label><button onClick={() => setComponents(items => [...items, { subject: timetableSubjects[0] ?? 'Subject', label: 'Internal', maximumMarks: '25' }])} className="rounded-lg border border-primary px-4 py-2.5 font-bold text-primary">Add Mark Field</button></div><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[640px]"><thead className="bg-surface-container-low text-left"><tr><th className="p-3">Subject</th><th className="p-3">Field</th><th className="p-3">Maximum Mark</th><th className="p-3"></th></tr></thead><tbody>{components.map((component, index) => <tr key={`${component.subject}-${component.label}-${index}`} className="border-t border-outline-variant"><td className="p-3"><select value={component.subject} onChange={event => updateComponent(index, 'subject', event.target.value)} className="w-full rounded-md border border-outline-variant bg-surface-container px-2 py-2">{(timetableSubjects.length ? timetableSubjects : [component.subject]).map(subject => <option key={subject}>{subject}</option>)}</select></td><td className="p-3"><input value={component.label} onChange={event => updateComponent(index, 'label', event.target.value)} className="w-full rounded-md border border-outline-variant bg-surface-container px-2 py-2" /></td><td className="p-3"><input type="number" min="1" value={component.maximumMarks} onChange={event => updateComponent(index, 'maximumMarks', event.target.value)} className="w-28 rounded-md border border-outline-variant bg-surface-container px-2 py-2" /></td><td className="p-3 text-right"><button onClick={() => setComponents(items => items.filter((_, itemIndex) => itemIndex !== index))} className="rounded-md p-2 text-error" title="Remove field"><span className="material-symbols-outlined">delete</span></button></td></tr>)}</tbody></table></div><div className="mt-5 flex justify-end"><button onClick={save} disabled={saving} className="rounded-lg bg-primary px-5 py-2.5 font-bold text-on-primary disabled:opacity-50">{saving ? 'Saving...' : 'Save Result Format'}</button></div></section>
     {notice && <p className="rounded-lg bg-secondary-container/30 px-4 py-3 font-label-md">{notice}</p>}
   </div>;
+}
+
+async function saveExamPayload(payload: {
+  examId?: string;
+  classId: string;
+  sectionId: string;
+  name: string;
+  components: DraftComponent[];
+}) {
+  try {
+    return await safereachRealtime.request('academic-results.exam.save', payload);
+  } catch {
+    const response = await fetch(`${apiBaseUrl}/academic-results/exams`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message ?? 'Could not save the result format.');
+    return body;
+  }
 }

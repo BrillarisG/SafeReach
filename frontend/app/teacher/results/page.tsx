@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from '@/src/next-link';
 import { useBackendBootstrap } from '@/lib/backendData';
 import { safereachRealtime } from '@/lib/realtimeApi';
+import { apiBaseUrl } from '@/lib/runtimeConfig';
 import { getCurrentTeacherAssignment, studentsForAssignment } from '@/lib/teacherAssignment';
 
 export default function TeacherResultsPage() {
@@ -22,7 +23,7 @@ export default function TeacherResultsPage() {
     if (!studentId && students[0]) setStudentId(students[0].id);
   }, [studentId, students]);
   useEffect(() => {
-    if (!examId && exams[0]) setExamId(exams[0].id);
+    if (!exams.some(exam => exam.id === examId)) setExamId(exams[0]?.id ?? '');
   }, [examId, exams]);
 
   const components = useMemo(() => data.academicResults.components.filter(component => component.exam_id === examId), [data.academicResults.components, examId]);
@@ -40,13 +41,15 @@ export default function TeacherResultsPage() {
     const incomplete = components.some(component => marks[component.id] === '' || Number.isNaN(Number(marks[component.id])));
     if (incomplete) { setNotice('Enter a valid mark for every configured assessment component.'); return; }
     setSaving(true);
+    const payload = {
+      studentId,
+      examId,
+      actorUserId: teacherActorId,
+      marks: components.map(component => ({ componentId: component.id, marksObtained: Number(marks[component.id]) })),
+    };
     try {
-      await safereachRealtime.request('academic-results.marks.save', {
-        studentId,
-        examId,
-        actorUserId: teacherActorId,
-        marks: components.map(component => ({ componentId: component.id, marksObtained: Number(marks[component.id]) })),
-      });
+      await saveMarksPayload(payload);
+      window.dispatchEvent(new Event('safereach-results-updated'));
       setNotice(`Results saved for ${selectedStudent?.full_name ?? 'the selected student'}.`);
     } catch (reason) {
       setNotice(reason instanceof Error ? reason.message : 'Could not save student results.');
@@ -89,4 +92,24 @@ export default function TeacherResultsPage() {
     </section>}
     {notice && <p className="rounded-lg bg-secondary-container/30 px-4 py-3 font-label-md text-on-surface">{notice}</p>}
   </div>;
+}
+
+async function saveMarksPayload(payload: {
+  studentId: string;
+  examId: string;
+  actorUserId?: string;
+  marks: { componentId: string; marksObtained: number }[];
+}) {
+  try {
+    return await safereachRealtime.request('academic-results.marks.save', payload);
+  } catch {
+    const response = await fetch(`${apiBaseUrl}/academic-results/marks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message ?? 'Could not save student results.');
+    return body;
+  }
 }

@@ -12,7 +12,7 @@ export default function ParentReportsPage() {
   useEffect(() => { if (!studentId && parentChildren[0]) setStudentId(parentChildren[0].id); }, [studentId, parentChildren]);
   const student = parentChildren.find(item => item.id === studentId);
   const exams = useMemo(() => data.academicResults.exams.filter(exam => exam.class_name === student?.class_name && exam.section_name === student?.section_name && exam.active), [data.academicResults.exams, student]);
-  useEffect(() => { if (!examId && exams[0]) setExamId(exams[0].id); }, [examId, exams]);
+  useEffect(() => { if (!exams.some(exam => exam.id === examId)) setExamId(exams[0]?.id ?? ''); }, [examId, exams]);
   const components = useMemo(() => data.academicResults.components.filter(component => component.exam_id === examId), [data.academicResults.components, examId]);
   const subjects = useMemo(() => Array.from(new Set(components.map(component => component.subject))).map(subject => {
     const rows = components.filter(component => component.subject === subject);

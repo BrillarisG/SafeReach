@@ -9,7 +9,10 @@ from .audit_service import write_audit
 from .cache_service import delete as cache_delete
 from .db3_service import write_event
 
-BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v2"
+BOOTSTRAP_CACHE_KEY = "safereach:bootstrap:v4"
+DEFAULT_EXAM_NAME = "Quarterly"
+DEFAULT_COMPONENTS = (("Internal 1", 25), ("Internal 2", 25), ("Exam", 50))
+FALLBACK_SUBJECTS = ("English", "Maths", "Science", "Social", "Computer")
 
 
 def list_results() -> dict:
@@ -17,6 +20,8 @@ def list_results() -> dict:
     with db1_conn() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             ensure_schema(cur)
+            _ensure_default_result_config(cur)
+            conn.commit()
             cur.execute(
                 """
                 select re.id, re.school_id, re.class_id, re.section_id, re.name, re.active,
@@ -216,6 +221,82 @@ def ensure_schema(cur) -> None:
         );
         """
     )
+
+
+def _ensure_default_result_config(cur) -> None:
+    """Create a usable result format for stored class sections when DB-1 has none.
+
+    The frontend must display stored data only, so this keeps the initial
+    Result screen DB-backed by deriving a default exam from saved classes and
+    timetable subjects. It is idempotent and safe to run on every read.
+    """
+    cur.execute(
+        """
+        select sec.school_id, c.id class_id, sec.id section_id, c.name class_name, sec.name section_name
+        from sections sec
+        join classes c on c.id=sec.class_id
+        where exists (
+          select 1 from students s
+          where s.class_id=c.id and s.section_id=sec.id and s.status='active'
+        )
+        order by c.sort_order, sec.name
+        """
+    )
+    class_sections = [dict(row) for row in cur.fetchall()]
+    for row in class_sections:
+        cur.execute(
+            """
+            select distinct trim(tp.subject) subject
+            from timetable_periods tp
+            where tp.class_id=%s and tp.section_id=%s
+              and nullif(trim(tp.subject), '') is not null
+              and trim(tp.subject) <> '-'
+            order by trim(tp.subject)
+            """,
+            (row["class_id"], row["section_id"]),
+        )
+        subjects = [item["subject"] for item in cur.fetchall()]
+        if not subjects:
+            cur.execute(
+                """
+                select distinct trim(coalesce(ta.subject, '')) subject
+                from teacher_assignments ta
+                where ta.class_id=%s and ta.section_id=%s and ta.active=true
+                  and nullif(trim(coalesce(ta.subject, '')), '') is not null
+                order by trim(coalesce(ta.subject, ''))
+                """,
+                (row["class_id"], row["section_id"]),
+            )
+            subjects = [item["subject"] for item in cur.fetchall()]
+        if not subjects:
+            subjects = list(FALLBACK_SUBJECTS)
+
+        cur.execute(
+            """
+            insert into result_exams(school_id, class_id, section_id, name)
+            values(%s,%s,%s,%s)
+            on conflict(section_id, name)
+            do update set active=true, updated_at=now()
+            returning id
+            """,
+            (row["school_id"], row["class_id"], row["section_id"], DEFAULT_EXAM_NAME),
+        )
+        exam_id = cur.fetchone()["id"]
+        sort_order = 1
+        for subject in subjects:
+            for label, maximum_marks in DEFAULT_COMPONENTS:
+                cur.execute(
+                    """
+                    insert into result_components(exam_id, subject, label, maximum_marks, sort_order)
+                    values(%s,%s,%s,%s,%s)
+                    on conflict(exam_id, subject, label)
+                    do update set maximum_marks=excluded.maximum_marks,
+                                  sort_order=excluded.sort_order,
+                                  updated_at=now()
+                    """,
+                    (exam_id, subject, label, maximum_marks, sort_order),
+                )
+                sort_order += 1
 
 
 def _after_change(event: str, entity: str, entity_id: str, payload: dict, actor_user_id: str | None, school_id: str) -> None:
